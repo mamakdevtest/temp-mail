@@ -48,7 +48,7 @@ git push -u origin main
    ```
 4. Branch: `main`
 5. **Base Directory**: `/` (kök dizin)
-6. **Docker Compose Location**: `/docker-compose.yaml`
+6. **Docker Compose Locatiosn**: `/docker-compose.yaml`
 
 > **⚠️ ÇOK ÖNEMLİ — Dosya Adı Sorunu:**
 > Coolify varsayılan olarak `docker-compose.yaml` (`.yaml` uzantılı) arar.
