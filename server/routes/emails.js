@@ -24,7 +24,7 @@ function createTransporter() {
 
 /**
  * Metin içeriğinden OTP/doğrulama kodunu çıkarmaya çalışır
- * 4-8 haneli sayısal kodları arar
+ * Bağlam duyarlı (context-aware) algoritma kullanır
  *
  * @param {string} text - Aranacak metin
  * @returns {string|null} - Bulunan OTP kodu veya null
@@ -32,13 +32,33 @@ function createTransporter() {
 function extractOtp(text) {
   if (!text) return null;
 
-  // 4-8 haneli sayıları ara (kelime sınırları içinde)
-  const matches = text.match(/\b(\d{4,8})\b/g);
-  if (!matches || matches.length === 0) return null;
+  // 1. Öncelik: OTP/verification anahtar kelimesi yakınındaki kodları ara
+  const contextPattern = /(?:code|otp|verification|passcode|token|kod|doğrulama|verify|confirm)[\s\S]{0,30}?\b(\d{4,8})\b/i;
+  const contextMatch = text.match(contextPattern);
+  if (contextMatch && contextMatch[1]) {
+    return contextMatch[1];
+  }
 
-  // OTP genellikle mail içinde tek veya az sayıda geçer
-  // En uzun kodu tercih et (daha spesifik)
-  return matches.sort((a, b) => b.length - a.length)[0];
+  // 2. Ters yön: kod anahtar kelimeden önce gelebilir
+  const reversePattern = /\b(\d{4,8})\b[\s\S]{0,20}?(?:code|otp|verification|passcode|token|kod|doğrulama)/i;
+  const reverseMatch = text.match(reversePattern);
+  if (reverseMatch && reverseMatch[1]) {
+    return reverseMatch[1];
+  }
+
+  // 3. Fallback: yıl olmayan 4-8 haneli sayıları ara
+  const allNumbers = [...text.matchAll(/\b(\d{4,8})\b/g)].map((m) => m[1]);
+  if (allNumbers.length === 0) return null;
+
+  // Yıl benzeri sayıları filtrele (2000-2099 arası)
+  const filtered = allNumbers.filter((n) => {
+    const num = parseInt(n, 10);
+    return !(n.length === 4 && num >= 2000 && num <= 2099);
+  });
+
+  // Eğer filtrelenmiş sonuç varsa en uzununu al, yoksa ilk bulunanı
+  const candidates = filtered.length > 0 ? filtered : allNumbers;
+  return candidates.sort((a, b) => b.length - a.length)[0];
 }
 
 /**

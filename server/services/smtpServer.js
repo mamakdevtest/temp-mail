@@ -120,6 +120,8 @@ async function processIncomingMail(rawMail, session, io) {
     }
 
     // Socket.io ile istemcilere bildirim gönder
+    const otpCode = extractOtp(bodyText || stripHtml(bodyHtml));
+
     if (io) {
       const emailPayload = {
         id: emailId,
@@ -127,50 +129,56 @@ async function processIncomingMail(rawMail, session, io) {
         subject,
         received_at: new Date().toISOString(),
         has_attachments: hasAttachments === 1,
-        // OTP algılama: 4-8 haneli sayısal kodu tara
-        otp_code: extractOtp(bodyText || stripHtml(bodyHtml)),
+        otp_code: otpCode,
       };
-
-      // Bu adrese abone olan tüm istemcilere gönder
       const room = `inbox:${recipient}`;
       io.to(room).emit('new-email', emailPayload);
-      console.log(`🔔 Socket.io bildirim gönderildi: ${room}`);
     }
 
-    console.log(`📩 Yeni mail kaydedildi: ${sender} → ${recipient} (Konu: ${subject})`);
+    // Webhook tetikle (WEBHOOK_URL tanımlıysa)
+    const webhookUrl = process.env.WEBHOOK_URL;
+    if (webhookUrl) {
+      const payload = {
+        event: 'new_email',
+        address: recipient,
+        sender,
+        subject,
+        otp_code: otpCode,
+        has_attachments: hasAttachments === 1,
+        received_at: new Date().toISOString(),
+        email_id: emailId,
+      };
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch((e) => console.warn('Webhook hatası:', e.message));
+    }
+
+    console.log(`📩 ${sender} → ${recipient} (Konu: ${subject})${otpCode ? ` [OTP: ${otpCode}]` : ''}`);
   }
 }
 
 /**
  * Metin içeriğinden OTP/doğrulama kodunu çıkarmaya çalışır
- * 4-8 haneli sayısal kodları arar
- *
- * @param {string} text - Aranacak metin
- * @returns {string|null} - Bulunan OTP kodu veya null
+ * Bağlam duyarlı (context-aware) algoritma
  */
 function extractOtp(text) {
   if (!text) return null;
 
-  // OTP kalıplarını ara (yaygın formatlar)
-  const patterns = [
-    // "123456" gibi tek başına duran 4-8 haneli kodlar
-    /\b(\d{4,8})\b/g,
-  ];
+  // 1. OTP anahtar kelimesi yakınındaki kodları ara
+  const ctx = text.match(/(?:code|otp|verification|passcode|token|kod|doğrulama|verify|confirm)[\s\S]{0,30}?\b(\d{4,8})\b/i);
+  if (ctx?.[1]) return ctx[1];
 
-  const candidates = [];
+  // 2. Ters yön
+  const rev = text.match(/\b(\d{4,8})\b[\s\S]{0,20}?(?:code|otp|verification|passcode|token|kod|doğrulama)/i);
+  if (rev?.[1]) return rev[1];
 
-  for (const pattern of patterns) {
-    let match;
-    while ((match = pattern.exec(text)) !== null) {
-      candidates.push(match[1]);
-    }
-  }
-
-  if (candidates.length === 0) return null;
-
-  // En sık görünen kodu tercih et, yoksa ilkini al
-  // Genellikle OTP tek geçiyorsa ilk bulunan yeterli
-  return candidates[0];
+  // 3. Fallback: yıl olmayan sayılar
+  const all = [...text.matchAll(/\b(\d{4,8})\b/g)].map((m) => m[1]);
+  if (!all.length) return null;
+  const filtered = all.filter((n) => !(n.length === 4 && parseInt(n) >= 2000 && parseInt(n) <= 2099));
+  return (filtered.length ? filtered : all).sort((a, b) => b.length - a.length)[0];
 }
 
 /**

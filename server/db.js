@@ -31,6 +31,10 @@ async function initDatabase() {
   // Yabancı anahtar desteğini aktifleştir
   db.run('PRAGMA foreign_keys = ON;');
 
+  // WAL modu: eşzamanlı yazma işlemlerinde kilitlenmeyi önler
+  db.run('PRAGMA journal_mode = WAL;');
+  db.run('PRAGMA busy_timeout = 5000;');
+
   // Tabloları oluştur
   db.run(`
     CREATE TABLE IF NOT EXISTS domains (
