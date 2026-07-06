@@ -40,75 +40,144 @@ git push -u origin main
 
 ## Adım 3: Uygulama Tipi Seçin
 
-1. **"Docker Compose"** seçeneğini seçin
+1. **"Docker Compose"** seçeneğini seçin (Build Pack olarak)
 2. **"Public Repository"** veya **"Private Repository"** (GitHub token ile) seçin
 3. Repository URL'sini girin:
    ```
    https://github.com/KULLANICI_ADINIZ/temp-mail.git
    ```
 4. Branch: `main`
-5. **"Continue"** tıklayın
+5. **Base Directory**: `/` (kök dizin)
+6. **Docker Compose Location**: `/docker-compose.yaml`
+
+> **⚠️ ÇOK ÖNEMLİ — Dosya Adı Sorunu:**
+> Coolify varsayılan olarak `docker-compose.yaml` (`.yaml` uzantılı) arar.
+> Eğer dosyanız `docker-compose.yml` (`.yml` uzantılı) ise Coolify onu **bulanamaz**!
+>
+> - **Doğru:** `/docker-compose.yaml`
+> - **Yanlış:** `/docker-compose.yml`
+>
+> Dosya adını GitHub'a push etmeden önce kontrol edin:
+> ```bash
+> # Dosya adını kontrol et
+> ls docker-compose.yaml   # ✅ Olmalı
+> ls docker-compose.yml    # ❌ Bu ise yeniden adlandır
+>
+> # Yeniden adlandırma
+> git mv docker-compose.yml docker-compose.yaml
+> git commit -m "docker-compose.yaml olarak yeniden adlandırıldı"
+> git push
+> ```
+
+7. **"Continue"** tıklayın
 
 ---
 
-## Adım 4: Domain Yapılandırması
+## Adım 4: Docker Compose Ayarları
 
-Coolify'da **"Domains"** bölümünde:
+Coolify docker-compose.yaml dosyasını otomatik algılayacak. Dosya formatı:
+
+```yaml
+services:
+  tempmail:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "25:25"      # SMTP - doğrudan host port 25
+      - "3001"        # API/Web - Coolify proxy yönetir
+    cap_add:
+      - NET_BIND_SERVICE
+    environment:
+      - NODE_ENV=production
+      - API_PORT=3001
+      - SMTP_PORT=25
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - ADDRESS_TTL_MINUTES=${ADDRESS_TTL_MINUTES:-60}
+      - SMTP_RELAY_HOST=${SMTP_RELAY_HOST:-}
+      - SMTP_RELAY_PORT=${SMTP_RELAY_PORT:-587}
+      - SMTP_RELAY_SECURE=${SMTP_RELAY_SECURE:-false}
+      - SMTP_RELAY_USER=${SMTP_RELAY_USER:-}
+      - SMTP_RELAY_PASS=${SMTP_RELAY_PASS:-}
+    volumes:
+      - tempmail-data:/app/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "curl -f http://localhost:3001/api/health || exit 1"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  tempmail-data:
+    driver: local
+```
+
+**Önemli Noktalar:**
+
+| Port | Format | Açıklama |
+|------|--------|----------|
+| `25:25` | `host:container` | SMTP portu doğrudan host'a map edilir (proxy bypass) |
+| `3001` | sadece container | Coolify proxy otomatik SSL/domain atar |
+
+---
+
+## Adım 5: Domain Yapılandırması
+
+Coolify'da servis oluşturulduktan sonra **"Configuration"** → **"Domains"** bölümünde:
 
 ### Web Paneli (HTTPS)
-- Domain: `tempmail.example.com`
-- Coolify otomatik Let's Encrypt SSL sertifikası oluşturur
-- Bu domain, API (port 3001) ve React frontend için kullanılacak
+1. **"Generate Domain"** tıklayın veya kendi domain'inizi girin:
+   ```
+   tempmail.example.com
+   ```
+2. Coolify otomatik Let's Encrypt SSL sertifikası oluşturur
+3. Bu domain, API (port 3001) ve React frontend için kullanılacak
 
 > **Not:** SMTP domaini (`mail.example.com`) ayrı olarak DNS'de ayarlanır. Coolify proxy'sinden bağımsızdır.
 
 ---
 
-## Adım 5: Port Mapping
+## Adım 6: Port 25 Ayarı (SMTP)
 
-Coolify'da **"Port(s) Configuration"** bölümünde:
+Port 25, docker-compose'da `"25:25"` olarak tanımlı — Coolify bunu doğrudan host port olarak açar.
 
-| Container Port | Host Port | Protokol | Açıklama |
-|----------------|-----------|----------|----------|
-| 25 | 25 | TCP | SMTP (gelen mailler) - **Exposed** |
-| 3001 | — | TCP | API + Web (Coolify proxy üzerinden) |
+Coolify'da **"Configuration"** → **"Advanced"** bölümünde:
 
-### Coolify'da Port 25 Ayarı
+1. **"Port Exposes"** kısmında port `25`'in listelendiğinden emin olun
+2. **"Is Public"** seçili olmalı
 
-Port 25'i **"Exposed"** olarak işaretleyin:
-
-1. **"Advanced"** → **"Port Exposes"** bölümüne gidin
-2. Port `25` ekleyin
-3. **"Is Public"** seçeneğini işaretleyin
-
-> **ÖNEMLİ:** Port 25 için `NET_BIND_SERVICE` capability gerekli. Coolify bunu otomatik ekler ama emin olmak için docker-compose.yml'da tanımlı.
+> **ÖNEMLİ:** Port 25 için `NET_BIND_SERVICE` capability gerekli. docker-compose.yaml'da `cap_add` ile tanımlı.
 
 ---
 
-## Adım 6: Environment Variables
+## Adım 7: Environment Variables
 
-Coolify'da **"Environment Variables"** bölümünde ekleyin:
+Coolify'da **"Configuration"** → **"Environment Variables"** bölümünde ekleyin:
 
-```
-ADMIN_PASSWORD=guclu_bir_sifre_secin
-ADDRESS_TTL_MINUTES=60
-```
+| Değişken | Değer | Açıklama |
+|----------|-------|----------|
+| `ADMIN_PASSWORD` | `guclu_sifreniz` | Admin paneli şifresi |
+| `ADDRESS_TTL_MINUTES` | `60` | Geçici adres yaşam süresi (dk) |
 
 ### Mail Gönderme (Opsiyonel)
 
-Eğer mail gönderme özelliği de istiyorsanız, SMTP relay bilgilerini ekleyin:
+Eğer mail gönderme özelliği de istiyorsanız:
 
-```
-SMTP_RELAY_HOST=smtp.gmail.com
-SMTP_RELAY_PORT=587
-SMTP_RELAY_SECURE=false
-SMTP_RELAY_USER=email@gmail.com
-SMTP_RELAY_PASS=uygulama_sifresi
-```
+| Değişken | Değer | Açıklama |
+|----------|-------|----------|
+| `SMTP_RELAY_HOST` | `smtp.gmail.com` | SMTP sunucu |
+| `SMTP_RELAY_PORT` | `587` | SMTP port |
+| `SMTP_RELAY_SECURE` | `false` | SSL/TLS |
+| `SMTP_RELAY_USER` | `email@gmail.com` | Kullanıcı |
+| `SMTP_RELAY_PASS` | `uygulama_sifresi` | Şifre |
 
-> **Gmail Kullanıcıları:** Normal şifreniz yerine [Uygulama Şifresi](https://myaccount.google.com/apppasswords) oluşturun.
+> **Gmail:** Normal şifreniz yerine [Uygulama Şifresi](https://myaccount.google.com/apppasswords) oluşturun.
 
-> **SendGrid Kullanıcıları:**
+> **SendGrid:**
 > ```
 > SMTP_RELAY_HOST=smtp.sendgrid.net
 > SMTP_RELAY_PORT=587
@@ -118,7 +187,7 @@ SMTP_RELAY_PASS=uygulama_sifresi
 
 ---
 
-## Adım 7: Deploy
+## Adım 8: Deploy
 
 1. **"Deploy"** butonuna tıklayın
 2. Coolify image'ı build edip container'ı başlatacak
@@ -132,7 +201,7 @@ Build süreci 2-5 dakika sürebilir.
 
 ---
 
-## Adım 8: DNS Ayarları
+## Adım 9: DNS Ayarları
 
 DNS sağlayıcınızda (Cloudflare, GoDaddy, vb.) aşağıdaki kayıtları ekleyin:
 
@@ -154,11 +223,11 @@ DNS sağlayıcınızda (Cloudflare, GoDaddy, vb.) aşağıdaki kayıtları ekley
 
 ---
 
-## Adım 9: İlk Kullanım
+## Adım 10: İlk Kullanım
 
 1. Browser'da `https://tempmail.example.com` adresine gidin
 2. **⚙️ Admin** sekmesine tıklayın
-3. `.env`'deki şifrenizle giriş yapın
+3. Environment'da belirlediğiniz şifreyle giriş yapın
 4. **Domain ekleyin** (örn: `example.com`)
 5. Ana sayfaya dönün ve adres oluşturun
 6. Harici bir mail hesabından test maili gönderin
@@ -166,7 +235,7 @@ DNS sağlayıcınızda (Cloudflare, GoDaddy, vb.) aşağıdaki kayıtları ekley
 
 ---
 
-## Adım 10: Doğrulama
+## Adım 11: Doğrulama
 
 DNS değişikliklerinin yayılmasını bekleyin (15 dk - 48 saat), sonra test edin:
 
@@ -212,6 +281,11 @@ telnet mail.example.com 25
 - DNS yayılımını bekleyin (24-48 saat)
 - Coolify loglarında SMTP hatalarını kontrol edin
 
+### "Port already in use" hatası
+- Port 25 başka bir servis tarafından kullanılıyor olabilir
+- `sudo lsof -i :25` ile kontrol edin
+- Postfix veya başka bir mail sunucusu varsa durdurun: `sudo systemctl stop postfix`
+
 ---
 
 ## Otomatik Güncelleme (GitHub Webhook)
@@ -226,7 +300,7 @@ Coolify, GitHub'dan otomatik güncelleme alabilir:
 
 ---
 
-## Proje Yapısı (Güncel)
+## Proje Yapısı
 
 ```
 temp-mail/
@@ -251,7 +325,7 @@ temp-mail/
 │   │       └── AdminPanel.jsx   # Domain yönetimi + DNS rehberi
 │   └── package.json
 ├── Dockerfile               # Multi-stage Docker build
-├── docker-compose.yml       # Docker Compose
+├── docker-compose.yaml       # Docker Compose (Coolify uyumlu)
 ├── Coolify.md               # Bu dosya
 └── README.md
 ```

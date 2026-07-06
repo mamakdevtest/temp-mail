@@ -1,51 +1,38 @@
-version: "3.8"
-
 services:
   tempmail:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tempmail
-    restart: always
-
-    # Port mapping
-    # 25  = SMTP (gelen mailler) - doğrudan dışarıya açık
-    # 3001 = API + Web Panel (Coolify proxy üzerinden SSL ile servis edilir)
+    restart: unless-stopped
+    # Port 25 = SMTP (doğrudan dışarıya açık, proxy bypass)
+    # Port 3001 = API + Web (Coolify proxy üzerinden SSL ile servis edilir)
     ports:
       - "25:25"
-      - "3001:3001"
-
-    # Port 25 için Linux capability gerekli (< 1024 port)
+      - "3001"
     cap_add:
       - NET_BIND_SERVICE
-
-    # Ortam değişkenleri
     environment:
       - NODE_ENV=production
       - API_PORT=3001
       - SMTP_PORT=25
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
       - ADDRESS_TTL_MINUTES=${ADDRESS_TTL_MINUTES:-60}
-      # Mail gönderme (SMTP relay) - opsiyonel
       - SMTP_RELAY_HOST=${SMTP_RELAY_HOST:-}
       - SMTP_RELAY_PORT=${SMTP_RELAY_PORT:-587}
       - SMTP_RELAY_SECURE=${SMTP_RELAY_SECURE:-false}
       - SMTP_RELAY_USER=${SMTP_RELAY_USER:-}
       - SMTP_RELAY_PASS=${SMTP_RELAY_PASS:-}
-
-    # SQLite veritabanı kalıcılığı - container restart'ta veri kaybolmaz
     volumes:
       - tempmail-data:/app/data
-
-    # Sağlık kontrolü
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      test:
+        - CMD-SHELL
+        - "curl -f http://localhost:3001/api/health || exit 1"
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
 
-# Named volume - SQLite dosyası için
 volumes:
   tempmail-data:
     driver: local

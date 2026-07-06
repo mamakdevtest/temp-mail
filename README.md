@@ -216,7 +216,7 @@ git push -u origin main
 2. **"New Resource"** butonuna tıklayın
 3. **"Docker Compose"** seçeneğini seçin
 4. Git repo URL'nizi girin: `https://github.com/kullanici/temp-mail.git`
-5. Coolify `docker-compose.yml` dosyasını otomatik algılayacak
+5. Coolify `docker-compose.yaml` dosyasını otomatik algılayacak
 
 ### Adım 3: Domain Ayarı
 
@@ -306,7 +306,7 @@ temp-mail/
 │   ├── index.html
 │   └── package.json
 ├── Dockerfile               # Multi-stage Docker build
-├── docker-compose.yml       # Docker Compose yapılandırması
+├── docker-compose.yaml       # Docker Compose yapılandırması
 ├── .dockerignore            # Docker hariç tutulanlar
 ├── data/                    # SQLite veritabanı dosyası (otomatik oluşur)
 ├── .env.example             # Yapılandırma şablonu
