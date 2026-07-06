@@ -62,12 +62,12 @@ router.get('/:address', (req, res) => {
 
     const addr = db.get(
       `SELECT a.id FROM addresses a
-       WHERE a.address = ? AND a.expires_at > datetime('now')`,
+       WHERE a.address = ?`,
       [address]
     );
 
     if (!addr) {
-      return res.status(404).json({ error: 'Adres bulunamadı veya süresi dolmuş' });
+      return res.status(404).json({ error: 'Adres bulunamadı' });
     }
 
     const emails = db.all(
@@ -102,12 +102,12 @@ router.post('/send', async (req, res) => {
     // Gönderen adresinin veritabanında var olduğunu ve aktif olduğunu kontrol et
     const senderAddr = db.get(
       `SELECT a.id FROM addresses a
-       WHERE a.address = ? AND a.expires_at > datetime('now')`,
+       WHERE a.address = ?`,
       [from.toLowerCase()]
     );
 
     if (!senderAddr) {
-      return res.status(403).json({ error: 'Bu adres sistemde bulunamadı veya süresi dolmuş' });
+      return res.status(403).json({ error: 'Bu adres sistemde bulunamadı' });
     }
 
     // SMTP relay transporter'ı kontrol et
@@ -261,3 +261,5 @@ router.get('/:emailId/attachments/:attId', (req, res) => {
 });
 
 module.exports = router;
+module.exports.extractOtp = extractOtp;
+module.exports.stripHtml = stripHtml;

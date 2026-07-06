@@ -1,58 +1,44 @@
-const cron = require('node-cron');
 const { getDb } = require('../db');
 
 /**
- * Süresi dolan adresleri ve ilişkili mailleri temizler
- * Her 5 dakikada bir çalışır
+ * Otomatik temizlik servisi
+ * NOT: Adresler süresiz olduğu için otomatik temizlik devre dışıdır.
+ * Sadece admin panelinden manuel tetiklenebilir.
  */
 function startCleanupJob() {
-  cron.schedule('*/5 * * * *', () => {
-    cleanupExpiredAddresses();
-  });
-
-  console.log('🧹 Temizlik servisi başlatıldı (her 5 dakikada bir)');
-}
-
-/**
- * Süresi dolan adresleri siler
- */
-function cleanupExpiredAddresses() {
-  try {
-    const db = getDb();
-
-    const row = db.get(
-      "SELECT COUNT(*) as count FROM addresses WHERE expires_at < datetime('now')"
-    );
-
-    if (!row || row.count === 0) return;
-
-    const result = db.run(
-      "DELETE FROM addresses WHERE expires_at < datetime('now')"
-    );
-
-    console.log(`🧹 ${result.changes} süresi dolan adres temizlendi`);
-  } catch (err) {
-    console.error('Temizlik hatası:', err.message);
-  }
+  // Adresler süresiz - otomatik temizlik yok
+  console.log('🧹 Temizlik servisi: Adresler süresiz, otomatik temizlik devre dışı');
 }
 
 /**
  * Manuel temizleme tetikleme (admin API için)
+ * Sadece admin panelinden çağrılır
+ * @param {string} type - Temizlik türü: 'all' (tüm adresler) veya 'expired' (süresi dolanlar)
  * @returns {number} - Silinen adres sayısı
  */
-function manualCleanup() {
+function manualCleanup(type = 'all') {
   const db = getDb();
 
+  if (type === 'all') {
+    // Tüm adresleri ve ilişkili mailleri sil
+    const row = db.get('SELECT COUNT(*) as count FROM addresses');
+    if (!row || row.count === 0) return 0;
+
+    db.run('DELETE FROM attachments');
+    db.run('DELETE FROM emails');
+    const result = db.run('DELETE FROM addresses');
+    return result.changes;
+  }
+
+  // Süresi dolan (gerçekte hiç olmayacak ama güvenlik için)
   const row = db.get(
     "SELECT COUNT(*) as count FROM addresses WHERE expires_at < datetime('now')"
   );
-
   if (!row || row.count === 0) return 0;
 
   const result = db.run(
     "DELETE FROM addresses WHERE expires_at < datetime('now')"
   );
-
   return result.changes;
 }
 

@@ -28,7 +28,6 @@ function useDarkMode() {
     localStorage.setItem('tempmail-theme', dark ? 'dark' : 'light');
   }, [dark]);
 
-  // Sistem tercihi değişirse dinle
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e) => {
@@ -42,9 +41,64 @@ function useDarkMode() {
   return [dark, setDark];
 }
 
+/**
+ * Web Audio API ile bildirim sesi üretir (inline beep)
+ * Dosya gerektirmez, tarayıcıda ses sentezi yapar
+ */
+function useNotificationSound() {
+  const audioCtxRef = useRef(null);
+
+  // AudioContext'i ilk etkileşimde başlat (autoplay politikası)
+  const initAudio = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Suspended ise resume et (autoplay engeli)
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+  }, []);
+
+  // Kısa "ding" sesi çal
+  const playBeep = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      // Hoş bir "ding" tonu (C5 notası, 523Hz)
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(523, ctx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(784, ctx.currentTime + 0.1);
+
+      // Volume envelope: hızlı çık, yavaş azal
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.4);
+    } catch (e) {
+      console.warn('Bildirim sesi çalınamadı:', e);
+    }
+  }, []);
+
+  return { initAudio, playBeep };
+}
+
 export default function App() {
   // ===== TEMA =====
   const [dark, setDark] = useDarkMode();
+
+  // ===== BİLDİRİM SESİ =====
+  const { initAudio, playBeep } = useNotificationSound();
 
   // ===== STATE =====
   const [page, setPage] = useState('inbox');
@@ -60,13 +114,34 @@ export default function App() {
   const [composeData, setComposeData] = useState({ to: '', subject: '', body: '' });
   const [sendStatus, setSendStatus] = useState({ configured: false });
   const [sending, setSending] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState('');
   const [socketConnected, setSocketConnected] = useState(false);
 
-  // Socket.io ref (re-render'a sebep olmaz)
+  // Şifre modalı state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordModalData, setPasswordModalData] = useState({ username: '', domain: '' });
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Socket.io ref
   const socketRef = useRef(null);
-  // Bildirim kuyruğu
   const notifTimeoutRef = useRef(null);
+  const audioInitRef = useRef(false);
+
+  // ===== İLK ETKİLEŞİMDE SESİ BAŞLAT =====
+  useEffect(() => {
+    const handler = () => {
+      if (!audioInitRef.current) {
+        initAudio();
+        audioInitRef.current = true;
+      }
+    };
+    document.addEventListener('click', handler, { once: false });
+    document.addEventListener('keydown', handler, { once: false });
+    return () => {
+      document.removeEventListener('click', handler);
+      document.removeEventListener('keydown', handler);
+    };
+  }, [initAudio]);
 
   // ===== BİLDİRİM GÖSTERME =====
   const showNotification = useCallback((message, type = 'info') => {
@@ -87,31 +162,29 @@ export default function App() {
 
     socket.on('connect', () => {
       setSocketConnected(true);
-      console.log('🔌 Socket.io bağlandı');
     });
 
     socket.on('disconnect', () => {
       setSocketConnected(false);
-      console.log('🔌 Socket.io bağlantısı kesildi');
     });
 
     // Yeni mail geldiğinde
     socket.on('new-email', (emailData) => {
-      console.log('📩 Socket.io: yeni mail', emailData);
-
-      // Inbox listesine ekle (duplicate kontrolü)
       setEmails((prev) => {
         if (prev.some((e) => e.id === emailData.id)) return prev;
         return [emailData, ...prev];
       });
 
       showNotification(`📩 Yeni mail: ${emailData.sender}`, 'info');
+
+      // Bildirim sesi çal
+      playBeep();
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [showNotification]);
+  }, [showNotification, playBeep]);
 
   // ===== ADRES DEĞİŞTİĞİNDE SOCKET ROOM'A ABONE OL =====
   useEffect(() => {
@@ -119,14 +192,14 @@ export default function App() {
     if (!socket || !currentAddress) return;
 
     socket.emit('subscribe', currentAddress.address);
-    console.log(`📬 Socket.io abone olundu: ${currentAddress.address}`);
   }, [currentAddress]);
 
   // ===== DOMAIN LİSTESİNİ GETİR =====
   const fetchDomains = useCallback(async () => {
     try {
+      const savedPassword = localStorage.getItem('tempmail-admin-password');
       const res = await fetch(`${API_BASE}/admin/domains`, {
-        headers: { 'x-admin-password': 'admin123' },
+        headers: { 'x-admin-password': savedPassword || 'admin123' },
       });
       const data = await res.json();
       if (data.domains) {
@@ -172,8 +245,8 @@ export default function App() {
     }
   }, [showNotification]);
 
-  // ===== ÖZEL ADRES OLUŞTUR =====
-  const createCustomAddress = useCallback(async (username, domain, password) => {
+  // ===== ADRES KONTROL + ŞİFRE AKIŞI =====
+  const handleAddressSubmit = useCallback(async (username, domain, password) => {
     setLoading(true);
     setError(null);
     setSelectedEmail(null);
@@ -186,17 +259,27 @@ export default function App() {
       });
       const data = await res.json();
 
+      // Şifre gerekiyor
+      if (res.status === 403 && data.error === 'password_required') {
+        setPasswordModalData({ username, domain });
+        setPasswordInput('');
+        setPasswordError('');
+        setShowPasswordModal(true);
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok) {
         throw new Error(data.error || 'Adres oluşturulamadı');
       }
 
       setCurrentAddress(data);
       setEmails(data.emails || []);
+      setShowPasswordModal(false);
+
       const msg = data.returned
-        ? 'Kalıcı adrese geri dönüldü!'
-        : data.is_persistent
-        ? 'Kalıcı adres oluşturuldu!'
-        : 'Özel adres oluşturuldu!';
+        ? 'Adrese erişildi!'
+        : 'Yeni adres oluşturuldu!';
       showNotification(msg, 'success');
     } catch (err) {
       setError(err.message);
@@ -205,35 +288,40 @@ export default function App() {
     }
   }, [showNotification]);
 
-  // ===== ŞİFRE İLE GİRİŞ YAP =====
-  const loginToAddress = useCallback(async (address, password) => {
+  // ===== ŞİFRE İLE ADRES AÇ =====
+  const handlePasswordSubmit = useCallback(async () => {
+    if (!passwordInput) return;
+
     setLoading(true);
-    setError(null);
+    setPasswordError('');
 
     try {
-      const res = await fetch(`${API_BASE}/addresses/login`, {
+      const { username, domain } = passwordModalData;
+      const res = await fetch(`${API_BASE}/addresses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, password }),
+        body: JSON.stringify({ username, domain, password: passwordInput }),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Giriş yapılamadı');
+        setPasswordError(data.error || 'Yanlış şifre');
+        setLoading(false);
+        return;
       }
 
       setCurrentAddress(data);
       setEmails(data.emails || []);
-      setSelectedEmail(null);
+      setShowPasswordModal(false);
       showNotification('Adrese giriş yapıldı!', 'success');
     } catch (err) {
-      setError(err.message);
+      setPasswordError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [showNotification]);
+  }, [passwordInput, passwordModalData, showNotification]);
 
-  // ===== MAİLLERİ GETİR (Socket.io yoksa fallback) =====
+  // ===== MAİLLERİ GETİR (fallback) =====
   const fetchEmails = useCallback(async () => {
     if (!currentAddress) return;
 
@@ -272,7 +360,6 @@ export default function App() {
 
   // ===== TEK MAIL SİL =====
   const deleteEmail = useCallback(async (emailId, e) => {
-    // Event propagation'ı durdur (mail select'i tetiklemez)
     if (e) e.stopPropagation();
 
     if (!confirm('Bu maili silmek istediğinize emin misiniz?')) return;
@@ -282,17 +369,10 @@ export default function App() {
         method: 'DELETE',
       });
 
-      if (!res.ok) {
-        throw new Error('Mail silinemedi');
-      }
+      if (!res.ok) throw new Error('Mail silinemedi');
 
-      // Listeden kaldır
       setEmails((prev) => prev.filter((e) => e.id !== emailId));
-
-      // Eğer silinen mail seçiliyse, seçimi kaldır
-      if (selectedEmail?.id === emailId) {
-        setSelectedEmail(null);
-      }
+      if (selectedEmail?.id === emailId) setSelectedEmail(null);
 
       showNotification('Mail silindi', 'success');
     } catch (err) {
@@ -321,9 +401,7 @@ export default function App() {
       });
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Mail gönderilemedi');
-      }
+      if (!res.ok) throw new Error(data.error || 'Mail gönderilemedi');
 
       setShowCompose(false);
       setComposeData({ to: '', subject: '', body: '' });
@@ -355,7 +433,7 @@ export default function App() {
     setShowCompose(true);
   };
 
-  // ===== İLK YÜKLENMEDE: Domain listesini al =====
+  // ===== İLK YÜKLENME =====
   useEffect(() => {
     fetchDomains();
     fetchSendStatus();
@@ -363,14 +441,13 @@ export default function App() {
 
   // ===== İLK YÜKLENMEDE: Otomatik adres oluştur =====
   useEffect(() => {
-    // Domain listesi yüklendikten sonra otomatik adres oluştur
     if (domains.length > 0 && !currentAddress && !loading) {
       generateRandomAddress();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domains]);
 
-  // ===== FALLBACK POLLING: Socket.io bağlı değilse 5 sn'de bir yenile =====
+  // ===== FALLBACK POLLING =====
   useEffect(() => {
     if (!currentAddress || socketConnected) return;
 
@@ -379,25 +456,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [currentAddress, socketConnected, fetchEmails]);
 
-  // ===== SÜRE GÖSTERGESİ =====
-  useEffect(() => {
-    if (!currentAddress?.expires_at) return;
-
-    const interval = setInterval(() => {
-      const diff = new Date(currentAddress.expires_at) - new Date();
-      if (diff <= 0) {
-        setTimeRemaining('Süresi doldu');
-        clearInterval(interval);
-        return;
-      }
-      const mins = Math.floor(diff / 60000);
-      const secs = Math.floor((diff % 60000) / 1000);
-      setTimeRemaining(`${mins}:${secs.toString().padStart(2, '0')}`);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [currentAddress]);
-
   // ===== RENDER =====
   return (
     <div className="min-h-screen bg-gradient-main transition-colors duration-300">
@@ -405,6 +463,16 @@ export default function App() {
       <header className="header-glass sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* Ana Sayfa / Inbox butonu */}
+            {page !== 'inbox' && (
+              <button
+                onClick={() => { setPage('inbox'); setSelectedEmail(null); }}
+                className="btn-ghost text-sm"
+                title="Ana sayfaya dön"
+              >
+                ← 📬
+              </button>
+            )}
             <span className="text-2xl animate-bounce-soft">📧</span>
             <h1 className="text-xl font-bold text-gray-800 dark:text-dark-100">TempMail</h1>
             <span className="badge-primary hidden sm:inline-flex">
@@ -474,6 +542,54 @@ export default function App() {
         </div>
       )}
 
+      {/* ===== Şifre Modalı ===== */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-dark-700 animate-slide-up">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-700">
+              <h3 className="font-bold text-gray-800 dark:text-dark-100 flex items-center gap-2">
+                🔐 Şifre Gerekli
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-dark-400 mt-1">
+                <span className="font-mono font-medium text-primary-600 dark:text-primary-400">
+                  {passwordModalData.username}@{passwordModalData.domain}
+                </span>
+                {' '}adresi şifre korumalı.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(''); }}
+                onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                placeholder="Şifrenizi girin"
+                className="input-field"
+                autoFocus
+              />
+              {passwordError && (
+                <p className="text-red-500 dark:text-red-400 text-sm">{passwordError}</p>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-700 bg-gray-50 dark:bg-dark-900/50 flex items-center justify-end gap-3 rounded-b-2xl">
+              <button
+                onClick={() => { setShowPasswordModal(false); setLoading(false); }}
+                className="btn-secondary"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handlePasswordSubmit}
+                disabled={!passwordInput || loading}
+                className="btn-primary"
+              >
+                {loading ? '⏳ Giriş yapılıyor...' : '🔓 Giriş Yap'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ===== Mail Gönderme Modal ===== */}
       {showCompose && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -492,49 +608,23 @@ export default function App() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">Gönderen</label>
-                <input
-                  type="text"
-                  value={currentAddress?.address || ''}
-                  disabled
-                  className="input-field bg-gray-50 dark:bg-dark-900"
-                />
+                <input type="text" value={currentAddress?.address || ''} disabled className="input-field bg-gray-50 dark:bg-dark-900" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">Alıcı</label>
-                <input
-                  type="email"
-                  value={composeData.to}
-                  onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
-                  placeholder="alici@ornek.com"
-                  className="input-field"
-                  autoFocus
-                />
+                <input type="email" value={composeData.to} onChange={(e) => setComposeData({ ...composeData, to: e.target.value })} placeholder="alici@ornek.com" className="input-field" autoFocus />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">Konu</label>
-                <input
-                  type="text"
-                  value={composeData.subject}
-                  onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
-                  placeholder="Mail konusu"
-                  className="input-field"
-                />
+                <input type="text" value={composeData.subject} onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })} placeholder="Mail konusu" className="input-field" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">İçerik</label>
-                <textarea
-                  value={composeData.body}
-                  onChange={(e) => setComposeData({ ...composeData, body: e.target.value })}
-                  placeholder="Mail içeriği..."
-                  rows={6}
-                  className="input-field resize-y"
-                />
+                <textarea value={composeData.body} onChange={(e) => setComposeData({ ...composeData, body: e.target.value })} placeholder="Mail içeriği..." rows={6} className="input-field resize-y" />
               </div>
             </div>
             <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-700 bg-gray-50 dark:bg-dark-900/50 flex items-center justify-end gap-3 rounded-b-2xl">
-              <button onClick={() => setShowCompose(false)} className="btn-secondary">
-                İptal
-              </button>
+              <button onClick={() => setShowCompose(false)} className="btn-secondary">İptal</button>
               <button onClick={sendEmail} disabled={sending} className="btn-primary">
                 {sending ? '⏳ Gönderiliyor...' : '📤 Gönder'}
               </button>
@@ -547,22 +637,17 @@ export default function App() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {page === 'inbox' ? (
           <div className="space-y-6">
-            {/* Adres Çubuğu */}
             <AddressBar
               currentAddress={currentAddress}
-              timeRemaining={timeRemaining}
               loading={loading}
               error={error}
               domains={domains}
               onGenerate={generateRandomAddress}
-              onCustomCreate={createCustomAddress}
+              onSubmit={handleAddressSubmit}
               onCopy={copyAddress}
-              onLogin={loginToAddress}
             />
 
-            {/* İçerik: Inbox + Mail Detayı */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Gelen Kutusu */}
               <Inbox
                 emails={emails}
                 selectedEmailId={selectedEmail?.id}
@@ -574,7 +659,6 @@ export default function App() {
                 socketConnected={socketConnected}
               />
 
-              {/* Mail Görüntüleme */}
               <EmailView
                 email={selectedEmail}
                 onClose={() => setSelectedEmail(null)}

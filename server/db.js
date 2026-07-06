@@ -100,6 +100,14 @@ async function initDatabase() {
     }
   }
 
+  // Mevcut adreslerin süresini uzak geleceğe taşı (süresiz yap)
+  try {
+    db.run("UPDATE addresses SET expires_at = '9999-12-31T23:59:59.000Z' WHERE expires_at < '9999-12-31'");
+    console.log('🔄 Tüm adresler süresiz olarak güncellendi');
+  } catch (e) {
+    // İlk kurulumda tablo boş olabilir
+  }
+
   // İndeksler
   db.run('CREATE INDEX IF NOT EXISTS idx_addresses_address ON addresses(address);');
   db.run('CREATE INDEX IF NOT EXISTS idx_addresses_expires ON addresses(expires_at);');
@@ -182,7 +190,7 @@ function exec(sql) {
 }
 
 /**
- * Wrapper nesneyi döndürür (better-sqlite3 uyumlu arayüz)
+ * Wrapper nesnesi döndürür (better-sqlite3 uyumlu arayüz)
  */
 function getDb() {
   return {

@@ -1,40 +1,32 @@
 import { useState } from 'react';
 
+/**
+ * Tek satır adres input'u: [kullanıcıadı] @ [domain dropdown]
+ * + Şifreli adresler için şifre akışı
+ */
 export default function AddressBar({
   currentAddress,
-  timeRemaining,
   loading,
   error,
   domains,
   onGenerate,
-  onCustomCreate,
+  onSubmit,
   onCopy,
-  onLogin,
 }) {
-  const [showCustom, setShowCustom] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [customUsername, setCustomUsername] = useState('');
-  const [customDomain, setCustomDomain] = useState('');
-  const [customPassword, setCustomPassword] = useState('');
-  const [loginAddress, setLoginAddress] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+  const [inputUsername, setInputUsername] = useState('');
+  const [inputDomain, setInputDomain] = useState('');
+  const [inputPassword, setInputPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleCustomSubmit = (e) => {
+  // Form gönderimi
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!customUsername || !customDomain) return;
-    onCustomCreate(customUsername, customDomain, customPassword || null);
-    setShowCustom(false);
-    setCustomUsername('');
-    setCustomPassword('');
+    if (!inputUsername || !inputDomain) return;
+    onSubmit(inputUsername, inputDomain, inputPassword || null);
   };
 
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    if (!loginAddress || !loginPassword) return;
-    setLoginError('');
-    onLogin(loginAddress, loginPassword);
-  };
+  // Domain listesi boşsa ilk domain'i seç
+  const effectiveDomain = inputDomain || (domains.length > 0 ? domains[0].domain : '');
 
   return (
     <div className="card-glass">
@@ -45,26 +37,15 @@ export default function AddressBar({
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex-1 min-w-0">
               <p className="text-sm text-gray-500 dark:text-dark-400 mb-1">
-                {currentAddress.is_persistent ? '🔒 Kalıcı e-posta adresiniz:' : 'Geçici e-posta adresiniz:'}
+                📧 E-posta adresiniz:
               </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xl sm:text-2xl font-mono font-bold text-primary-700 dark:text-primary-300 truncate select-all">
                   {currentAddress.address}
                 </span>
-                {currentAddress.is_persistent && (
+                {currentAddress.has_password && (
                   <span className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
-                    🔒 Kalıcı
-                  </span>
-                )}
-                {timeRemaining && !currentAddress.is_persistent && (
-                  <span
-                    className={`badge border ${
-                      timeRemaining === 'Süresi doldu'
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700'
-                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700'
-                    }`}
-                  >
-                    ⏱ {timeRemaining}
+                    🔒 Şifreli
                   </span>
                 )}
               </div>
@@ -84,64 +65,72 @@ export default function AddressBar({
             </div>
           </div>
 
-          {/* Özel adres oluşturma toggle */}
+          {/* ===== Tek satır adres input (mevcut adres varken de görünür) ===== */}
           <div className="border-t border-gray-200 dark:border-dark-700 pt-4">
-            <button
-              onClick={() => setShowCustom(!showCustom)}
-              className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors"
-            >
-              {showCustom ? '▼ Gizle' : '▶ Özel adres oluştur'}
-            </button>
+            <p className="text-sm text-gray-500 dark:text-dark-400 mb-2">
+              veya farklı bir adres girin:
+            </p>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {/* Ana satır: kullanıcıadı @ domain */}
+              <div className="flex items-center gap-0">
+                <input
+                  type="text"
+                  placeholder="kullaniciadi"
+                  value={inputUsername}
+                  onChange={(e) => setInputUsername(e.target.value)}
+                  className="input-field rounded-r-none border-r-0 flex-1 min-w-0"
+                  pattern="[a-zA-Z0-9._-]+"
+                  title="Sadece harf, rakam, nokta, tire ve alt çizgi"
+                />
+                <span className="px-2 py-2.5 bg-gray-100 dark:bg-dark-600 border-y border-gray-300 dark:border-dark-600 text-gray-500 dark:text-dark-400 font-bold text-sm flex-shrink-0">
+                  @
+                </span>
+                <select
+                  value={inputDomain || effectiveDomain}
+                  onChange={(e) => setInputDomain(e.target.value)}
+                  className="input-field rounded-l-none border-l-0 flex-1 min-w-0 cursor-pointer"
+                >
+                  {domains.length === 0 && <option value="">Domain yok</option>}
+                  {domains.map((d) => (
+                    <option key={d.id} value={d.domain}>
+                      {d.domain}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  className="btn-primary rounded-l-none ml-2 flex-shrink-0"
+                  disabled={!inputUsername || (!inputDomain && domains.length === 0) || loading}
+                >
+                  {loading ? '⏳' : '📩 Aç'}
+                </button>
+              </div>
 
-            {showCustom && (
-              <form onSubmit={handleCustomSubmit} className="mt-3 space-y-3 animate-slide-up">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="text"
-                    placeholder="kullaniciadi"
-                    value={customUsername}
-                    onChange={(e) => setCustomUsername(e.target.value)}
-                    className="input-field flex-1"
-                    pattern="[a-zA-Z0-9._-]+"
-                    title="Sadece harf, rakam, nokta, tire ve alt çizgi"
-                  />
-                  <span className="hidden sm:flex items-center text-gray-500 dark:text-dark-400 font-bold">@</span>
-                  <select
-                    value={customDomain}
-                    onChange={(e) => setCustomDomain(e.target.value)}
-                    className="input-field flex-1"
-                  >
-                    <option value="">Domain seçin</option>
-                    {domains.map((d) => (
-                      <option key={d.id} value={d.domain}>
-                        {d.domain}
-                      </option>
-                    ))}
-                  </select>
-                  <button type="submit" className="btn-primary" disabled={!customUsername || !customDomain}>
-                    Oluştur
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
+              {/* Şifre alanı (isteğe bağlı) */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-xs text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-300 transition-colors"
+                >
+                  {showPassword ? '🔓 Şifre gizle' : '🔐 Şifre ile giriş (opsiyonel)'}
+                </button>
+                {showPassword && (
                   <input
                     type="password"
-                    placeholder="Şifre (isteğe bağlı - kalıcı adres için)"
-                    value={customPassword}
-                    onChange={(e) => setCustomPassword(e.target.value)}
-                    className="input-field flex-1"
+                    placeholder="Şifre (kalıcı adres için)"
+                    value={inputPassword}
+                    onChange={(e) => setInputPassword(e.target.value)}
+                    className="input-field flex-1 text-sm"
                   />
-                  <span className="text-xs text-gray-400 dark:text-dark-500 whitespace-nowrap">
-                    💡 Şifre → kalıcı adres
-                  </span>
-                </div>
-              </form>
-            )}
+                )}
+              </div>
+            </form>
           </div>
         </div>
       ) : (
         /* ===== Henüz adres yok - oluşturma ekranı ===== */
         <div className="text-center py-8 space-y-4">
-          {/* Loading durumu */}
           {loading ? (
             <div className="space-y-4">
               <div className="text-6xl mb-4 animate-bounce-soft">⏳</div>
@@ -170,89 +159,79 @@ export default function AddressBar({
                 </div>
               )}
 
+              {/* Rastgele adres butonu */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onClick={onGenerate} disabled={loading} className="btn-primary text-lg px-8 py-3">
                   🚀 Rastgele Adres Oluştur
                 </button>
               </div>
 
+              {/* ===== Tek satır adres input ===== */}
               {domains.length > 0 && (
-                <div className="pt-4 border-t border-gray-200 dark:border-dark-700 max-w-md mx-auto">
-                  <p className="text-sm text-gray-500 dark:text-dark-400 mb-2">veya özel adres oluşturun:</p>
-                  <form onSubmit={handleCustomSubmit} className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="text"
-                      placeholder="kullaniciadi"
-                      value={customUsername}
-                      onChange={(e) => setCustomUsername(e.target.value)}
-                      className="input-field flex-1"
-                    />
-                    <span className="hidden sm:flex items-center text-gray-500 dark:text-dark-400">@</span>
-                    <select
-                      value={customDomain}
-                      onChange={(e) => setCustomDomain(e.target.value)}
-                      className="input-field flex-1"
-                    >
-                      <option value="">Domain seçin</option>
-                      {domains.map((d) => (
-                        <option key={d.id} value={d.domain}>
-                          {d.domain}
-                        </option>
-                      ))}
-                    </select>
-                    <button type="submit" className="btn-primary" disabled={!customUsername || !customDomain}>
-                      Oluştur
-                    </button>
+                <div className="pt-4 border-t border-gray-200 dark:border-dark-700 max-w-lg mx-auto">
+                  <p className="text-sm text-gray-500 dark:text-dark-400 mb-3">
+                    veya özel adres girin:
+                  </p>
+                  <form onSubmit={handleSubmit} className="space-y-3">
+                    {/* Ana satır: kullanıcıadı @ domain */}
+                    <div className="flex items-center gap-0">
+                      <input
+                        type="text"
+                        placeholder="kullaniciadi"
+                        value={inputUsername}
+                        onChange={(e) => setInputUsername(e.target.value)}
+                        className="input-field rounded-r-none border-r-0 flex-1 min-w-0"
+                        pattern="[a-zA-Z0-9._-]+"
+                        title="Sadece harf, rakam, nokta, tire ve alt çizgi"
+                      />
+                      <span className="px-2 py-2.5 bg-gray-100 dark:bg-dark-600 border-y border-gray-300 dark:border-dark-600 text-gray-500 dark:text-dark-400 font-bold text-sm flex-shrink-0">
+                        @
+                      </span>
+                      <select
+                        value={inputDomain || effectiveDomain}
+                        onChange={(e) => setInputDomain(e.target.value)}
+                        className="input-field rounded-l-none border-l-0 flex-1 min-w-0 cursor-pointer"
+                      >
+                        {domains.map((d) => (
+                          <option key={d.id} value={d.domain}>
+                            {d.domain}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="submit"
+                        className="btn-primary rounded-l-none ml-2 flex-shrink-0"
+                        disabled={!inputUsername || loading}
+                      >
+                        {loading ? '⏳' : '📩 Aç'}
+                      </button>
+                    </div>
+
+                    {/* Şifre alanı */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-xs text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-300 transition-colors"
+                      >
+                        {showPassword ? '🔓 Şifre gizle' : '🔐 Şifre ile giriş (opsiyonel)'}
+                      </button>
+                      {showPassword && (
+                        <input
+                          type="password"
+                          placeholder="Şifre (kalıcı adres için)"
+                          value={inputPassword}
+                          onChange={(e) => setInputPassword(e.target.value)}
+                          className="input-field flex-1 text-sm"
+                        />
+                      )}
+                    </div>
                   </form>
-                  <div className="mt-2">
-                    <input
-                      type="password"
-                      placeholder="Şifre (isteğe bağlı - kalıcı adres için)"
-                      value={customPassword}
-                      onChange={(e) => setCustomPassword(e.target.value)}
-                      className="input-field w-full"
-                    />
-                    <p className="text-xs text-gray-400 dark:text-dark-500 mt-1">
-                      💡 Şifre koyarsanız adres kalıcı olur ve aynı şifreyle geri dönebilirsiniz
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-400 dark:text-dark-500 mt-2">
+                    💡 Şifre koyarsanız adresiniz korunur. Aynı kullanıcı adını tekrar girince şifre istenir.
+                  </p>
                 </div>
               )}
-
-              {/* Giriş Yap Bölümü */}
-              <div className="pt-4 border-t border-gray-200 dark:border-dark-700 max-w-md mx-auto">
-                <button
-                  onClick={() => setShowLogin(!showLogin)}
-                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors"
-                >
-                  {showLogin ? '▼ Gizle' : '🔐 Kalıcı adresime giriş yap'}
-                </button>
-
-                {showLogin && (
-                  <form onSubmit={handleLoginSubmit} className="mt-3 space-y-2 animate-slide-up">
-                    <input
-                      type="text"
-                      placeholder="adres@domain.com"
-                      value={loginAddress}
-                      onChange={(e) => setLoginAddress(e.target.value)}
-                      className="input-field w-full"
-                    />
-                    <input
-                      type="password"
-                      placeholder="Şifreniz"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="input-field w-full"
-                    />
-                    {loginError && (
-                      <p className="text-red-500 dark:text-red-400 text-sm">{loginError}</p>
-                    )}
-                    <button type="submit" className="btn-primary w-full" disabled={!loginAddress || !loginPassword}>
-                      🔓 Giriş Yap
-                    </button>
-                  </form>
-                )}
-              </div>
 
               {domains.length === 0 && (
                 <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg inline-block border border-amber-200 dark:border-amber-800">

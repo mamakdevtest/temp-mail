@@ -46,8 +46,7 @@ function startSmtpServer(port = 25, io = null) {
       const existing = db.get(
         `SELECT a.id FROM addresses a
          JOIN domains d ON a.domain_id = d.id
-         WHERE a.address = ? AND d.is_active = 1
-         AND (a.expires_at > datetime('now') OR a.is_persistent = 1)`,
+         WHERE a.address = ? AND d.is_active = 1`,
         [recipient]
       );
 
@@ -85,12 +84,11 @@ async function processIncomingMail(rawMail, session, io) {
   const recipients = session.envelope.rcptTo.map((r) => r.address.toLowerCase());
 
   for (const recipient of recipients) {
-    // Hem geçici hem kalıcı adresleri kabul et
+    // Adresi bul (süresiz - tüm adresler kabul edilir)
     const address = db.get(
       `SELECT a.id FROM addresses a
        JOIN domains d ON a.domain_id = d.id
-       WHERE a.address = ? AND d.is_active = 1
-       AND (a.expires_at > datetime('now') OR a.is_persistent = 1)`,
+       WHERE a.address = ? AND d.is_active = 1`,
       [recipient]
     );
 

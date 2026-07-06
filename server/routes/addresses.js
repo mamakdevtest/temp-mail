@@ -2,13 +2,10 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const { getDb } = require('../db');
-const { generateUsername, formatTimeRemaining } = require('../utils');
+const { generateUsername } = require('../utils');
 
-// Adres geçerlilik süresi (dakika) - .env'den okunur veya varsayılan 60 dk
-const ADDRESS_TTL_MINUTES = parseInt(process.env.ADDRESS_TTL_MINUTES || '60', 10);
-
-// Kalıcı adres süresi: 1 yıl (milisaniye)
-const PERSISTENT_TTL_MS = 365 * 24 * 60 * 60 * 1000;
+// Süresiz adres: 9999-12-31
+const NEVER_EXPIRES = '9999-12-31T23:59:59.000Z';
 
 /**
  * Şifreyi hash'ler (SHA-256 + salt)
@@ -31,7 +28,7 @@ function verifyPassword(password, stored) {
 
 /**
  * GET /api/addresses/random
- * Rastgele bir geçici adres oluşturur
+ * Rastgele bir adres oluşturur (süresiz)
  */
 router.get('/random', (req, res) => {
   try {
@@ -61,20 +58,16 @@ router.get('/random', (req, res) => {
       }
     } while (db.get('SELECT id FROM addresses WHERE address = ?', [address]));
 
-    const expiresAt = new Date(Date.now() + ADDRESS_TTL_MINUTES * 60 * 1000).toISOString();
-
     db.run(
-      'INSERT INTO addresses (address, username, domain_id, expires_at, is_persistent) VALUES (?, ?, ?, ?, 0)',
-      [address, username, domain.id, expiresAt]
+      'INSERT INTO addresses (address, username, domain_id, expires_at, is_persistent) VALUES (?, ?, ?, ?, 1)',
+      [address, username, domain.id, NEVER_EXPIRES]
     );
 
     res.json({
       address,
       username,
       domain: domain.domain,
-      expires_at: expiresAt,
-      ttl_minutes: ADDRESS_TTL_MINUTES,
-      is_persistent: false,
+      is_persistent: true,
     });
   } catch (err) {
     console.error('Adres oluşturma hatası:', err);
@@ -83,10 +76,54 @@ router.get('/random', (req, res) => {
 });
 
 /**
+ * POST /api/addresses/check
+ * Bir adresin var olup olmadığını ve şifre korumalı olup olmadığını kontrol eder
+ * Body: { username, domain }
+ * Returns: { exists: bool, has_password: bool, address: string }
+ */
+router.post('/check', (req, res) => {
+  try {
+    const db = getDb();
+    const { username, domain: domainName } = req.body;
+
+    if (!username || !domainName) {
+      return res.status(400).json({ error: 'Kullanıcı adı ve domain gerekli' });
+    }
+
+    const address = `${username.toLowerCase()}@${domainName.toLowerCase()}`;
+
+    const addr = db.get(
+      `SELECT a.*, d.domain FROM addresses a
+       JOIN domains d ON a.domain_id = d.id
+       WHERE a.address = ?`,
+      [address]
+    );
+
+    if (!addr) {
+      return res.json({ exists: false, has_password: false, address });
+    }
+
+    return res.json({
+      exists: true,
+      has_password: !!addr.password_hash,
+      address,
+    });
+  } catch (err) {
+    console.error('Adres kontrol hatası:', err);
+    res.status(500).json({ error: 'Adres kontrol edilemedi' });
+  }
+});
+
+/**
  * POST /api/addresses
- * Özel username ve domain ile adres oluşturur
+ * Özel username ve domain ile adres oluşturur veya mevcut adrese erişir
  * Body: { username, domain, password? }
- * password varsa kalıcı adres oluşturulur
+ *
+ * Akış:
+ * 1. Adres yoksa → yeni oluştur (şifreli veya şifresiz)
+ * 2. Adres var + şifresiz → direkt mailleri göster
+ * 3. Adres var + şifreli + şifre verilmiş → şifre doğrula, mailleri göster
+ * 4. Adres var + şifreli + şifre verilmemiş → 403, şifre gerektiğini bildir
  */
 router.post('/', (req, res) => {
   try {
@@ -105,7 +142,7 @@ router.post('/', (req, res) => {
 
     const domain = db.get(
       'SELECT * FROM domains WHERE domain = ? AND is_active = 1',
-      [domainName]
+      [domainName.toLowerCase()]
     );
 
     if (!domain) {
@@ -114,56 +151,80 @@ router.post('/', (req, res) => {
 
     const address = `${username.toLowerCase()}@${domain.domain}`;
 
-    const existing = db.get('SELECT id FROM addresses WHERE address = ?', [address]);
+    // Mevcut adres var mı?
+    const existing = db.get('SELECT * FROM addresses WHERE address = ?', [address]);
+
     if (existing) {
-      // Eğer şifre doğruysa, mevcut adrese geri dön
-      if (password) {
-        const addr = db.get('SELECT * FROM addresses WHERE address = ?', [address]);
-        if (addr && verifyPassword(password, addr.password_hash)) {
-          // Son erişim zamanını güncelle
-          const newExpiry = new Date(Date.now() + PERSISTENT_TTL_MS).toISOString();
-          db.run('UPDATE addresses SET last_accessed = datetime("now"), expires_at = ? WHERE id = ?', [newExpiry, addr.id]);
-
-          const emails = db.all(
-            'SELECT id, sender, subject, received_at, has_attachments FROM emails WHERE address_id = ? ORDER BY received_at DESC LIMIT 50',
-            [addr.id]
-          );
-
-          return res.json({
+      // Adres var + şifreli
+      if (existing.password_hash) {
+        // Şifre verilmemiş → şifre gerektiğini bildir
+        if (!password) {
+          return res.status(403).json({
+            error: 'password_required',
+            message: 'Bu adres şifre korumalı. Lütfen şifrenizi girin.',
+            has_password: true,
             address,
-            username: addr.username,
-            domain: domain.domain,
-            expires_at: newExpiry,
-            is_persistent: true,
-            ttl_minutes: Math.floor(PERSISTENT_TTL_MS / 60000),
-            emails,
-            returned: true,
           });
         }
+
+        // Şifre verilmiş → doğrula
+        if (!verifyPassword(password, existing.password_hash)) {
+          return res.status(401).json({ error: 'Yanlış şifre' });
+        }
+
+        // Şifre doğru → son erişimi güncelle ve mailleri getir
+        db.run('UPDATE addresses SET last_accessed = datetime("now") WHERE id = ?', [existing.id]);
+
+        const emails = db.all(
+          'SELECT id, sender, subject, received_at, has_attachments FROM emails WHERE address_id = ? ORDER BY received_at DESC',
+          [existing.id]
+        );
+
+        return res.json({
+          address,
+          username: existing.username,
+          domain: domain.domain,
+          is_persistent: true,
+          has_password: true,
+          emails,
+          returned: true,
+        });
       }
-      return res.status(409).json({ error: 'Bu adres zaten kullanılıyor. Şifreniz varsa girerek geri dönebilirsiniz.' });
+
+      // Adres var + şifresiz → direkt mailleri göster
+      const emails = db.all(
+        'SELECT id, sender, subject, received_at, has_attachments FROM emails WHERE address_id = ? ORDER BY received_at DESC',
+        [existing.id]
+      );
+
+      db.run('UPDATE addresses SET last_accessed = datetime("now") WHERE id = ?', [existing.id]);
+
+      return res.json({
+        address,
+        username: existing.username,
+        domain: domain.domain,
+        is_persistent: true,
+        has_password: false,
+        emails,
+        returned: true,
+      });
     }
 
-    // Şifre varsa kalıcı adres, yoksa geçici adres oluştur
-    const isPersistent = !!password;
+    // Yeni adres oluştur (süresiz)
     const passwordHash = password ? hashPassword(password) : null;
-    const ttlMs = isPersistent ? PERSISTENT_TTL_MS : ADDRESS_TTL_MINUTES * 60 * 1000;
-    const expiresAt = new Date(Date.now() + ttlMs).toISOString();
 
     db.run(
       `INSERT INTO addresses (address, username, domain_id, password_hash, is_persistent, expires_at, last_accessed)
-       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
-      [address, username.toLowerCase(), domain.id, passwordHash, isPersistent ? 1 : 0, expiresAt]
+       VALUES (?, ?, ?, ?, 1, ?, datetime('now'))`,
+      [address, username.toLowerCase(), domain.id, passwordHash, NEVER_EXPIRES]
     );
 
     res.json({
       address,
       username: username.toLowerCase(),
       domain: domain.domain,
-      expires_at: expiresAt,
-      is_persistent: isPersistent,
-      ttl_minutes: Math.floor(ttlMs / 60000),
-      password_set: isPersistent,
+      is_persistent: true,
+      has_password: !!password,
     });
   } catch (err) {
     console.error('Adres oluşturma hatası:', err);
@@ -188,24 +249,27 @@ router.post('/login', (req, res) => {
     const addr = db.get(
       `SELECT a.*, d.domain FROM addresses a
        JOIN domains d ON a.domain_id = d.id
-       WHERE a.address = ? AND a.is_persistent = 1`,
+       WHERE a.address = ?`,
       [address.toLowerCase()]
     );
 
     if (!addr) {
-      return res.status(404).json({ error: 'Kalıcı adres bulunamadı' });
+      return res.status(404).json({ error: 'Adres bulunamadı' });
+    }
+
+    if (!addr.password_hash) {
+      return res.status(400).json({ error: 'Bu adres şifre korumalı değil' });
     }
 
     if (!verifyPassword(password, addr.password_hash)) {
       return res.status(401).json({ error: 'Yanlış şifre' });
     }
 
-    // Son erişim zamanını güncelle ve süreyi uzat
-    const newExpiry = new Date(Date.now() + PERSISTENT_TTL_MS).toISOString();
-    db.run('UPDATE addresses SET last_accessed = datetime("now"), expires_at = ? WHERE id = ?', [newExpiry, addr.id]);
+    // Son erişim zamanını güncelle
+    db.run('UPDATE addresses SET last_accessed = datetime("now") WHERE id = ?', [addr.id]);
 
     const emails = db.all(
-      'SELECT id, sender, subject, received_at, has_attachments FROM emails WHERE address_id = ? ORDER BY received_at DESC LIMIT 50',
+      'SELECT id, sender, subject, received_at, has_attachments FROM emails WHERE address_id = ? ORDER BY received_at DESC',
       [addr.id]
     );
 
@@ -213,9 +277,8 @@ router.post('/login', (req, res) => {
       address: addr.address,
       username: addr.username,
       domain: addr.domain,
-      expires_at: newExpiry,
       is_persistent: true,
-      ttl_minutes: Math.floor(PERSISTENT_TTL_MS / 60000),
+      has_password: true,
       emails,
     });
   } catch (err) {
@@ -244,14 +307,10 @@ router.get('/:address', (req, res) => {
       return res.status(404).json({ error: 'Adres bulunamadı' });
     }
 
-    if (new Date(addr.expires_at) < new Date()) {
-      return res.status(410).json({ error: 'Bu adresin süresi doldu' });
-    }
-
     const emails = db.all(
       `SELECT id, sender, subject, received_at, has_attachments
        FROM emails WHERE address_id = ?
-       ORDER BY received_at DESC LIMIT 50`,
+       ORDER BY received_at DESC`,
       [addr.id]
     );
 
@@ -259,9 +318,7 @@ router.get('/:address', (req, res) => {
       address: addr.address,
       username: addr.username,
       domain: addr.domain,
-      expires_at: addr.expires_at,
-      remaining: formatTimeRemaining(addr.expires_at),
-      is_persistent: addr.is_persistent === 1,
+      is_persistent: true,
       has_password: !!addr.password_hash,
       emails,
     });
