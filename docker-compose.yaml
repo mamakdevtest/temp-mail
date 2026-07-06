@@ -4,8 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    # Port 25 = SMTP (doğrudan dışarıya açık, proxy bypass)
-    # Port 3001 = API + Web (Coolify proxy üzerinden SSL ile servis edilir)
     ports:
       - "25:25"
       - "3001"
@@ -24,14 +22,6 @@ services:
       - SMTP_RELAY_PASS=${SMTP_RELAY_PASS:-}
     volumes:
       - tempmail-data:/app/data
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - "curl -f http://localhost:3001/api/health || exit 1"
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
 volumes:
   tempmail-data:
