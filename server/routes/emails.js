@@ -23,6 +23,35 @@ function createTransporter() {
 }
 
 /**
+ * Metin içeriğinden OTP/doğrulama kodunu çıkarmaya çalışır
+ * 4-8 haneli sayısal kodları arar
+ *
+ * @param {string} text - Aranacak metin
+ * @returns {string|null} - Bulunan OTP kodu veya null
+ */
+function extractOtp(text) {
+  if (!text) return null;
+
+  // 4-8 haneli sayıları ara (kelime sınırları içinde)
+  const matches = text.match(/\b(\d{4,8})\b/g);
+  if (!matches || matches.length === 0) return null;
+
+  // OTP genellikle mail içinde tek veya az sayıda geçer
+  // En uzun kodu tercih et (daha spesifik)
+  return matches.sort((a, b) => b.length - a.length)[0];
+}
+
+/**
+ * HTML etiketlerini temizler
+ * @param {string} html
+ * @returns {string}
+ */
+function stripHtml(html) {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/**
  * GET /api/emails/:address
  * Bir adrese gelen tüm mailleri listeler (polling endpoint)
  */
@@ -126,7 +155,7 @@ router.get('/send/status', (req, res) => {
 
 /**
  * GET /api/emails/single/:id
- * Tek bir mailin detayını getirir (HTML, düz metin, ekler)
+ * Tek bir mailin detayını getirir (HTML, düz metin, ekler, OTP)
  */
 router.get('/single/:id', (req, res) => {
   try {
@@ -150,6 +179,10 @@ router.get('/single/:id', (req, res) => {
       [emailId]
     );
 
+    // OTP algılama: body_text veya body_html'den 4-8 haneli kodu tara
+    const otpSource = email.body_text || stripHtml(email.body_html);
+    const otp_code = extractOtp(otpSource);
+
     res.json({
       id: email.id,
       sender: email.sender,
@@ -159,10 +192,37 @@ router.get('/single/:id', (req, res) => {
       received_at: email.received_at,
       has_attachments: email.has_attachments === 1,
       attachments,
+      otp_code,
     });
   } catch (err) {
     console.error('Mail detay hatası:', err);
     res.status(500).json({ error: 'Mail detayı alınamadı' });
+  }
+});
+
+/**
+ * DELETE /api/emails/:id
+ * Tek bir maili siler
+ */
+router.delete('/:id', (req, res) => {
+  try {
+    const db = getDb();
+    const emailId = req.params.id;
+
+    // Mail var mı kontrol et
+    const email = db.get('SELECT id FROM emails WHERE id = ?', [emailId]);
+    if (!email) {
+      return res.status(404).json({ error: 'Mail bulunamadı' });
+    }
+
+    // Önce ekleri sil, sonra maili sil
+    db.run('DELETE FROM attachments WHERE email_id = ?', [emailId]);
+    db.run('DELETE FROM emails WHERE id = ?', [emailId]);
+
+    res.json({ message: 'Mail silindi', id: parseInt(emailId) });
+  } catch (err) {
+    console.error('Mail silme hatası:', err);
+    res.status(500).json({ error: 'Mail silinemedi' });
   }
 });
 

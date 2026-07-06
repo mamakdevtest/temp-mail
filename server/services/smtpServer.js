@@ -6,8 +6,11 @@ const { getDb } = require('../db');
  * SMTP sunucusunu başlatır
  * Port 25'te gelen mailleri dinler ve veritabanına kaydeder
  * Hem geçici hem kalıcı (şifreli) adresleri destekler
+ *
+ * @param {number} port - SMTP port numarası
+ * @param {import('socket.io').Server} io - Socket.io instance (yeni mail bildirimi için)
  */
-function startSmtpServer(port = 25) {
+function startSmtpServer(port = 25, io = null) {
   const server = new SMTPServer({
     authOptional: true,
     disabledCommands: ['AUTH'],
@@ -21,7 +24,7 @@ function startSmtpServer(port = 25) {
 
       stream.on('end', async () => {
         try {
-          await processIncomingMail(mailData, session);
+          await processIncomingMail(mailData, session, io);
           callback();
         } catch (err) {
           console.error('Mail işleme hatası:', err.message);
@@ -73,8 +76,9 @@ function startSmtpServer(port = 25) {
 
 /**
  * Gelen maili parse edip veritabanına kaydeder
+ * Kayıt sonrası Socket.io ile istemcilere bildirim gönderir
  */
-async function processIncomingMail(rawMail, session) {
+async function processIncomingMail(rawMail, session, io) {
   const parsed = await simpleParser(rawMail);
   const db = getDb();
 
@@ -106,6 +110,7 @@ async function processIncomingMail(rawMail, session) {
 
     const emailId = result.lastInsertRowid;
 
+    // Ekleri kaydet
     if (parsed.attachments && parsed.attachments.length > 0) {
       for (const att of parsed.attachments) {
         db.run(
@@ -116,8 +121,68 @@ async function processIncomingMail(rawMail, session) {
       }
     }
 
+    // Socket.io ile istemcilere bildirim gönder
+    if (io) {
+      const emailPayload = {
+        id: emailId,
+        sender,
+        subject,
+        received_at: new Date().toISOString(),
+        has_attachments: hasAttachments === 1,
+        // OTP algılama: 4-8 haneli sayısal kodu tara
+        otp_code: extractOtp(bodyText || stripHtml(bodyHtml)),
+      };
+
+      // Bu adrese abone olan tüm istemcilere gönder
+      const room = `inbox:${recipient}`;
+      io.to(room).emit('new-email', emailPayload);
+      console.log(`🔔 Socket.io bildirim gönderildi: ${room}`);
+    }
+
     console.log(`📩 Yeni mail kaydedildi: ${sender} → ${recipient} (Konu: ${subject})`);
   }
 }
 
-module.exports = { startSmtpServer };
+/**
+ * Metin içeriğinden OTP/doğrulama kodunu çıkarmaya çalışır
+ * 4-8 haneli sayısal kodları arar
+ *
+ * @param {string} text - Aranacak metin
+ * @returns {string|null} - Bulunan OTP kodu veya null
+ */
+function extractOtp(text) {
+  if (!text) return null;
+
+  // OTP kalıplarını ara (yaygın formatlar)
+  const patterns = [
+    // "123456" gibi tek başına duran 4-8 haneli kodlar
+    /\b(\d{4,8})\b/g,
+  ];
+
+  const candidates = [];
+
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+      candidates.push(match[1]);
+    }
+  }
+
+  if (candidates.length === 0) return null;
+
+  // En sık görünen kodu tercih et, yoksa ilkini al
+  // Genellikle OTP tek geçiyorsa ilk bulunan yeterli
+  return candidates[0];
+}
+
+/**
+ * HTML etiketlerini temizler (basit)
+ * @param {string} html
+ * @returns {string}
+ */
+function stripHtml(html) {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+module.exports = { startSmtpServer, extractOtp };

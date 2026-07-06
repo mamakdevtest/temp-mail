@@ -3,6 +3,8 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const http = require('http');
+const { Server: SocketServer } = require('socket.io');
 const { initDatabase } = require('./db');
 
 const app = express();
@@ -12,6 +14,16 @@ const SMTP_PORT = parseInt(process.env.SMTP_PORT || '25', 10);
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Socket.io instance'ı (global - SMTP servisi de kullanacak)
+let io = null;
+
+/**
+ * Socket.io instance'ını döndürür (diğer modüller erişebilir)
+ */
+function getIo() {
+  return io;
+}
 
 /**
  * Ana başlatma fonksiyonu (async - sql.js WebAssembly yükler)
@@ -45,21 +57,49 @@ async function main() {
     console.log(`🌐 Frontend: ${clientBuild}`);
   }
 
-  // 4. Express API sunucusunu başlat
-  app.listen(API_PORT, () => {
+  // 4. HTTP sunucusu oluştur (Socket.io ile birlikte)
+  const server = http.createServer(app);
+
+  // Socket.io başlat
+  io = new SocketServer(server, {
+    cors: {
+      origin: process.env.NODE_ENV === 'production' ? false : '*',
+      methods: ['GET', 'POST'],
+    },
+  });
+
+  io.on('connection', (socket) => {
+    console.log(`🔌 Yeni socket bağlantısı: ${socket.id}`);
+
+    // İstemci belirli bir adresin maillerini dinlemek istiyor
+    socket.on('subscribe', (address) => {
+      const room = `inbox:${address.toLowerCase()}`;
+      socket.join(room);
+      console.log(`📬 Socket ${socket.id} odaya katıldı: ${room}`);
+    });
+
+    socket.on('disconnect', () => {
+      console.log(`🔌 Socket bağlantısı kesildi: ${socket.id}`);
+    });
+  });
+
+  console.log('🔌 Socket.io başlatıldı');
+
+  // 5. Express API sunucusunu başlat
+  server.listen(API_PORT, () => {
     console.log(`🚀 API sunucusu port ${API_PORT} üzerinde çalışıyor`);
     console.log(`   Sağlık kontrolü: http://localhost:${API_PORT}/api/health`);
   });
 
-  // 5. SMTP sunucusunu başlat
+  // 6. SMTP sunucusunu başlat (Socket.io instance'ını geç)
   try {
     const { startSmtpServer } = require('./services/smtpServer');
-    startSmtpServer(SMTP_PORT);
+    startSmtpServer(SMTP_PORT, io);
   } catch (err) {
     console.error(`⚠️  SMTP sunucu başlatılamadı (port ${SMTP_PORT}):`, err.message);
   }
 
-  // 6. Mail gönderme durumunu göster
+  // 7. Mail gönderme durumunu göster
   const relayHost = process.env.SMTP_RELAY_HOST;
   if (relayHost) {
     console.log(`📤 Mail gönderme aktif: ${relayHost}:${process.env.SMTP_RELAY_PORT || '587'}`);
@@ -75,3 +115,5 @@ main().catch((err) => {
   console.error('❌ Başlatma hatası:', err);
   process.exit(1);
 });
+
+module.exports = { getIo };

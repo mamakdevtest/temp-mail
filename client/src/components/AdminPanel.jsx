@@ -165,7 +165,7 @@ export default function AdminPanel({ apiBase }) {
   if (!isAuthenticated) {
     return (
       <div className="max-w-md mx-auto card">
-        <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-dark-100 mb-6 flex items-center gap-2">
           🔐 Admin Girişi
         </h2>
 
@@ -177,7 +177,7 @@ export default function AdminPanel({ apiBase }) {
           className="space-y-4"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
               Admin Şifresi
             </label>
             <input
@@ -191,7 +191,7 @@ export default function AdminPanel({ apiBase }) {
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm border border-red-200 dark:border-red-800">
               ⚠️ {error}
             </div>
           )}
@@ -210,7 +210,7 @@ export default function AdminPanel({ apiBase }) {
       {/* Başlık */}
       <div className="card">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-dark-100 flex items-center gap-2">
             ⚙️ Domain Yönetimi
           </h2>
           <div className="flex gap-2">
@@ -229,22 +229,22 @@ export default function AdminPanel({ apiBase }) {
 
       {/* Bildirimler */}
       {success && (
-        <div className="bg-green-50 text-green-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg text-sm border border-green-200 dark:border-green-800 animate-slide-in">
           ✅ {success}
         </div>
       )}
       {error && (
-        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm border border-red-200 dark:border-red-800 animate-slide-in">
           ⚠️ {error}
         </div>
       )}
 
       {/* Sunucu IP Adresi */}
       <div className="card">
-        <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+        <h3 className="font-semibold text-gray-700 dark:text-dark-200 mb-3 flex items-center gap-2">
           🌐 Sunucu IP Adresi
         </h3>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-500 dark:text-dark-400 mb-3">
           DNS kayıtlarını oluşturmak için sunucunuzun IP adresini girin. Bu adres tüm domain'ler için kullanılacak.
         </p>
         <div className="flex gap-3">
@@ -257,7 +257,6 @@ export default function AdminPanel({ apiBase }) {
           />
           <button
             onClick={() => {
-              // Otomatik algılama — basitçe external IP'yi çekmeyi dene
               fetch('https://api.ipify.org?format=json')
                 .then(r => r.json())
                 .then(data => {
@@ -280,7 +279,7 @@ export default function AdminPanel({ apiBase }) {
 
       {/* Yeni Domain Ekleme */}
       <div className="card">
-        <h3 className="font-semibold text-gray-700 mb-4">Yeni Domain Ekle</h3>
+        <h3 className="font-semibold text-gray-700 dark:text-dark-200 mb-4">Yeni Domain Ekle</h3>
         <form onSubmit={addDomain} className="flex gap-3">
           <input
             type="text"
@@ -297,47 +296,49 @@ export default function AdminPanel({ apiBase }) {
 
       {/* Domain Listesi */}
       <div className="card p-0 overflow-hidden">
-        <div className="px-6 py-4 border-b bg-gray-50">
-          <h3 className="font-semibold text-gray-700">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-700 bg-gray-50 dark:bg-dark-900/50">
+          <h3 className="font-semibold text-gray-700 dark:text-dark-200">
             Domainler ({domains.length})
           </h3>
         </div>
 
         {domains.length === 0 ? (
-          <div className="py-12 text-center text-gray-400">
+          <div className="py-12 text-center text-gray-400 dark:text-dark-500">
             <span className="text-4xl block mb-3">🌐</span>
             <p className="font-medium">Henüz domain eklenmemiş</p>
             <p className="text-sm mt-1">Yukarıdaki formu kullanarak domain ekleyin</p>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-gray-100 dark:divide-dark-700">
             {domains.map((domain) => (
               <div key={domain.id} className="px-6 py-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-800">{domain.domain}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-gray-800 dark:text-dark-100">{domain.domain}</p>
+                  <p className="text-sm text-gray-500 dark:text-dark-400">
                     {domain.address_count} adres •{' '}
                     {domain.is_active ? (
-                      <span className="text-green-600">Aktif</span>
+                      <span className="text-green-600 dark:text-green-400">Aktif</span>
                     ) : (
-                      <span className="text-red-600">Pasif</span>
+                      <span className="text-red-600 dark:text-red-400">Pasif</span>
                     )}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => toggleDomain(domain.id, domain.is_active)}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium ${
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                       domain.is_active
-                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
                     }`}
                   >
                     {domain.is_active ? '⏸ Pasif Yap' : '▶ Aktif Yap'}
                   </button>
                   <button
                     onClick={() => deleteDomain(domain.id, domain.domain)}
-                    className="px-3 py-1.5 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200"
+                    className="px-3 py-1.5 rounded-md text-sm font-medium
+                               bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300
+                               hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                   >
                     🗑 Sil
                   </button>
@@ -348,19 +349,19 @@ export default function AdminPanel({ apiBase }) {
         )}
       </div>
 
-      {/* ===== DNS KURULUM REHBERİ (İnteraktif) ===== */}
+      {/* ===== DNS KURULUM REHBERİ ===== */}
       {domains.length > 0 && (
-        <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-          <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2 text-lg">
+        <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border-blue-200 dark:border-blue-800">
+          <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2 text-lg">
             📘 DNS Kurulum Rehberi
           </h3>
-          <p className="text-sm text-blue-600 mb-6">
+          <p className="text-sm text-blue-600 dark:text-blue-400 mb-6">
             Aşağıdaki DNS kayıtlarını domain sağlayıcınızda (Cloudflare, GoDaddy, vb.) oluşturun.
             Her domain için ayrı ayrı ayarlayın.
           </p>
 
           {!serverIp && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 text-sm text-amber-700">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4 text-sm text-amber-700 dark:text-amber-300">
               ⚠️ Lütfen yukarıdaki <strong>Sunucu IP Adresi</strong> alanını doldurun. IP girmeden DNS kayıtları doğru oluşturulamaz.
             </div>
           )}
@@ -369,15 +370,14 @@ export default function AdminPanel({ apiBase }) {
             {domains.map((domain) => {
               const records = getDnsRecords(domain.domain);
               return (
-                <div key={domain.id} className="bg-white rounded-xl border border-blue-100 overflow-hidden">
+                <div key={domain.id} className="bg-white dark:bg-dark-800 rounded-xl border border-blue-100 dark:border-blue-900/50 overflow-hidden">
                   {/* Domain başlığı */}
-                  <div className="px-5 py-3 bg-blue-600 text-white flex items-center justify-between">
+                  <div className="px-5 py-3 bg-blue-600 dark:bg-blue-700 text-white flex items-center justify-between">
                     <h4 className="font-bold text-lg flex items-center gap-2">
                       🌐 {domain.domain}
                     </h4>
                     <button
                       onClick={() => {
-                        // Tüm kayıtları tek seferde kopyala
                         const all = Object.values(records).map(formatDnsLine).join('\n');
                         copyToClipboard(all, `${domain.domain} DNS kayıtları`);
                       }}
@@ -391,88 +391,64 @@ export default function AdminPanel({ apiBase }) {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-gray-50 text-left">
-                          <th className="px-5 py-2.5 font-semibold text-gray-600 w-20">Tip</th>
-                          <th className="px-5 py-2.5 font-semibold text-gray-600 w-32">Host</th>
-                          <th className="px-5 py-2.5 font-semibold text-gray-600">Değer</th>
-                          <th className="px-5 py-2.5 font-semibold text-gray-600 w-24">Öncelik</th>
-                          <th className="px-5 py-2.5 font-semibold text-gray-600 w-20"></th>
+                        <tr className="bg-gray-50 dark:bg-dark-900/50 text-left">
+                          <th className="px-5 py-2.5 font-semibold text-gray-600 dark:text-dark-300 w-20">Tip</th>
+                          <th className="px-5 py-2.5 font-semibold text-gray-600 dark:text-dark-300 w-32">Host</th>
+                          <th className="px-5 py-2.5 font-semibold text-gray-600 dark:text-dark-300">Değer</th>
+                          <th className="px-5 py-2.5 font-semibold text-gray-600 dark:text-dark-300 w-24">Öncelik</th>
+                          <th className="px-5 py-2.5 font-semibold text-gray-600 dark:text-dark-300 w-20"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y">
+                      <tbody className="divide-y divide-gray-100 dark:divide-dark-700">
                         {/* MX Kaydı */}
-                        <tr className="hover:bg-blue-50/50">
+                        <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
                           <td className="px-5 py-3">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">MX</span>
+                            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-xs font-bold">MX</span>
                           </td>
-                          <td className="px-5 py-3 font-mono text-gray-800">{records.mx.host}</td>
-                          <td className="px-5 py-3 font-mono text-gray-800">{records.mx.value}</td>
-                          <td className="px-5 py-3 font-mono text-gray-600">{records.mx.priority}</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200">{records.mx.host}</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200">{records.mx.value}</td>
+                          <td className="px-5 py-3 font-mono text-gray-600 dark:text-dark-400">{records.mx.priority}</td>
                           <td className="px-5 py-3">
-                            <button
-                              onClick={() => copyToClipboard(formatDnsLine(records.mx), 'MX kaydı')}
-                              className="text-blue-500 hover:text-blue-700 text-lg"
-                              title="Kopyala"
-                            >
-                              📋
-                            </button>
+                            <button onClick={() => copyToClipboard(formatDnsLine(records.mx), 'MX kaydı')} className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-lg" title="Kopyala">📋</button>
                           </td>
                         </tr>
 
                         {/* A Kaydı */}
-                        <tr className="hover:bg-blue-50/50">
+                        <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
                           <td className="px-5 py-3">
-                            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">A</span>
+                            <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded text-xs font-bold">A</span>
                           </td>
-                          <td className="px-5 py-3 font-mono text-gray-800">{records.a.host}</td>
-                          <td className="px-5 py-3 font-mono text-gray-800">{records.a.value}</td>
-                          <td className="px-5 py-3 font-mono text-gray-400">—</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200">{records.a.host}</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200">{records.a.value}</td>
+                          <td className="px-5 py-3 font-mono text-gray-400 dark:text-dark-500">—</td>
                           <td className="px-5 py-3">
-                            <button
-                              onClick={() => copyToClipboard(formatDnsLine(records.a), 'A kaydı')}
-                              className="text-blue-500 hover:text-blue-700 text-lg"
-                              title="Kopyala"
-                            >
-                              📋
-                            </button>
+                            <button onClick={() => copyToClipboard(formatDnsLine(records.a), 'A kaydı')} className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-lg" title="Kopyala">📋</button>
                           </td>
                         </tr>
 
                         {/* SPF Kaydı */}
-                        <tr className="hover:bg-blue-50/50">
+                        <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
                           <td className="px-5 py-3">
-                            <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-bold">TXT</span>
+                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded text-xs font-bold">TXT</span>
                           </td>
-                          <td className="px-5 py-3 font-mono text-gray-800">{records.spf.host}</td>
-                          <td className="px-5 py-3 font-mono text-gray-800 break-all">{records.spf.value}</td>
-                          <td className="px-5 py-3 font-mono text-gray-400">—</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200">{records.spf.host}</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200 break-all">{records.spf.value}</td>
+                          <td className="px-5 py-3 font-mono text-gray-400 dark:text-dark-500">—</td>
                           <td className="px-5 py-3">
-                            <button
-                              onClick={() => copyToClipboard(records.spf.value, 'SPF kaydı')}
-                              className="text-blue-500 hover:text-blue-700 text-lg"
-                              title="Kopyala"
-                            >
-                              📋
-                            </button>
+                            <button onClick={() => copyToClipboard(records.spf.value, 'SPF kaydı')} className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-lg" title="Kopyala">📋</button>
                           </td>
                         </tr>
 
                         {/* PTR Kaydı */}
-                        <tr className="hover:bg-blue-50/50">
+                        <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
                           <td className="px-5 py-3">
-                            <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs font-bold">PTR</span>
+                            <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded text-xs font-bold">PTR</span>
                           </td>
-                          <td className="px-5 py-3 font-mono text-gray-800">{records.ptr.host}</td>
-                          <td className="px-5 py-3 font-mono text-gray-800">{records.ptr.value}</td>
-                          <td className="px-5 py-3 font-mono text-gray-400">—</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200">{records.ptr.host}</td>
+                          <td className="px-5 py-3 font-mono text-gray-800 dark:text-dark-200">{records.ptr.value}</td>
+                          <td className="px-5 py-3 font-mono text-gray-400 dark:text-dark-500">—</td>
                           <td className="px-5 py-3">
-                            <button
-                              onClick={() => copyToClipboard(formatDnsLine(records.ptr), 'PTR kaydı')}
-                              className="text-blue-500 hover:text-blue-700 text-lg"
-                              title="Kopyala"
-                            >
-                              📋
-                            </button>
+                            <button onClick={() => copyToClipboard(formatDnsLine(records.ptr), 'PTR kaydı')} className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-lg" title="Kopyala">📋</button>
                           </td>
                         </tr>
                       </tbody>
@@ -480,59 +456,24 @@ export default function AdminPanel({ apiBase }) {
                   </div>
 
                   {/* Doğrulama Komutları */}
-                  <div className="px-5 py-4 bg-gray-50 border-t">
-                    <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                  <div className="px-5 py-4 bg-gray-50 dark:bg-dark-900/50 border-t border-gray-200 dark:border-dark-700">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-dark-400 mb-2 uppercase tracking-wide">
                       Doğrulama Komutları (DNS yayılımından sonra çalıştırın)
                     </p>
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-gray-800 text-green-400 px-3 py-1.5 rounded text-xs font-mono">
-                          dig MX {domain.domain} +short
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(`dig MX ${domain.domain} +short`, 'MX doğrulama')}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Kopyala"
-                        >
-                          📋
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-gray-800 text-green-400 px-3 py-1.5 rounded text-xs font-mono">
-                          dig A mail.{domain.domain} +short
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(`dig A mail.${domain.domain} +short`, 'A doğrulama')}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Kopyala"
-                        >
-                          📋
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-gray-800 text-green-400 px-3 py-1.5 rounded text-xs font-mono">
-                          dig TXT {domain.domain} +short
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(`dig TXT ${domain.domain} +short`, 'TXT doğrulama')}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Kopyala"
-                        >
-                          📋
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-gray-800 text-green-400 px-3 py-1.5 rounded text-xs font-mono">
-                          telnet mail.{domain.domain} 25
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(`telnet mail.${domain.domain} 25`, 'SMTP test')}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Kopyala"
-                        >
-                          📋
-                        </button>
-                      </div>
+                      {[
+                        { cmd: `dig MX ${domain.domain} +short`, label: 'MX doğrulama' },
+                        { cmd: `dig A mail.${domain.domain} +short`, label: 'A doğrulama' },
+                        { cmd: `dig TXT ${domain.domain} +short`, label: 'TXT doğrulama' },
+                        { cmd: `telnet mail.${domain.domain} 25`, label: 'SMTP test' },
+                      ].map((item) => (
+                        <div key={item.cmd} className="flex items-center gap-2">
+                          <code className="flex-1 bg-gray-800 dark:bg-dark-950 text-green-400 px-3 py-1.5 rounded text-xs font-mono">
+                            {item.cmd}
+                          </code>
+                          <button onClick={() => copyToClipboard(item.cmd, item.label)} className="text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-300" title="Kopyala">📋</button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -541,9 +482,9 @@ export default function AdminPanel({ apiBase }) {
           </div>
 
           {/* Genel Notlar */}
-          <div className="mt-6 bg-white rounded-lg p-4 border border-blue-100 text-sm text-blue-700 space-y-2">
+          <div className="mt-6 bg-white dark:bg-dark-800 rounded-lg p-4 border border-blue-100 dark:border-blue-900/50 text-sm text-blue-700 dark:text-blue-300 space-y-2">
             <p className="font-semibold">📌 Önemli Notlar:</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-600">
+            <ul className="list-disc list-inside space-y-1 text-blue-600 dark:text-blue-400">
               <li><strong>MX ve A kayıtları zorunludur.</strong> Bunlar olmadan mail alamazsınız.</li>
               <li><strong>SPF kaydı önerilir.</strong> Gönderdiğiniz maillerin spam'e düşmesini engeller.</li>
               <li><strong>PTR kaydı</strong> VPS sağlayıcınızın panelinden ayarlanır (IP → hostname).</li>
