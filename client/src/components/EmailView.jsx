@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function EmailView({ email, onClose, apiBase }) {
+export default function EmailView({ email, onClose, apiBase, onCompose, currentAddress }) {
   const [viewMode, setViewMode] = useState('html'); // 'html' | 'text'
   const iframeRef = useRef(null);
 
@@ -81,13 +81,28 @@ export default function EmailView({ email, onClose, apiBase }) {
           <h2 className="font-semibold text-gray-700 flex items-center gap-2">
             ✉️ Mail Detayı
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl"
-            title="Kapat"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Yanıtla / Cevapla butonu */}
+            {onCompose && (
+              <button
+                onClick={() => onCompose({
+                  to: email.sender,
+                  subject: email.subject?.startsWith('Re:') ? email.subject : `Re: ${email.subject}`,
+                })}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                title="Yanıtla"
+              >
+                ↩️ Yanıtla
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-xl"
+              title="Kapat"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Mail bilgileri */}

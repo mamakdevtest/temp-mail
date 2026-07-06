@@ -1,6 +1,26 @@
 const express = require('express');
+const nodemailer = require('nodemailer');
 const router = express.Router();
 const { getDb } = require('../db');
+
+/**
+ * SMTP relay transporter oluştur (giden mailler için)
+ * Sadece SMTP_RELAY_HOST tanımlıysa çalışır
+ */
+function createTransporter() {
+  const host = process.env.SMTP_RELAY_HOST;
+  if (!host) return null;
+
+  return nodemailer.createTransport({
+    host,
+    port: parseInt(process.env.SMTP_RELAY_PORT || '587', 10),
+    secure: process.env.SMTP_RELAY_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_RELAY_USER,
+      pass: process.env.SMTP_RELAY_PASS,
+    },
+  });
+}
 
 /**
  * GET /api/emails/:address
@@ -33,6 +53,75 @@ router.get('/:address', (req, res) => {
     console.error('Mail listeleme hatası:', err);
     res.status(500).json({ error: 'Mailler listelenemedi' });
   }
+});
+
+/**
+ * POST /api/emails/send
+ * Mail gönderir (SMTP relay ile)
+ * Body: { from, to, subject, body }
+ */
+router.post('/send', async (req, res) => {
+  try {
+    const { from, to, subject, body } = req.body;
+
+    if (!from || !to || !subject || !body) {
+      return res.status(400).json({ error: 'Gönderen, alıcı, konu ve içerik gerekli' });
+    }
+
+    const db = getDb();
+
+    // Gönderen adresinin veritabanında var olduğunu ve aktif olduğunu kontrol et
+    const senderAddr = db.get(
+      `SELECT a.id FROM addresses a
+       WHERE a.address = ? AND a.expires_at > datetime('now')`,
+      [from.toLowerCase()]
+    );
+
+    if (!senderAddr) {
+      return res.status(403).json({ error: 'Bu adres sistemde bulunamadı veya süresi dolmuş' });
+    }
+
+    // SMTP relay transporter'ı kontrol et
+    const transporter = createTransporter();
+
+    if (!transporter) {
+      return res.status(503).json({
+        error: 'Mail gönderme yapılandırılmamış. SMTP_RELAY_HOST ayarlanmamış.',
+      });
+    }
+
+    // Mail gönder
+    const info = await transporter.sendMail({
+      from,
+      to,
+      subject,
+      text: body,
+      html: body.replace(/\n/g, '<br>'),
+    });
+
+    console.log(`📤 Mail gönderildi: ${from} → ${to} (Konu: ${subject}) [${info.messageId}]`);
+
+    res.json({
+      message: 'Mail gönderildi',
+      messageId: info.messageId,
+    });
+  } catch (err) {
+    console.error('Mail gönderme hatası:', err);
+    res.status(500).json({ error: `Mail gönderilemedi: ${err.message}` });
+  }
+});
+
+/**
+ * GET /api/emails/send/status
+ * Mail gönderme durumunu kontrol et (SMTP relay ayarlı mı?)
+ */
+router.get('/send/status', (req, res) => {
+  const host = process.env.SMTP_RELAY_HOST;
+  res.json({
+    configured: !!host,
+    host: host || null,
+    port: process.env.SMTP_RELAY_PORT || '587',
+  });
 });
 
 /**

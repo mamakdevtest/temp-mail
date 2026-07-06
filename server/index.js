@@ -57,9 +57,16 @@ async function main() {
     console.error(`⚠️  SMTP sunucu başlatılamadı (port ${SMTP_PORT}):`, err.message);
   }
 
-  // 5. Temizlik servisini başlat
-  const { startCleanupJob } = require('./services/cleanup');
-  startCleanupJob();
+  // 5. Otomatik temizlik servisi KALDIRILDI - sadece manuel temizleme var
+  // Admin panelinden "Temizle" butonu ile tetiklenebilir
+
+  // 6. Mail gönderme durumunu göster
+  const relayHost = process.env.SMTP_RELAY_HOST;
+  if (relayHost) {
+    console.log(`📤 Mail gönderme aktif: ${relayHost}:${process.env.SMTP_RELAY_PORT || '587'}`);
+  } else {
+    console.log('📤 Mail gönderme devre dışı (SMTP_RELAY_HOST ayarlanmamış)');
+  }
 
   console.log('✅ Temp Mail servisi hazır!');
 }

@@ -10,7 +10,7 @@ export default function App() {
   // Aktif sayfa: 'inbox' veya 'admin'
   const [page, setPage] = useState('inbox');
 
-  // Mevcut geçici adres
+  // Mevcut adres
   const [currentAddress, setCurrentAddress] = useState(null);
 
   // Domain listesi (adres oluşturmak için)
@@ -24,10 +24,17 @@ export default function App() {
 
   // Yükleme durumları
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   // Bildirim
   const [notification, setNotification] = useState(null);
+
+  // Mail gönderme modal
+  const [showCompose, setShowCompose] = useState(false);
+  const [composeData, setComposeData] = useState({ to: '', subject: '', body: '' });
+  const [sendStatus, setSendStatus] = useState({ configured: false });
+  const [sending, setSending] = useState(false);
 
   // ===== DOMAIN LİSTESİNİ GETİR =====
   const fetchDomains = useCallback(async () => {
@@ -41,6 +48,17 @@ export default function App() {
       }
     } catch (err) {
       console.error('Domain listesi alınamadı:', err);
+    }
+  }, []);
+
+  // ===== MAIL GÖNDERME DURUMUNU KONTROL ET =====
+  const fetchSendStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/emails/send/status`);
+      const data = await res.json();
+      setSendStatus(data);
+    } catch (err) {
+      console.error('Mail gönderme durumu alınamadı:', err);
     }
   }, []);
 
@@ -69,7 +87,7 @@ export default function App() {
   }, []);
 
   // ===== ÖZEL ADRES OLUŞTUR =====
-  const createCustomAddress = useCallback(async (username, domain) => {
+  const createCustomAddress = useCallback(async (username, domain, password) => {
     setLoading(true);
     setError(null);
     setSelectedEmail(null);
@@ -78,7 +96,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/addresses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, domain }),
+        body: JSON.stringify({ username, domain, password: password || undefined }),
       });
       const data = await res.json();
 
@@ -87,8 +105,13 @@ export default function App() {
       }
 
       setCurrentAddress(data);
-      setEmails([]);
-      showNotification('Özel adres oluşturuldu!', 'success');
+      setEmails(data.emails || []);
+      const msg = data.returned
+        ? 'Kalıcı adrese geri dönüldü!'
+        : data.is_persistent
+        ? 'Kalıcı adres oluşturuldu!'
+        : 'Özel adres oluşturuldu!';
+      showNotification(msg, 'success');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -96,7 +119,35 @@ export default function App() {
     }
   }, []);
 
-  // ===== MAİLLERİ GETİR (POLLING) =====
+  // ===== ŞİFRE İLE GİRİŞ YAP =====
+  const loginToAddress = useCallback(async (address, password) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/addresses/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Giriş yapılamadı');
+      }
+
+      setCurrentAddress(data);
+      setEmails(data.emails || []);
+      setSelectedEmail(null);
+      showNotification('Adrese giriş yapıldı!', 'success');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ===== MAİLLERİ GETİR =====
   const fetchEmails = useCallback(async () => {
     if (!currentAddress) return;
 
@@ -105,7 +156,6 @@ export default function App() {
       const data = await res.json();
 
       if (res.ok && data.emails) {
-        // Yeni mail geldi mi kontrol et
         if (emails.length > 0 && data.emails.length > emails.length) {
           showNotification('Yeni mail geldi!', 'info');
         }
@@ -115,6 +165,13 @@ export default function App() {
       console.error('Mail polling hatası:', err);
     }
   }, [currentAddress, emails.length]);
+
+  // ===== MANUEL YENİLEME =====
+  const refreshEmails = useCallback(async () => {
+    setRefreshing(true);
+    await fetchEmails();
+    setTimeout(() => setRefreshing(false), 500);
+  }, [fetchEmails]);
 
   // ===== TEK MAIL DETAYI GETİR =====
   const fetchEmailDetail = useCallback(async (emailId) => {
@@ -130,6 +187,41 @@ export default function App() {
     }
   }, []);
 
+  // ===== MAIL GÖNDER =====
+  const sendEmail = useCallback(async () => {
+    if (!composeData.to || !composeData.subject || !composeData.body) {
+      showNotification('Tüm alanları doldurun', 'error');
+      return;
+    }
+
+    setSending(true);
+    try {
+      const res = await fetch(`${API_BASE}/emails/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: currentAddress.address,
+          to: composeData.to,
+          subject: composeData.subject,
+          body: composeData.body,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Mail gönderilemedi');
+      }
+
+      setShowCompose(false);
+      setComposeData({ to: '', subject: '', body: '' });
+      showNotification('Mail gönderildi!', 'success');
+    } catch (err) {
+      showNotification(err.message, 'error');
+    } finally {
+      setSending(false);
+    }
+  }, [composeData, currentAddress]);
+
   // ===== BİLDİRİM GÖSTER =====
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type });
@@ -144,14 +236,18 @@ export default function App() {
     }
   };
 
+  // ===== COMPOSE BAŞLAT =====
+  const handleCompose = (prefill = {}) => {
+    setComposeData({ to: prefill.to || '', subject: prefill.subject || '', body: '' });
+    setShowCompose(true);
+  };
+
   // ===== POLLING: Her 5 saniyede bir mailleri kontrol et =====
   useEffect(() => {
     if (!currentAddress) return;
 
-    // İlk yüklemede mailleri getir
     fetchEmails();
 
-    // 5 saniyede bir polling
     const interval = setInterval(fetchEmails, 5000);
 
     return () => clearInterval(interval);
@@ -160,7 +256,8 @@ export default function App() {
   // ===== SAYFA YÜKLENİNCE DOMAIN LİSTESİNİ AL =====
   useEffect(() => {
     fetchDomains();
-  }, [fetchDomains]);
+    fetchSendStatus();
+  }, [fetchDomains, fetchSendStatus]);
 
   // ===== SÜRE GÖSTERGESİ =====
   const [timeRemaining, setTimeRemaining] = useState('');
@@ -197,6 +294,14 @@ export default function App() {
           </div>
 
           <nav className="flex items-center gap-2">
+            {currentAddress && sendStatus.configured && (
+              <button
+                onClick={() => handleCompose()}
+                className="px-4 py-2 rounded-lg font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+              >
+                ✏️ Mail Gönder
+              </button>
+            )}
             <button
               onClick={() => setPage('inbox')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -225,10 +330,83 @@ export default function App() {
       {notification && (
         <div
           className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white font-medium animate-slide-in ${
-            notification.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+            notification.type === 'success'
+              ? 'bg-green-500'
+              : notification.type === 'error'
+              ? 'bg-red-500'
+              : 'bg-blue-500'
           }`}
         >
           {notification.message}
+        </div>
+      )}
+
+      {/* Mail Gönderme Modal */}
+      {showCompose && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                ✏️ Yeni Mail Gönder
+              </h3>
+              <button
+                onClick={() => setShowCompose(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gönderen</label>
+                <input
+                  type="text"
+                  value={currentAddress?.address || ''}
+                  disabled
+                  className="input-field bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Alıcı</label>
+                <input
+                  type="email"
+                  value={composeData.to}
+                  onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
+                  placeholder="alici@ornek.com"
+                  className="input-field"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Konu</label>
+                <input
+                  type="text"
+                  value={composeData.subject}
+                  onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
+                  placeholder="Mail konusu"
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">İçerik</label>
+                <textarea
+                  value={composeData.body}
+                  onChange={(e) => setComposeData({ ...composeData, body: e.target.value })}
+                  placeholder="Mail içeriği..."
+                  rows={6}
+                  className="input-field resize-y"
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-end gap-3">
+              <button onClick={() => setShowCompose(false)} className="btn-secondary">
+                İptal
+              </button>
+              <button onClick={sendEmail} disabled={sending} className="btn-primary">
+                {sending ? '⏳ Gönderiliyor...' : '📤 Gönder'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -246,6 +424,7 @@ export default function App() {
               onGenerate={generateRandomAddress}
               onCustomCreate={createCustomAddress}
               onCopy={copyAddress}
+              onLogin={loginToAddress}
             />
 
             {/* İçerik: Inbox + Mail Detayı */}
@@ -256,6 +435,8 @@ export default function App() {
                 selectedEmailId={selectedEmail?.id}
                 onSelectEmail={fetchEmailDetail}
                 hasAddress={!!currentAddress}
+                onRefresh={refreshEmails}
+                refreshing={refreshing}
               />
 
               {/* Mail Görüntüleme */}
@@ -263,6 +444,8 @@ export default function App() {
                 email={selectedEmail}
                 onClose={() => setSelectedEmail(null)}
                 apiBase={API_BASE}
+                onCompose={handleCompose}
+                currentAddress={currentAddress}
               />
             </div>
           </div>

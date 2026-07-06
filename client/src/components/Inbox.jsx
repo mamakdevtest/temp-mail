@@ -1,4 +1,4 @@
-export default function Inbox({ emails, selectedEmailId, onSelectEmail, hasAddress }) {
+export default function Inbox({ emails, selectedEmailId, onSelectEmail, hasAddress, onRefresh, refreshing }) {
   // Tarihi okunabilir formata çevir
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
@@ -35,7 +35,22 @@ export default function Inbox({ emails, selectedEmailId, onSelectEmail, hasAddre
             </span>
           )}
         </h2>
-        <span className="text-xs text-gray-400">5 sn'de bir yenilenir</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400">5 sn'de bir yenilenir</span>
+          <button
+            onClick={onRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors disabled:opacity-50"
+            title="Şimdi yenile"
+          >
+            {refreshing ? (
+              <span className="animate-spin text-sm">⏳</span>
+            ) : (
+              <span>🔄</span>
+            )}
+            Yenile
+          </button>
+        </div>
       </div>
 
       {/* Mail Listesi */}

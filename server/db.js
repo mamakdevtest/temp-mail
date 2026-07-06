@@ -47,8 +47,11 @@ async function initDatabase() {
       address TEXT UNIQUE NOT NULL,
       username TEXT NOT NULL,
       domain_id INTEGER NOT NULL,
+      password_hash TEXT,
+      is_persistent INTEGER DEFAULT 0,
       expires_at DATETIME NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_accessed DATETIME,
       FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
     );
   `);
@@ -78,6 +81,24 @@ async function initDatabase() {
       FOREIGN KEY (email_id) REFERENCES emails(id) ON DELETE CASCADE
     );
   `);
+
+  // Migration: Eski DB'de yeni kolonlar yoksa ekle
+  const migrations = [
+    'ALTER TABLE addresses ADD COLUMN password_hash TEXT',
+    'ALTER TABLE addresses ADD COLUMN is_persistent INTEGER DEFAULT 0',
+    'ALTER TABLE addresses ADD COLUMN last_accessed DATETIME',
+  ];
+
+  for (const sql of migrations) {
+    try {
+      db.run(sql);
+    } catch (e) {
+      // "duplicate column name" hatası normal - kolon zaten var
+      if (!e.message.includes('duplicate column')) {
+        console.warn('Migration uyarısı:', e.message);
+      }
+    }
+  }
 
   // İndeksler
   db.run('CREATE INDEX IF NOT EXISTS idx_addresses_address ON addresses(address);');

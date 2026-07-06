@@ -5,6 +5,7 @@ const { getDb } = require('../db');
 /**
  * SMTP sunucusunu başlatır
  * Port 25'te gelen mailleri dinler ve veritabanına kaydeder
+ * Hem geçici hem kalıcı (şifreli) adresleri destekler
  */
 function startSmtpServer(port = 25) {
   const server = new SMTPServer({
@@ -34,6 +35,7 @@ function startSmtpServer(port = 25) {
       });
     },
 
+    // RCPT TO: hem geçici hem kalıcı adresleri kabul et
     onRcptTo(address, session, callback) {
       const recipient = address.address.toLowerCase();
       const db = getDb();
@@ -41,7 +43,8 @@ function startSmtpServer(port = 25) {
       const existing = db.get(
         `SELECT a.id FROM addresses a
          JOIN domains d ON a.domain_id = d.id
-         WHERE a.address = ? AND d.is_active = 1 AND a.expires_at > datetime('now')`,
+         WHERE a.address = ? AND d.is_active = 1
+         AND (a.expires_at > datetime('now') OR a.is_persistent = 1)`,
         [recipient]
       );
 
@@ -78,10 +81,12 @@ async function processIncomingMail(rawMail, session) {
   const recipients = session.envelope.rcptTo.map((r) => r.address.toLowerCase());
 
   for (const recipient of recipients) {
+    // Hem geçici hem kalıcı adresleri kabul et
     const address = db.get(
       `SELECT a.id FROM addresses a
        JOIN domains d ON a.domain_id = d.id
-       WHERE a.address = ? AND d.is_active = 1 AND a.expires_at > datetime('now')`,
+       WHERE a.address = ? AND d.is_active = 1
+       AND (a.expires_at > datetime('now') OR a.is_persistent = 1)`,
       [recipient]
     );
 
