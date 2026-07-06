@@ -1,0 +1,21 @@
+# Bağımlılıklar
+node_modules/
+client/node_modules/
+
+# Veritabanı
+data/
+*.db
+
+# Ortam değişkenleri
+.env
+
+# Build çıktıları
+client/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

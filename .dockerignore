@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# Bağımlılıklar (Docker içinde kurulacak)
+node_modules
+client/node_modules
+
+# Veritabanı (Docker volume ile yönetilecek)
+data
+*.db
+
+# Ortam değişkenleri (docker-compose ile geçilecek)
+.env
+
+# Build çıktıları (Docker içinde build edilecek)
+client/dist
+
+# Dokümantasyon
+README.md
+LICENSE
+*.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coolify/Claude
+.claude

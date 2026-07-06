@@ -1,0 +1,114 @@
+const express = require('express');
+const router = express.Router();
+const { getDb } = require('../db');
+
+/**
+ * GET /api/emails/:address
+ * Bir adrese gelen tüm mailleri listeler (polling endpoint)
+ */
+router.get('/:address', (req, res) => {
+  try {
+    const db = getDb();
+    const address = req.params.address.toLowerCase();
+
+    const addr = db.get(
+      `SELECT a.id FROM addresses a
+       WHERE a.address = ? AND a.expires_at > datetime('now')`,
+      [address]
+    );
+
+    if (!addr) {
+      return res.status(404).json({ error: 'Adres bulunamadı veya süresi dolmuş' });
+    }
+
+    const emails = db.all(
+      `SELECT id, sender, subject, received_at, has_attachments
+       FROM emails WHERE address_id = ?
+       ORDER BY received_at DESC`,
+      [addr.id]
+    );
+
+    res.json({ address, emails });
+  } catch (err) {
+    console.error('Mail listeleme hatası:', err);
+    res.status(500).json({ error: 'Mailler listelenemedi' });
+  }
+});
+
+/**
+ * GET /api/emails/single/:id
+ * Tek bir mailin detayını getirir (HTML, düz metin, ekler)
+ */
+router.get('/single/:id', (req, res) => {
+  try {
+    const db = getDb();
+    const emailId = req.params.id;
+
+    const email = db.get(
+      `SELECT e.*, a.address
+       FROM emails e
+       JOIN addresses a ON e.address_id = a.id
+       WHERE e.id = ?`,
+      [emailId]
+    );
+
+    if (!email) {
+      return res.status(404).json({ error: 'Mail bulunamadı' });
+    }
+
+    const attachments = db.all(
+      'SELECT id, filename, content_type, size FROM attachments WHERE email_id = ?',
+      [emailId]
+    );
+
+    res.json({
+      id: email.id,
+      sender: email.sender,
+      subject: email.subject,
+      body_text: email.body_text,
+      body_html: email.body_html,
+      received_at: email.received_at,
+      has_attachments: email.has_attachments === 1,
+      attachments,
+    });
+  } catch (err) {
+    console.error('Mail detay hatası:', err);
+    res.status(500).json({ error: 'Mail detayı alınamadı' });
+  }
+});
+
+/**
+ * GET /api/emails/:emailId/attachments/:attId
+ * Bir eki indirir
+ */
+router.get('/:emailId/attachments/:attId', (req, res) => {
+  try {
+    const db = getDb();
+    const { emailId, attId } = req.params;
+
+    const attachment = db.get(
+      `SELECT a.*, e.subject
+       FROM attachments a
+       JOIN emails e ON a.email_id = e.id
+       WHERE a.id = ? AND a.email_id = ?`,
+      [attId, emailId]
+    );
+
+    if (!attachment) {
+      return res.status(404).json({ error: 'Ek bulunamadı' });
+    }
+
+    res.set({
+      'Content-Type': attachment.content_type || 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${attachment.filename || 'ek'}"`,
+      'Content-Length': attachment.content ? attachment.content.length : 0,
+    });
+
+    res.send(attachment.content);
+  } catch (err) {
+    console.error('Ek indirme hatası:', err);
+    res.status(500).json({ error: 'Ek indirilemedi' });
+  }
+});
+
+module.exports = router;
