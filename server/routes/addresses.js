@@ -27,12 +27,30 @@ function verifyPassword(password, stored) {
 }
 
 /**
- * GET /api/addresses/random
- * Rastgele bir adres oluşturur (süresiz)
+ * GET /api/addresses/domains
+ * Aktif domainleri listeler (public - şifre gerektirmez)
+ * Dropdown'da kullanıcının domain seçmesi için
  */
-router.get('/random', (req, res) => {
+router.get('/domains', (req, res) => {
   try {
     const db = getDb();
+    const domains = db.all('SELECT id, domain FROM domains WHERE is_active = 1 ORDER BY domain');
+    res.json({ domains });
+  } catch (err) {
+    console.error('Domain listeleme hatası:', err);
+    res.status(500).json({ error: 'Domainler listelenemedi' });
+  }
+});
+
+/**
+ * POST /api/addresses/random
+ * Rastgele bir adres oluşturur (süresiz)
+ * Body: { password? } - opsiyonel şifre
+ */
+router.post('/random', (req, res) => {
+  try {
+    const db = getDb();
+    const { password } = req.body || {};
 
     const domains = db.all('SELECT * FROM domains WHERE is_active = 1');
 
@@ -58,9 +76,11 @@ router.get('/random', (req, res) => {
       }
     } while (db.get('SELECT id FROM addresses WHERE address = ?', [address]));
 
+    const passwordHash = password ? hashPassword(password) : null;
+
     db.run(
-      'INSERT INTO addresses (address, username, domain_id, expires_at, is_persistent) VALUES (?, ?, ?, ?, 1)',
-      [address, username, domain.id, NEVER_EXPIRES]
+      'INSERT INTO addresses (address, username, domain_id, password_hash, expires_at, is_persistent) VALUES (?, ?, ?, ?, ?, 1)',
+      [address, username, domain.id, passwordHash, NEVER_EXPIRES]
     );
 
     res.json({
@@ -68,6 +88,7 @@ router.get('/random', (req, res) => {
       username,
       domain: domain.domain,
       is_persistent: true,
+      has_password: !!password,
     });
   } catch (err) {
     console.error('Adres oluşturma hatası:', err);
@@ -76,10 +97,41 @@ router.get('/random', (req, res) => {
 });
 
 /**
+ * POST /api/addresses/set-password
+ * Mevcut şifresiz bir adrese şifre koyar
+ * Body: { address, password }
+ */
+router.post('/set-password', (req, res) => {
+  try {
+    const db = getDb();
+    const { address, password } = req.body;
+
+    if (!address || !password) {
+      return res.status(400).json({ error: 'Adres ve şifre gerekli' });
+    }
+
+    const addr = db.get('SELECT * FROM addresses WHERE address = ?', [address.toLowerCase()]);
+    if (!addr) {
+      return res.status(404).json({ error: 'Adres bulunamadı' });
+    }
+
+    if (addr.password_hash) {
+      return res.status(400).json({ error: 'Bu adresin zaten şifresi var' });
+    }
+
+    const passwordHash = hashPassword(password);
+    db.run('UPDATE addresses SET password_hash = ? WHERE id = ?', [passwordHash, addr.id]);
+
+    res.json({ message: 'Şifre ayarlandı', address: addr.address, has_password: true });
+  } catch (err) {
+    console.error('Şifre ayarlama hatası:', err);
+    res.status(500).json({ error: 'Şifre ayarlanamadı' });
+  }
+});
+
+/**
  * POST /api/addresses/check
  * Bir adresin var olup olmadığını ve şifre korumalı olup olmadığını kontrol eder
- * Body: { username, domain }
- * Returns: { exists: bool, has_password: bool, address: string }
  */
 router.post('/check', (req, res) => {
   try {
@@ -117,13 +169,6 @@ router.post('/check', (req, res) => {
 /**
  * POST /api/addresses
  * Özel username ve domain ile adres oluşturur veya mevcut adrese erişir
- * Body: { username, domain, password? }
- *
- * Akış:
- * 1. Adres yoksa → yeni oluştur (şifreli veya şifresiz)
- * 2. Adres var + şifresiz → direkt mailleri göster
- * 3. Adres var + şifreli + şifre verilmiş → şifre doğrula, mailleri göster
- * 4. Adres var + şifreli + şifre verilmemiş → 403, şifre gerektiğini bildir
  */
 router.post('/', (req, res) => {
   try {
@@ -157,7 +202,6 @@ router.post('/', (req, res) => {
     if (existing) {
       // Adres var + şifreli
       if (existing.password_hash) {
-        // Şifre verilmemiş → şifre gerektiğini bildir
         if (!password) {
           return res.status(403).json({
             error: 'password_required',
@@ -167,12 +211,10 @@ router.post('/', (req, res) => {
           });
         }
 
-        // Şifre verilmiş → doğrula
         if (!verifyPassword(password, existing.password_hash)) {
           return res.status(401).json({ error: 'Yanlış şifre' });
         }
 
-        // Şifre doğru → son erişimi güncelle ve mailleri getir
         db.run('UPDATE addresses SET last_accessed = datetime("now") WHERE id = ?', [existing.id]);
 
         const emails = db.all(
@@ -235,7 +277,6 @@ router.post('/', (req, res) => {
 /**
  * POST /api/addresses/login
  * Şifre korumalı adrese giriş yapar
- * Body: { address, password }
  */
 router.post('/login', (req, res) => {
   try {
@@ -265,7 +306,6 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Yanlış şifre' });
     }
 
-    // Son erişim zamanını güncelle
     db.run('UPDATE addresses SET last_accessed = datetime("now") WHERE id = ?', [addr.id]);
 
     const emails = db.all(

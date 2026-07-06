@@ -1,245 +1,189 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
- * Tek satır adres input'u: [kullanıcıadı] @ [domain dropdown]
- * + Şifreli adresler için şifre akışı
+ * Adres çubuğu - username doğrudan input field olarak gösterilir
+ * Kullanıcı yazarak değiştirebilir, domain dropdown ile seçebilir
  */
-export default function AddressBar({
-  currentAddress,
-  loading,
-  error,
-  domains,
-  onGenerate,
-  onSubmit,
-  onCopy,
-}) {
-  const [inputUsername, setInputUsername] = useState('');
-  const [inputDomain, setInputDomain] = useState('');
-  const [inputPassword, setInputPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+export default function AddressBar({ currentAddress, loading, error, domains, onGenerate, onSubmit, onCopy, onSetPassword }) {
+  // Mevcut adresin username ve domain'ini input olarak kullan
+  const [username, setUsername] = useState('');
+  const [domain, setDomain] = useState('');
+  const [pw, setPw] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [randPw, setRandPw] = useState('');
+  const [showRandPw, setShowRandPw] = useState(false);
 
-  // Form gönderimi
+  // currentAddress değiştiğinde input'ları güncelle
+  useEffect(() => {
+    if (currentAddress?.address) {
+      const [u, d] = currentAddress.address.split('@');
+      setUsername(u);
+      if (d) setDomain(d);
+    }
+  }, [currentAddress]);
+
+  // Domain listesi yüklendiğinde ilk domain'i seç
+  useEffect(() => {
+    if (domains.length > 0 && !domain) {
+      setDomain(domains[0].domain);
+    }
+  }, [domains, domain]);
+
+  const effectiveDomain = domain || (domains.length > 0 ? domains[0].domain : '');
+
+  // Form gönderimi: username + domain ile adres aç
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!inputUsername || !inputDomain) return;
-    onSubmit(inputUsername, inputDomain, inputPassword || null);
+    if (!username || !effectiveDomain) return;
+    onSubmit(username, effectiveDomain, pw || null);
   };
 
-  // Domain listesi boşsa ilk domain'i seç
-  const effectiveDomain = inputDomain || (domains.length > 0 ? domains[0].domain : '');
+  // Rastgele oluştur
+  const handleRandom = () => {
+    onGenerate(randPw || null);
+    setRandPw('');
+    setShowRandPw(false);
+  };
+
+  // Username/domain değiştiyse ve mevcut adresten farklıysa, "Değiştir" butonu göster
+  const isModified = currentAddress && (
+    username !== currentAddress.address.split('@')[0] ||
+    effectiveDomain !== currentAddress.address.split('@')[1]
+  );
 
   return (
-    <div className="card-glass">
-      {/* ===== Mevcut adres gösterimi ===== */}
-      {currentAddress ? (
-        <div className="space-y-4">
-          {/* Adres + Butonlar */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-500 dark:text-dark-400 mb-1">
-                📧 E-posta adresiniz:
-              </p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xl sm:text-2xl font-mono font-bold text-primary-700 dark:text-primary-300 truncate select-all">
-                  {currentAddress.address}
-                </span>
-                {currentAddress.has_password && (
-                  <span className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
-                    🔒 Şifreli
-                  </span>
-                )}
-              </div>
-            </div>
+    <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 shadow-sm">
+      {/* ===== ANA ADRES ALANI ===== */}
+      <div className="px-5 py-6 text-center border-b border-gray-100 dark:border-dark-700">
+        <p className="text-[11px] text-gray-400 dark:text-dark-500 uppercase tracking-widest font-medium mb-3">E-posta adresiniz</p>
 
-            <div className="flex gap-2 flex-shrink-0">
-              <button onClick={onCopy} className="btn-secondary text-sm" title="Adresi kopyala">
-                📋 Kopyala
-              </button>
-              <button onClick={onGenerate} disabled={loading} className="btn-primary text-sm">
-                {loading ? (
-                  <span className="animate-spin">⏳</span>
-                ) : (
-                  '🔄 Yeni Adres'
-                )}
-              </button>
-            </div>
-          </div>
+        {/* Adres input: username @ domain */}
+        <form onSubmit={handleSubmit} className="flex items-stretch justify-center max-w-lg mx-auto">
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9._-]/g, ''))}
+            placeholder="kullaniciadi"
+            className="flex-1 min-w-0 text-right px-3 py-2.5 text-xl sm:text-2xl font-mono font-bold text-gray-900 dark:text-dark-50 bg-transparent border-2 border-r-0 border-gray-200 dark:border-dark-600 rounded-l-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none tracking-tight placeholder:text-gray-300 dark:placeholder:text-dark-600"
+            spellCheck={false}
+            autoComplete="off"
+          />
+          <span className="flex items-center px-1 text-xl sm:text-2xl font-mono font-bold text-gray-400 dark:text-dark-500 bg-transparent border-y-2 border-gray-200 dark:border-dark-600">@</span>
+          <select
+            value={effectiveDomain}
+            onChange={(e) => setDomain(e.target.value)}
+            className="flex-1 min-w-0 text-left px-2 py-2.5 text-xl sm:text-2xl font-mono font-bold text-primary-600 dark:text-primary-400 bg-transparent border-2 border-l-0 border-gray-200 dark:border-dark-600 rounded-r-xl cursor-pointer focus:ring-2 focus:ring-primary-500 outline-none appearance-none"
+          >
+            {domains.length === 0 && <option value="">domain yok</option>}
+            {domains.map((d) => <option key={d.id} value={d.domain}>{d.domain}</option>)}
+          </select>
+        </form>
 
-          {/* ===== Tek satır adres input (mevcut adres varken de görünür) ===== */}
-          <div className="border-t border-gray-200 dark:border-dark-700 pt-4">
-            <p className="text-sm text-gray-500 dark:text-dark-400 mb-2">
-              veya farklı bir adres girin:
-            </p>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {/* Ana satır: kullanıcıadı @ domain */}
-              <div className="flex items-center gap-0">
-                <input
-                  type="text"
-                  placeholder="kullaniciadi"
-                  value={inputUsername}
-                  onChange={(e) => setInputUsername(e.target.value)}
-                  className="input-field rounded-r-none border-r-0 flex-1 min-w-0"
-                  pattern="[a-zA-Z0-9._-]+"
-                  title="Sadece harf, rakam, nokta, tire ve alt çizgi"
-                />
-                <span className="px-2 py-2.5 bg-gray-100 dark:bg-dark-600 border-y border-gray-300 dark:border-dark-600 text-gray-500 dark:text-dark-400 font-bold text-sm flex-shrink-0">
-                  @
-                </span>
-                <select
-                  value={inputDomain || effectiveDomain}
-                  onChange={(e) => setInputDomain(e.target.value)}
-                  className="input-field rounded-l-none border-l-0 flex-1 min-w-0 cursor-pointer"
-                >
-                  {domains.length === 0 && <option value="">Domain yok</option>}
-                  {domains.map((d) => (
-                    <option key={d.id} value={d.domain}>
-                      {d.domain}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  className="btn-primary rounded-l-none ml-2 flex-shrink-0"
-                  disabled={!inputUsername || (!inputDomain && domains.length === 0) || loading}
-                >
-                  {loading ? '⏳' : '📩 Aç'}
-                </button>
-              </div>
+        {/* Hata */}
+        {error && (
+          <p className="text-red-500 dark:text-red-400 text-xs mt-2 animate-slide-up">⚠️ {error}</p>
+        )}
 
-              {/* Şifre alanı (isteğe bağlı) */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-xs text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-300 transition-colors"
-                >
-                  {showPassword ? '🔓 Şifre gizle' : '🔐 Şifre ile giriş (opsiyonel)'}
-                </button>
-                {showPassword && (
-                  <input
-                    type="password"
-                    placeholder="Şifre (kalıcı adres için)"
-                    value={inputPassword}
-                    onChange={(e) => setInputPassword(e.target.value)}
-                    className="input-field flex-1 text-sm"
-                  />
-                )}
-              </div>
-            </form>
-          </div>
+        {/* Badge */}
+        {currentAddress?.has_password && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700 mt-2">
+            🔒 Şifreli
+          </span>
+        )}
+      </div>
+
+      {/* ===== BUTONLAR ===== */}
+      <div className="px-5 py-3 flex items-center justify-center gap-2 flex-wrap">
+        {/* Değiştir butonu (eğer username/domain değiştirildiyse) */}
+        {isModified ? (
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !username || !effectiveDomain}
+            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold bg-primary-600 hover:bg-primary-700 text-white transition-colors shadow-sm disabled:opacity-50"
+          >
+            {loading ? '⏳' : '📩'} {loading ? 'Açılıyor...' : 'Bu Adresi Aç'}
+          </button>
+        ) : (
+          <button
+            onClick={onCopy}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition-colors shadow-sm"
+          >
+            📋 Kopyala
+          </button>
+        )}
+
+        <button
+          onClick={handleRandom}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 text-gray-700 dark:text-dark-200 border border-gray-200 dark:border-dark-600 transition-colors disabled:opacity-50"
+        >
+          {loading ? '⏳' : '🔄'} Rastgele
+        </button>
+
+        {currentAddress && !currentAddress.has_password && (
+          <button
+            onClick={onSetPassword}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 text-gray-700 dark:text-dark-200 border border-gray-200 dark:border-dark-600 transition-colors"
+          >
+            🔒 Şifre Koy
+          </button>
+        )}
+
+        {/* Rastgele şifre toggle */}
+        <button
+          onClick={() => setShowRandPw(!showRandPw)}
+          className="text-[11px] text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-300 ml-1"
+        >
+          {showRandPw ? '🔓' : '🔐'}
+        </button>
+      </div>
+
+      {/* Şifre alanı (rastgele oluştururken) */}
+      {showRandPw && (
+        <div className="px-5 pb-3 -mt-1 max-w-xs mx-auto animate-slide-up">
+          <input
+            type="password"
+            value={randPw}
+            onChange={(e) => setRandPw(e.target.value)}
+            placeholder="Rastgele oluştururken şifre koy"
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 text-center focus:ring-2 focus:ring-primary-500 outline-none"
+          />
         </div>
-      ) : (
-        /* ===== Henüz adres yok - oluşturma ekranı ===== */
-        <div className="text-center py-8 space-y-4">
-          {loading ? (
-            <div className="space-y-4">
-              <div className="text-6xl mb-4 animate-bounce-soft">⏳</div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-100">
-                Adres oluşturuluyor...
-              </h2>
-              <div className="flex justify-center gap-1">
-                <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="text-6xl mb-4">📧</div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-100">
-                Geçici E-posta Adresiniz
-              </h2>
-              <p className="text-gray-500 dark:text-dark-400 max-w-md mx-auto">
-                Tek kullanımlık bir e-posta adresi oluşturun. Gelen mailleri anında görün.
-              </p>
+      )}
 
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm max-w-md mx-auto border border-red-200 dark:border-red-800">
-                  ⚠️ {error}
-                </div>
-              )}
+      {/* Şifre alanı (özel adres açarken) */}
+      {showPw && (
+        <div className="px-5 pb-3 -mt-1 max-w-lg mx-auto animate-slide-up">
+          <form onSubmit={handleSubmit}>
+            <input
+              type="password"
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+              placeholder="Şifre (opsiyonel)"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 outline-none"
+            />
+          </form>
+        </div>
+      )}
 
-              {/* Rastgele adres butonu */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onClick={onGenerate} disabled={loading} className="btn-primary text-lg px-8 py-3">
-                  🚀 Rastgele Adres Oluştur
-                </button>
-              </div>
+      {/* Loading durumu */}
+      {loading && !currentAddress && (
+        <div className="px-5 py-6 text-center border-t border-gray-100 dark:border-dark-700">
+          <div className="flex justify-center gap-1.5">
+            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+          <p className="text-xs text-gray-400 dark:text-dark-500 mt-2">Adres oluşturuluyor...</p>
+        </div>
+      )}
 
-              {/* ===== Tek satır adres input ===== */}
-              {domains.length > 0 && (
-                <div className="pt-4 border-t border-gray-200 dark:border-dark-700 max-w-lg mx-auto">
-                  <p className="text-sm text-gray-500 dark:text-dark-400 mb-3">
-                    veya özel adres girin:
-                  </p>
-                  <form onSubmit={handleSubmit} className="space-y-3">
-                    {/* Ana satır: kullanıcıadı @ domain */}
-                    <div className="flex items-center gap-0">
-                      <input
-                        type="text"
-                        placeholder="kullaniciadi"
-                        value={inputUsername}
-                        onChange={(e) => setInputUsername(e.target.value)}
-                        className="input-field rounded-r-none border-r-0 flex-1 min-w-0"
-                        pattern="[a-zA-Z0-9._-]+"
-                        title="Sadece harf, rakam, nokta, tire ve alt çizgi"
-                      />
-                      <span className="px-2 py-2.5 bg-gray-100 dark:bg-dark-600 border-y border-gray-300 dark:border-dark-600 text-gray-500 dark:text-dark-400 font-bold text-sm flex-shrink-0">
-                        @
-                      </span>
-                      <select
-                        value={inputDomain || effectiveDomain}
-                        onChange={(e) => setInputDomain(e.target.value)}
-                        className="input-field rounded-l-none border-l-0 flex-1 min-w-0 cursor-pointer"
-                      >
-                        {domains.map((d) => (
-                          <option key={d.id} value={d.domain}>
-                            {d.domain}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="submit"
-                        className="btn-primary rounded-l-none ml-2 flex-shrink-0"
-                        disabled={!inputUsername || loading}
-                      >
-                        {loading ? '⏳' : '📩 Aç'}
-                      </button>
-                    </div>
-
-                    {/* Şifre alanı */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="text-xs text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-300 transition-colors"
-                      >
-                        {showPassword ? '🔓 Şifre gizle' : '🔐 Şifre ile giriş (opsiyonel)'}
-                      </button>
-                      {showPassword && (
-                        <input
-                          type="password"
-                          placeholder="Şifre (kalıcı adres için)"
-                          value={inputPassword}
-                          onChange={(e) => setInputPassword(e.target.value)}
-                          className="input-field flex-1 text-sm"
-                        />
-                      )}
-                    </div>
-                  </form>
-                  <p className="text-xs text-gray-400 dark:text-dark-500 mt-2">
-                    💡 Şifre koyarsanız adresiniz korunur. Aynı kullanıcı adını tekrar girince şifre istenir.
-                  </p>
-                </div>
-              )}
-
-              {domains.length === 0 && (
-                <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg inline-block border border-amber-200 dark:border-amber-800">
-                  ⚠️ Henüz domain eklenmemiş. Admin panelinden domain ekleyin.
-                </p>
-              )}
-            </>
-          )}
+      {/* Domain yok uyarısı */}
+      {domains.length === 0 && !loading && (
+        <div className="px-5 py-3 text-center border-t border-gray-100 dark:border-dark-700">
+          <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg inline-block border border-amber-200 dark:border-amber-800">
+            ⚠️ Henüz domain eklenmemiş. Admin panelinden domain ekleyin.
+          </p>
         </div>
       )}
     </div>

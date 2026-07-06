@@ -292,4 +292,85 @@ router.get('/emails', (req, res) => {
   }
 });
 
+/**
+ * GET /api/admin/addresses
+ * Tüm adresleri listeler (email sayısıyla birlikte)
+ * Admin panelinden mailbox erişimi için
+ */
+router.get('/addresses', (req, res) => {
+  try {
+    const db = getDb();
+
+    const addresses = db.all(`
+      SELECT a.id, a.address, a.username, a.created_at, a.last_accessed,
+             a.password_hash IS NOT NULL as has_password,
+             d.domain,
+             (SELECT COUNT(*) FROM emails e WHERE e.address_id = a.id) as email_count,
+             (SELECT MAX(e.received_at) FROM emails e WHERE e.address_id = a.id) as last_email_at
+      FROM addresses a
+      JOIN domains d ON a.domain_id = d.id
+      ORDER BY a.created_at DESC
+    `);
+
+    res.json({
+      addresses: addresses.map((a) => ({
+        ...a,
+        has_password: a.has_password === 1,
+      })),
+    });
+  } catch (err) {
+    console.error('Adres listeleme hatası:', err);
+    res.status(500).json({ error: 'Adresler listelenemedi' });
+  }
+});
+
+/**
+ * GET /api/admin/mailbox/:address
+ * Belirli bir adresin maillerini getirir (admin erişimi - şifre gerektirmez)
+ */
+router.get('/mailbox/:address', (req, res) => {
+  try {
+    const db = getDb();
+    const address = req.params.address.toLowerCase();
+
+    const addr = db.get(
+      `SELECT a.*, d.domain FROM addresses a
+       JOIN domains d ON a.domain_id = d.id
+       WHERE a.address = ?`,
+      [address]
+    );
+
+    if (!addr) {
+      return res.status(404).json({ error: 'Adres bulunamadı' });
+    }
+
+    const emails = db.all(
+      `SELECT id, sender, subject, received_at, has_attachments
+       FROM emails WHERE address_id = ?
+       ORDER BY received_at DESC`,
+      [addr.id]
+    );
+
+    // OTP algılama
+    const emailsWithOtp = emails.map((mail) => {
+      const fullMail = db.get('SELECT body_text, body_html FROM emails WHERE id = ?', [mail.id]);
+      const text = fullMail?.body_text || stripHtml(fullMail?.body_html || '');
+      const otp = extractOtp(text);
+      return { ...mail, otp_code: otp, has_attachments: mail.has_attachments === 1 };
+    });
+
+    res.json({
+      address: addr.address,
+      username: addr.username,
+      domain: addr.domain,
+      has_password: !!addr.password_hash,
+      created_at: addr.created_at,
+      emails: emailsWithOtp,
+    });
+  } catch (err) {
+    console.error('Mailbox hatası:', err);
+    res.status(500).json({ error: 'Mailbox alınamadı' });
+  }
+});
+
 module.exports = router;

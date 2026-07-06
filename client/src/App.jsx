@@ -5,679 +5,375 @@ import Inbox from './components/Inbox';
 import EmailView from './components/EmailView';
 import AdminPanel from './components/AdminPanel';
 
-const API_BASE = '/api';
+const API = '/api';
 
-/**
- * Dark mode hook'u
- * Sistem tercihini algılar, localStorage'da saklar
- */
+/* ===== Dark Mode Hook ===== */
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem('tempmail-theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    try {
+      const s = localStorage.getItem('tm-theme');
+      if (s) return s === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (e) { return false; }
   });
-
   useEffect(() => {
-    const root = document.documentElement;
-    if (dark) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('tempmail-theme', dark ? 'dark' : 'light');
+    try {
+      const r = document.documentElement;
+      dark ? r.classList.add('dark') : r.classList.remove('dark');
+      localStorage.setItem('tm-theme', dark ? 'dark' : 'light');
+    } catch (e) { /* */ }
   }, [dark]);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e) => {
-      const saved = localStorage.getItem('tempmail-theme');
-      if (!saved) setDark(e.matches);
-    };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-
   return [dark, setDark];
 }
 
-/**
- * Web Audio API ile bildirim sesi üretir (inline beep)
- * Dosya gerektirmez, tarayıcıda ses sentezi yapar
- */
-function useNotificationSound() {
-  const audioCtxRef = useRef(null);
-
-  // AudioContext'i ilk etkileşimde başlat (autoplay politikası)
-  const initAudio = useCallback(() => {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    // Suspended ise resume et (autoplay engeli)
-    if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
-    }
-  }, []);
-
-  // Kısa "ding" sesi çal
-  const playBeep = useCallback(() => {
+/* ===== Bildirim Sesi ===== */
+function useBeep() {
+  const ctxRef = useRef(null);
+  const init = useCallback(() => {
     try {
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
-
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      // Hoş bir "ding" tonu (C5 notası, 523Hz)
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(523, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(784, ctx.currentTime + 0.1);
-
-      // Volume envelope: hızlı çık, yavaş azal
-      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.4);
-    } catch (e) {
-      console.warn('Bildirim sesi çalınamadı:', e);
-    }
+      if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctxRef.current.state === 'suspended') ctxRef.current.resume();
+    } catch (e) { /* */ }
   }, []);
-
-  return { initAudio, playBeep };
+  const play = useCallback(() => {
+    try {
+      if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      const c = ctxRef.current;
+      if (c.state === 'suspended') c.resume();
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(c.destination);
+      o.type = 'sine';
+      o.frequency.setValueAtTime(523, c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(784, c.currentTime + 0.1);
+      g.gain.setValueAtTime(0.3, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, c.currentTime + 0.4);
+      o.start(c.currentTime); o.stop(c.currentTime + 0.4);
+    } catch (e) { /* */ }
+  }, []);
+  return { init, play };
 }
 
 export default function App() {
-  // ===== TEMA =====
   const [dark, setDark] = useDarkMode();
+  const { init: initBeep, play: playBeep } = useBeep();
 
-  // ===== BİLDİRİM SESİ =====
-  const { initAudio, playBeep } = useNotificationSound();
-
-  // ===== STATE =====
   const [page, setPage] = useState('inbox');
-  const [currentAddress, setCurrentAddress] = useState(null);
+  const [addr, setAddr] = useState(null);
   const [domains, setDomains] = useState([]);
   const [emails, setEmails] = useState([]);
-  const [selectedEmail, setSelectedEmail] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [notification, setNotification] = useState(null);
-  const [showCompose, setShowCompose] = useState(false);
-  const [composeData, setComposeData] = useState({ to: '', subject: '', body: '' });
-  const [sendStatus, setSendStatus] = useState({ configured: false });
+  const [notif, setNotif] = useState(null);
+  const [compose, setCompose] = useState({ open: false, to: '', subject: '', body: '' });
+  const [sendOk, setSendOk] = useState({ configured: false });
   const [sending, setSending] = useState(false);
-  const [socketConnected, setSocketConnected] = useState(false);
+  const [sockOn, setSockOn] = useState(false);
 
-  // Şifre modalı state
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordModalData, setPasswordModalData] = useState({ username: '', domain: '' });
-  const [passwordInput, setPasswordInput] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [pwModal, setPwModal] = useState({ show: false, username: '', domain: '' });
+  const [pwInput, setPwInput] = useState('');
+  const [pwErr, setPwErr] = useState('');
 
-  // Socket.io ref
-  const socketRef = useRef(null);
-  const notifTimeoutRef = useRef(null);
-  const audioInitRef = useRef(false);
+  const [spwShow, setSpwShow] = useState(false);
+  const [spwVal, setSpwVal] = useState('');
 
-  // ===== İLK ETKİLEŞİMDE SESİ BAŞLAT =====
+  const sockRef = useRef(null);
+  const notifTimer = useRef(null);
+
+  /* Init beep */
   useEffect(() => {
-    const handler = () => {
-      if (!audioInitRef.current) {
-        initAudio();
-        audioInitRef.current = true;
-      }
-    };
-    document.addEventListener('click', handler, { once: false });
-    document.addEventListener('keydown', handler, { once: false });
-    return () => {
-      document.removeEventListener('click', handler);
-      document.removeEventListener('keydown', handler);
-    };
-  }, [initAudio]);
+    const h = () => initBeep();
+    document.addEventListener('click', h, { once: true });
+    document.addEventListener('keydown', h, { once: true });
+    return () => { document.removeEventListener('click', h); document.removeEventListener('keydown', h); };
+  }, [initBeep]);
 
-  // ===== BİLDİRİM GÖSTERME =====
-  const showNotification = useCallback((message, type = 'info') => {
-    if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
-    setNotification({ message, type });
-    notifTimeoutRef.current = setTimeout(() => setNotification(null), 3500);
+  const toast = useCallback((msg, type = 'info') => {
+    if (notifTimer.current) clearTimeout(notifTimer.current);
+    setNotif({ message: msg, type });
+    notifTimer.current = setTimeout(() => setNotif(null), 3500);
   }, []);
 
-  // ===== SOCKET.IO BAĞLANTISI =====
+  /* Socket.io - güvenli bağlantı */
   useEffect(() => {
-    const socket = io({
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-    });
-
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      setSocketConnected(true);
-    });
-
-    socket.on('disconnect', () => {
-      setSocketConnected(false);
-    });
-
-    // Yeni mail geldiğinde
-    socket.on('new-email', (emailData) => {
-      setEmails((prev) => {
-        if (prev.some((e) => e.id === emailData.id)) return prev;
-        return [emailData, ...prev];
-      });
-
-      showNotification(`📩 Yeni mail: ${emailData.sender}`, 'info');
-
-      // Bildirim sesi çal
-      playBeep();
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [showNotification, playBeep]);
-
-  // ===== ADRES DEĞİŞTİĞİNDE SOCKET ROOM'A ABONE OL =====
-  useEffect(() => {
-    const socket = socketRef.current;
-    if (!socket || !currentAddress) return;
-
-    socket.emit('subscribe', currentAddress.address);
-  }, [currentAddress]);
-
-  // ===== DOMAIN LİSTESİNİ GETİR =====
-  const fetchDomains = useCallback(async () => {
     try {
-      const savedPassword = localStorage.getItem('tempmail-admin-password');
-      const res = await fetch(`${API_BASE}/admin/domains`, {
-        headers: { 'x-admin-password': savedPassword || 'admin123' },
+      const s = io({ transports: ['websocket', 'polling'], reconnection: true, reconnectionDelay: 2000 });
+      sockRef.current = s;
+      s.on('connect', () => setSockOn(true));
+      s.on('disconnect', () => setSockOn(false));
+      s.on('new-email', (d) => {
+        setEmails((p) => p.some((e) => e.id === d.id) ? p : [d, ...p]);
+        toast(`📩 Yeni mail: ${d.sender}`, 'info');
+        playBeep();
       });
-      const data = await res.json();
-      if (data.domains) {
-        setDomains(data.domains.filter((d) => d.is_active));
-      }
-    } catch (err) {
-      console.error('Domain listesi alınamadı:', err);
-    }
+      return () => { try { s.disconnect(); } catch (e) { /* */ } };
+    } catch (e) { console.warn('Socket.io başlatılamadı:', e); }
+  }, [toast, playBeep]);
+
+  useEffect(() => { try { if (sockRef.current && addr) sockRef.current.emit('subscribe', addr.address); } catch (e) { /* */ } }, [addr]);
+
+  /* Domain listesi */
+  const loadDomains = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/addresses/domains`);
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.domains) setDomains(d.domains);
+    } catch (e) { console.warn('Domain yüklenemedi:', e); }
   }, []);
 
-  // ===== MAIL GÖNDERME DURUMUNU KONTROL ET =====
-  const fetchSendStatus = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/emails/send/status`);
-      const data = await res.json();
-      setSendStatus(data);
-    } catch (err) {
-      console.error('Mail gönderme durumu alınamadı:', err);
-    }
+  const loadSendStatus = useCallback(async () => {
+    try { const r = await fetch(`${API}/emails/send/status`); if (r.ok) setSendOk(await r.json()); } catch (e) { /* */ }
   }, []);
 
-  // ===== RASTGELE ADRES OLUŞTUR =====
-  const generateRandomAddress = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setSelectedEmail(null);
-
+  /* Rastgele adres oluştur */
+  const genRandom = useCallback(async (password) => {
+    setLoading(true); setError(null); setSelected(null);
     try {
-      const res = await fetch(`${API_BASE}/addresses/random`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Adres oluşturulamadı');
-      }
-
-      setCurrentAddress(data);
-      setEmails([]);
-      showNotification('Yeni adres oluşturuldu!', 'success');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [showNotification]);
-
-  // ===== ADRES KONTROL + ŞİFRE AKIŞI =====
-  const handleAddressSubmit = useCallback(async (username, domain, password) => {
-    setLoading(true);
-    setError(null);
-    setSelectedEmail(null);
-
-    try {
-      const res = await fetch(`${API_BASE}/addresses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, domain, password: password || undefined }),
+      const body = {};
+      if (password) body.password = password;
+      const r = await fetch(`${API}/addresses/random`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
-      const data = await res.json();
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Adres oluşturulamadı');
+      setAddr(d); setEmails([]);
+      toast(d.has_password ? 'Şifreli adres oluşturuldu!' : 'Yeni adres oluşturuldu!', 'success');
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
+  }, [toast]);
 
-      // Şifre gerekiyor
-      if (res.status === 403 && data.error === 'password_required') {
-        setPasswordModalData({ username, domain });
-        setPasswordInput('');
-        setPasswordError('');
-        setShowPasswordModal(true);
-        setLoading(false);
-        return;
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Adres oluşturulamadı');
-      }
-
-      setCurrentAddress(data);
-      setEmails(data.emails || []);
-      setShowPasswordModal(false);
-
-      const msg = data.returned
-        ? 'Adrese erişildi!'
-        : 'Yeni adres oluşturuldu!';
-      showNotification(msg, 'success');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [showNotification]);
-
-  // ===== ŞİFRE İLE ADRES AÇ =====
-  const handlePasswordSubmit = useCallback(async () => {
-    if (!passwordInput) return;
-
-    setLoading(true);
-    setPasswordError('');
-
+  /* Özel adres aç */
+  const openAddr = useCallback(async (username, domain, password) => {
+    setLoading(true); setError(null); setSelected(null);
     try {
-      const { username, domain } = passwordModalData;
-      const res = await fetch(`${API_BASE}/addresses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, domain, password: passwordInput }),
+      const body = { username, domain };
+      if (password) body.password = password;
+      const r = await fetch(`${API}/addresses`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setPasswordError(data.error || 'Yanlış şifre');
-        setLoading(false);
-        return;
+      const d = await r.json();
+      if (r.status === 403 && d.error === 'password_required') {
+        setPwModal({ show: true, username, domain }); setPwInput(''); setPwErr('');
+        setLoading(false); return;
       }
+      if (!r.ok) throw new Error(d.error || 'İşlem başarısız');
+      setAddr(d); setEmails(d.emails || []);
+      toast(d.returned ? 'Adrese erişildi!' : 'Yeni adres oluşturuldu!', 'success');
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
+  }, [toast]);
 
-      setCurrentAddress(data);
-      setEmails(data.emails || []);
-      setShowPasswordModal(false);
-      showNotification('Adrese giriş yapıldı!', 'success');
-    } catch (err) {
-      setPasswordError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [passwordInput, passwordModalData, showNotification]);
-
-  // ===== MAİLLERİ GETİR (fallback) =====
-  const fetchEmails = useCallback(async () => {
-    if (!currentAddress) return;
-
+  /* Şifre modalı gönderimi */
+  const pwSubmit = useCallback(async () => {
+    if (!pwInput) return;
+    setLoading(true); setPwErr('');
     try {
-      const res = await fetch(`${API_BASE}/emails/${currentAddress.address}`);
-      const data = await res.json();
+      const r = await fetch(`${API}/addresses`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: pwModal.username, domain: pwModal.domain, password: pwInput }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setPwErr(d.error || 'Yanlış şifre'); setLoading(false); return; }
+      setAddr(d); setEmails(d.emails || []); setPwModal({ show: false, username: '', domain: '' });
+      toast('Adrese giriş yapıldı!', 'success');
+    } catch (e) { setPwErr(e.message); } finally { setLoading(false); }
+  }, [pwInput, pwModal, toast]);
 
-      if (res.ok && data.emails) {
-        setEmails(data.emails);
-      }
-    } catch (err) {
-      console.error('Mail polling hatası:', err);
-    }
-  }, [currentAddress]);
-
-  // ===== MANUEL YENİLEME =====
-  const refreshEmails = useCallback(async () => {
-    setRefreshing(true);
-    await fetchEmails();
-    setTimeout(() => setRefreshing(false), 500);
-  }, [fetchEmails]);
-
-  // ===== TEK MAIL DETAYI GETİR =====
-  const fetchEmailDetail = useCallback(async (emailId) => {
+  /* Mevcut adrese şifre koy */
+  const doSetPw = useCallback(async () => {
+    if (!spwVal || !addr) return;
     try {
-      const res = await fetch(`${API_BASE}/emails/single/${emailId}`);
-      const data = await res.json();
+      const r = await fetch(`${API}/addresses/set-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addr.address, password: spwVal }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Şifre ayarlanamadı');
+      setAddr((p) => ({ ...p, has_password: true }));
+      setSpwShow(false); setSpwVal('');
+      toast('Şifre ayarlandı!', 'success');
+    } catch (e) { toast(e.message, 'error'); }
+  }, [spwVal, addr, toast]);
 
-      if (res.ok) {
-        setSelectedEmail(data);
-      }
-    } catch (err) {
-      console.error('Mail detay hatası:', err);
-    }
+  /* Mail işlemleri */
+  const loadEmails = useCallback(async () => {
+    if (!addr) return;
+    try {
+      const r = await fetch(`${API}/emails/${addr.address}`);
+      if (r.ok) { const d = await r.json(); if (d.emails) setEmails(d.emails); }
+    } catch (e) { /* */ }
+  }, [addr]);
+
+  const refresh = useCallback(async () => { setRefreshing(true); await loadEmails(); setTimeout(() => setRefreshing(false), 500); }, [loadEmails]);
+
+  const loadDetail = useCallback(async (id) => {
+    try { const r = await fetch(`${API}/emails/single/${id}`); if (r.ok) setSelected(await r.json()); } catch (e) { /* */ }
   }, []);
 
-  // ===== TEK MAIL SİL =====
-  const deleteEmail = useCallback(async (emailId, e) => {
+  const delEmail = useCallback(async (id, e) => {
     if (e) e.stopPropagation();
-
     if (!confirm('Bu maili silmek istediğinize emin misiniz?')) return;
-
     try {
-      const res = await fetch(`${API_BASE}/emails/${emailId}`, {
-        method: 'DELETE',
-      });
+      const r = await fetch(`${API}/emails/${id}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error('Silinemedi');
+      setEmails((p) => p.filter((x) => x.id !== id));
+      if (selected?.id === id) setSelected(null);
+      toast('Mail silindi', 'success');
+    } catch (e) { toast(e.message, 'error'); }
+  }, [selected, toast]);
 
-      if (!res.ok) throw new Error('Mail silinemedi');
-
-      setEmails((prev) => prev.filter((e) => e.id !== emailId));
-      if (selectedEmail?.id === emailId) setSelectedEmail(null);
-
-      showNotification('Mail silindi', 'success');
-    } catch (err) {
-      showNotification(err.message, 'error');
-    }
-  }, [selectedEmail, showNotification]);
-
-  // ===== MAIL GÖNDER =====
-  const sendEmail = useCallback(async () => {
-    if (!composeData.to || !composeData.subject || !composeData.body) {
-      showNotification('Tüm alanları doldurun', 'error');
-      return;
-    }
-
+  const sendMail = useCallback(async () => {
+    if (!compose.to || !compose.subject || !compose.body) { toast('Tüm alanları doldurun', 'error'); return; }
+    if (!addr) return;
     setSending(true);
     try {
-      const res = await fetch(`${API_BASE}/emails/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: currentAddress.address,
-          to: composeData.to,
-          subject: composeData.subject,
-          body: composeData.body,
-        }),
+      const r = await fetch(`${API}/emails/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: addr.address, to: compose.to, subject: compose.subject, body: compose.body }),
       });
-      const data = await res.json();
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Gönderilemedi');
+      setCompose({ open: false, to: '', subject: '', body: '' });
+      toast('Mail gönderildi!', 'success');
+    } catch (e) { toast(e.message, 'error'); } finally { setSending(false); }
+  }, [compose, addr, toast]);
 
-      if (!res.ok) throw new Error(data.error || 'Mail gönderilemedi');
+  const copyAddr = () => { if (addr) { navigator.clipboard.writeText(addr.address); toast('Kopyalandı!', 'success'); } };
+  const copyOtp = useCallback((o) => { navigator.clipboard.writeText(o); toast(`OTP kopyalandı: ${o}`, 'success'); }, [toast]);
+  const openCompose = (pre = {}) => setCompose({ open: true, to: pre.to || '', subject: pre.subject || '', body: '' });
 
-      setShowCompose(false);
-      setComposeData({ to: '', subject: '', body: '' });
-      showNotification('Mail gönderildi!', 'success');
-    } catch (err) {
-      showNotification(err.message, 'error');
-    } finally {
-      setSending(false);
-    }
-  }, [composeData, currentAddress, showNotification]);
+  /* İlk yükleme */
+  useEffect(() => { loadDomains(); loadSendStatus(); }, [loadDomains, loadSendStatus]);
 
-  // ===== ADRESİ KOPYALA =====
-  const copyAddress = () => {
-    if (currentAddress) {
-      navigator.clipboard.writeText(currentAddress.address);
-      showNotification('Adres kopyalandı!', 'success');
-    }
-  };
-
-  // ===== OTP KOPYALA =====
-  const copyOtp = useCallback((otp) => {
-    navigator.clipboard.writeText(otp);
-    showNotification(`OTP kodu kopyalandı: ${otp}`, 'success');
-  }, [showNotification]);
-
-  // ===== COMPOSE BAŞLAT =====
-  const handleCompose = (prefill = {}) => {
-    setComposeData({ to: prefill.to || '', subject: prefill.subject || '', body: '' });
-    setShowCompose(true);
-  };
-
-  // ===== İLK YÜKLENME =====
+  /* Domain yüklendiğinde otomatik adres oluştur */
   useEffect(() => {
-    fetchDomains();
-    fetchSendStatus();
-  }, [fetchDomains, fetchSendStatus]);
-
-  // ===== İLK YÜKLENMEDE: Otomatik adres oluştur =====
-  useEffect(() => {
-    if (domains.length > 0 && !currentAddress && !loading) {
-      generateRandomAddress();
+    if (domains.length > 0 && !addr && !loading) {
+      genRandom();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domains]);
+  }, [domains]); // eslint-disable-line
 
-  // ===== FALLBACK POLLING =====
+  /* Fallback polling */
   useEffect(() => {
-    if (!currentAddress || socketConnected) return;
+    if (!addr || sockOn) return;
+    loadEmails();
+    const i = setInterval(loadEmails, 5000);
+    return () => clearInterval(i);
+  }, [addr, sockOn, loadEmails]);
 
-    fetchEmails();
-    const interval = setInterval(fetchEmails, 5000);
-    return () => clearInterval(interval);
-  }, [currentAddress, socketConnected, fetchEmails]);
-
-  // ===== RENDER =====
   return (
-    <div className="min-h-screen bg-gradient-main transition-colors duration-300">
-      {/* ===== Üst Bilgi Çubuğu ===== */}
-      <header className="header-glass sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Ana Sayfa / Inbox butonu */}
+    <div className="min-h-screen bg-gray-50 dark:bg-dark-950 transition-colors duration-200">
+      {/* Header */}
+      <header className="bg-white dark:bg-dark-900 border-b border-gray-200 dark:border-dark-700 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
             {page !== 'inbox' && (
-              <button
-                onClick={() => { setPage('inbox'); setSelectedEmail(null); }}
-                className="btn-ghost text-sm"
-                title="Ana sayfaya dön"
-              >
-                ← 📬
-              </button>
+              <button onClick={() => { setPage('inbox'); setSelected(null); }} className="text-gray-500 dark:text-dark-400 hover:text-gray-700 dark:hover:text-dark-200 mr-1 text-sm">←</button>
             )}
-            <span className="text-2xl animate-bounce-soft">📧</span>
-            <h1 className="text-xl font-bold text-gray-800 dark:text-dark-100">TempMail</h1>
-            <span className="badge-primary hidden sm:inline-flex">
-              Geçici E-posta
-            </span>
-            {/* Socket.io bağlantı durumu */}
-            <span
-              className={`w-2 h-2 rounded-full transition-colors ${
-                socketConnected
-                  ? 'bg-green-500 animate-pulse-soft'
-                  : 'bg-gray-300 dark:bg-dark-500'
-              }`}
-              title={socketConnected ? 'Gerçek zamanlı bağlı' : 'Bağlantı bekleniyor'}
-            />
+            <span className="text-xl">📧</span>
+            <span className="font-bold text-gray-800 dark:text-dark-100 text-base">TempMail</span>
+            <span className={`w-1.5 h-1.5 rounded-full ml-1 ${sockOn ? 'bg-green-500' : 'bg-gray-300 dark:bg-dark-600'}`} title={sockOn ? 'Canlı' : 'Bağlanıyor'} />
           </div>
-
-          <nav className="flex items-center gap-2">
-            {currentAddress && sendStatus.configured && (
-              <button
-                onClick={() => handleCompose()}
-                className="btn-primary text-sm"
-              >
-                ✏️ <span className="hidden sm:inline">Mail Gönder</span>
-              </button>
-            )}
-            <button
-              onClick={() => setPage('inbox')}
-              className={`text-sm transition-colors ${
-                page === 'inbox' ? 'btn-primary' : 'btn-ghost'
-              }`}
-            >
-              📬 <span className="hidden sm:inline">Gelen Kutusu</span>
-            </button>
-            <button
-              onClick={() => setPage('admin')}
-              className={`text-sm transition-colors ${
-                page === 'admin' ? 'btn-primary' : 'btn-ghost'
-              }`}
-            >
-              ⚙️ <span className="hidden sm:inline">Admin</span>
-            </button>
-
-            {/* Dark/Light Mode Toggle */}
-            <button
-              onClick={() => setDark(!dark)}
-              className="btn-ghost text-lg p-2"
-              title={dark ? 'Açık tema' : 'Koyu tema'}
-            >
-              {dark ? '☀️' : '🌙'}
-            </button>
+          <nav className="flex items-center gap-1">
+            <button onClick={() => setPage('inbox')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${page === 'inbox' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'text-gray-500 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-800'}`}>📬 Inbox</button>
+            <button onClick={() => setPage('admin')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${page === 'admin' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'text-gray-500 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-800'}`}>⚙️ Admin</button>
+            <button onClick={() => setDark(!dark)} className="ml-1 p-1.5 rounded-md text-gray-500 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-800" title={dark ? 'Açık tema' : 'Koyu tema'}>{dark ? '☀️' : '🌙'}</button>
           </nav>
         </div>
       </header>
 
-      {/* ===== Bildirim ===== */}
-      {notification && (
-        <div
-          className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-xl shadow-lg text-white font-medium animate-slide-in backdrop-blur-sm ${
-            notification.type === 'success'
-              ? 'bg-green-500/90 dark:bg-green-600/90'
-              : notification.type === 'error'
-              ? 'bg-red-500/90 dark:bg-red-600/90'
-              : 'bg-blue-500/90 dark:bg-blue-600/90'
-          }`}
-        >
-          {notification.message}
+      {/* Toast */}
+      {notif && (
+        <div className={`fixed top-3 right-3 z-[100] px-4 py-2.5 rounded-lg shadow-lg text-white text-sm font-medium animate-slide-in ${notif.type === 'success' ? 'bg-emerald-500' : notif.type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`}>
+          {notif.message}
         </div>
       )}
 
-      {/* ===== Şifre Modalı ===== */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-dark-700 animate-slide-up">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-700">
-              <h3 className="font-bold text-gray-800 dark:text-dark-100 flex items-center gap-2">
-                🔐 Şifre Gerekli
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-dark-400 mt-1">
-                <span className="font-mono font-medium text-primary-600 dark:text-primary-400">
-                  {passwordModalData.username}@{passwordModalData.domain}
-                </span>
-                {' '}adresi şifre korumalı.
-              </p>
+      {/* Password Modal */}
+      {pwModal.show && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setPwModal({ show: false, username: '', domain: '' }); setLoading(false); }}>
+          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-dark-700 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-gray-100 dark:border-dark-700">
+              <h3 className="font-bold text-gray-800 dark:text-dark-100">🔐 Şifre Gerekli</h3>
+              <p className="text-xs text-gray-500 dark:text-dark-400 mt-1"><span className="font-mono font-semibold text-primary-600 dark:text-primary-400">{pwModal.username}@{pwModal.domain}</span> şifre korumalı</p>
             </div>
-            <div className="p-6 space-y-4">
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(''); }}
-                onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                placeholder="Şifrenizi girin"
-                className="input-field"
-                autoFocus
-              />
-              {passwordError && (
-                <p className="text-red-500 dark:text-red-400 text-sm">{passwordError}</p>
-              )}
+            <div className="p-5 space-y-3">
+              <input type="password" value={pwInput} onChange={(e) => { setPwInput(e.target.value); setPwErr(''); }} onKeyDown={(e) => e.key === 'Enter' && pwSubmit()} placeholder="Şifre" className="input-field" autoFocus />
+              {pwErr && <p className="text-red-500 text-xs">{pwErr}</p>}
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-700 bg-gray-50 dark:bg-dark-900/50 flex items-center justify-end gap-3 rounded-b-2xl">
-              <button
-                onClick={() => { setShowPasswordModal(false); setLoading(false); }}
-                className="btn-secondary"
-              >
-                İptal
-              </button>
-              <button
-                onClick={handlePasswordSubmit}
-                disabled={!passwordInput || loading}
-                className="btn-primary"
-              >
-                {loading ? '⏳ Giriş yapılıyor...' : '🔓 Giriş Yap'}
-              </button>
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-dark-700 flex justify-end gap-2">
+              <button onClick={() => { setPwModal({ show: false, username: '', domain: '' }); setLoading(false); }} className="btn-secondary text-sm">İptal</button>
+              <button onClick={pwSubmit} disabled={!pwInput || loading} className="btn-primary text-sm">{loading ? '⏳' : '🔓 Giriş'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== Mail Gönderme Modal ===== */}
-      {showCompose && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-dark-700 animate-slide-up">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-700 flex items-center justify-between">
-              <h3 className="font-bold text-gray-800 dark:text-dark-100 flex items-center gap-2">
-                ✏️ Yeni Mail Gönder
-              </h3>
-              <button
-                onClick={() => setShowCompose(false)}
-                className="text-gray-400 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-200 text-xl transition-colors"
-              >
-                ✕
-              </button>
+      {/* Set Password Modal */}
+      {spwShow && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setSpwShow(false); setSpwVal(''); }}>
+          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-dark-700 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-gray-100 dark:border-dark-700">
+              <h3 className="font-bold text-gray-800 dark:text-dark-100">🔒 Şifre Belirle</h3>
+              <p className="text-xs text-gray-500 dark:text-dark-400 mt-1">Sonraki erişimlerde şifre istenecek</p>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">Gönderen</label>
-                <input type="text" value={currentAddress?.address || ''} disabled className="input-field bg-gray-50 dark:bg-dark-900" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">Alıcı</label>
-                <input type="email" value={composeData.to} onChange={(e) => setComposeData({ ...composeData, to: e.target.value })} placeholder="alici@ornek.com" className="input-field" autoFocus />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">Konu</label>
-                <input type="text" value={composeData.subject} onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })} placeholder="Mail konusu" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">İçerik</label>
-                <textarea value={composeData.body} onChange={(e) => setComposeData({ ...composeData, body: e.target.value })} placeholder="Mail içeriği..." rows={6} className="input-field resize-y" />
-              </div>
+            <div className="p-5">
+              <input type="password" value={spwVal} onChange={(e) => setSpwVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSetPw()} placeholder="Şifre belirleyin" className="input-field" autoFocus />
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-700 bg-gray-50 dark:bg-dark-900/50 flex items-center justify-end gap-3 rounded-b-2xl">
-              <button onClick={() => setShowCompose(false)} className="btn-secondary">İptal</button>
-              <button onClick={sendEmail} disabled={sending} className="btn-primary">
-                {sending ? '⏳ Gönderiliyor...' : '📤 Gönder'}
-              </button>
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-dark-700 flex justify-end gap-2">
+              <button onClick={() => { setSpwShow(false); setSpwVal(''); }} className="btn-secondary text-sm">İptal</button>
+              <button onClick={doSetPw} disabled={!spwVal} className="btn-primary text-sm">🔒 Kaydet</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== Ana İçerik ===== */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      {/* Compose Modal */}
+      {compose.open && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setCompose({ ...compose, open: false })}>
+          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-dark-700 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-gray-100 dark:border-dark-700 flex justify-between items-center">
+              <h3 className="font-bold text-gray-800 dark:text-dark-100">✏️ Yeni Mail</h3>
+              <button onClick={() => setCompose({ ...compose, open: false })} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div className="p-5 space-y-3">
+              <div><label className="text-xs font-medium text-gray-500 dark:text-dark-400 mb-1 block">Gönderen</label><input value={addr?.address || ''} disabled className="input-field bg-gray-50 dark:bg-dark-900 text-sm" /></div>
+              <div><label className="text-xs font-medium text-gray-500 dark:text-dark-400 mb-1 block">Alıcı</label><input value={compose.to} onChange={(e) => setCompose({ ...compose, to: e.target.value })} placeholder="alici@ornek.com" className="input-field text-sm" autoFocus /></div>
+              <div><label className="text-xs font-medium text-gray-500 dark:text-dark-400 mb-1 block">Konu</label><input value={compose.subject} onChange={(e) => setCompose({ ...compose, subject: e.target.value })} placeholder="Konu" className="input-field text-sm" /></div>
+              <div><label className="text-xs font-medium text-gray-500 dark:text-dark-400 mb-1 block">İçerik</label><textarea value={compose.body} onChange={(e) => setCompose({ ...compose, body: e.target.value })} rows={4} className="input-field text-sm resize-y" /></div>
+            </div>
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-dark-700 flex justify-end gap-2">
+              <button onClick={() => setCompose({ ...compose, open: false })} className="btn-secondary text-sm">İptal</button>
+              <button onClick={sendMail} disabled={sending} className="btn-primary text-sm">{sending ? '⏳' : '📤 Gönder'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main */}
+      <main className="max-w-6xl mx-auto px-4 py-6">
         {page === 'inbox' ? (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <AddressBar
-              currentAddress={currentAddress}
-              loading={loading}
-              error={error}
-              domains={domains}
-              onGenerate={generateRandomAddress}
-              onSubmit={handleAddressSubmit}
-              onCopy={copyAddress}
+              currentAddress={addr} loading={loading} error={error} domains={domains}
+              onGenerate={genRandom} onSubmit={openAddr} onCopy={copyAddr} onSetPassword={() => setSpwShow(true)}
             />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Inbox
-                emails={emails}
-                selectedEmailId={selectedEmail?.id}
-                onSelectEmail={fetchEmailDetail}
-                onDeleteEmail={deleteEmail}
-                hasAddress={!!currentAddress}
-                onRefresh={refreshEmails}
-                refreshing={refreshing}
-                socketConnected={socketConnected}
-              />
-
-              <EmailView
-                email={selectedEmail}
-                onClose={() => setSelectedEmail(null)}
-                apiBase={API_BASE}
-                onCompose={handleCompose}
-                currentAddress={currentAddress}
-                onCopyOtp={copyOtp}
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+              <div className="lg:col-span-2">
+                <Inbox emails={emails} selectedId={selected?.id} onSelect={loadDetail} onDelete={delEmail} hasAddr={!!addr} onRefresh={refresh} refreshing={refreshing} live={sockOn} />
+              </div>
+              <div className="lg:col-span-3">
+                <EmailView email={selected} onClose={() => setSelected(null)} api={API} onReply={openCompose} onCopyOtp={copyOtp} />
+              </div>
             </div>
           </div>
         ) : (
-          <AdminPanel apiBase={API_BASE} />
+          <AdminPanel api={API} />
         )}
       </main>
 
-      {/* ===== Footer ===== */}
-      <footer className="text-center py-6 text-gray-400 dark:text-dark-500 text-sm">
-        TempMail - Geçici e-posta servisi
-      </footer>
+      <footer className="text-center py-4 text-gray-400 dark:text-dark-600 text-[11px]">TempMail</footer>
     </div>
   );
 }
