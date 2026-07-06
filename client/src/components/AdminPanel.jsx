@@ -1,173 +1,170 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-export default function AdminPanel({ apiBase }) {
-  const [password, setPassword] = useState(() => localStorage.getItem('tempmail-admin-password') || '');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export default function AdminPanel({ api }) {
+  const [pw, setPw] = useState(() => localStorage.getItem('tm-admin-pw') || '');
+  const [auth, setAuth] = useState(false);
   const [domains, setDomains] = useState([]);
-  const [newDomain, setNewDomain] = useState('');
+  const [newDom, setNewDom] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [err, setErr] = useState(null);
+  const [ok, setOk] = useState(null);
   const [stats, setStats] = useState(null);
-  const [allAddresses, setAllAddresses] = useState([]);
-  const [allEmails, setAllEmails] = useState([]);
-  const [emailsPage, setEmailsPage] = useState(1);
+  const [addrs, setAddrs] = useState([]);
+  const [emails, setEmails] = useState([]);
   const [emailsTotal, setEmailsTotal] = useState(0);
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [serverIp, setServerIp] = useState(() => localStorage.getItem('tempmail_server_ip') || '');
+  const [emailsPage, setEmailsPage] = useState(1);
+  const [tab, setTab] = useState('dashboard');
+  const [serverIp, setServerIp] = useState(() => localStorage.getItem('tm-server-ip') || '');
 
   // Mailbox viewer
-  const [viewingMailbox, setViewingMailbox] = useState(null);
-  const [mailboxEmails, setMailboxEmails] = useState([]);
-  const [selectedAdminEmail, setSelectedAdminEmail] = useState(null);
+  const [mbox, setMbox] = useState(null);
+  const [mboxEmails, setMboxEmails] = useState([]);
+  const [mboxSel, setMboxSel] = useState(null);
 
-  const headers = { 'x-admin-password': password };
+  const H = { 'x-admin-password': pw };
 
-  useEffect(() => { if (serverIp) localStorage.setItem('tempmail_server_ip', serverIp); }, [serverIp]);
+  useEffect(() => { if (serverIp) localStorage.setItem('tm-server-ip', serverIp); }, [serverIp]);
 
-  const flash = (msg, type = 'success') => { type === 'success' ? setSuccess(msg) : setError(msg); setTimeout(() => { setSuccess(null); setError(null); }, 3000); };
-
-  const fetchDomains = useCallback(async () => {
-    try { const r = await fetch(`${apiBase}/admin/domains`, { headers }); if (r.status === 401) { setIsAuthenticated(false); return; } const d = await r.json(); if (d.domains) { setDomains(d.domains); setIsAuthenticated(true); } } catch (e) { /* */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, password]);
-
-  const fetchStats = useCallback(async () => {
-    try { const r = await fetch(`${apiBase}/admin/stats`, { headers }); if (r.ok) setStats(await r.json()); } catch (e) { /* */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, password]);
-
-  const fetchAllAddresses = useCallback(async () => {
-    try { const r = await fetch(`${apiBase}/admin/addresses`, { headers }); if (r.ok) { const d = await r.json(); setAllAddresses(d.addresses || []); } } catch (e) { /* */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, password]);
-
-  const fetchAllEmails = useCallback(async (page = 1) => {
-    try { const r = await fetch(`${apiBase}/admin/emails?page=${page}&limit=50`, { headers }); if (r.ok) { const d = await r.json(); setAllEmails(d.emails || []); setEmailsTotal(d.total || 0); setEmailsPage(page); } } catch (e) { /* */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, password]);
-
-  const openMailbox = useCallback(async (address) => {
-    try {
-      const r = await fetch(`${apiBase}/admin/mailbox/${encodeURIComponent(address)}`, { headers });
-      if (r.ok) { const d = await r.json(); setViewingMailbox(d); setMailboxEmails(d.emails || []); setSelectedAdminEmail(null); }
-    } catch (e) { /* */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, password]);
-
-  const openAdminEmailDetail = useCallback(async (emailId) => {
-    try { const r = await fetch(`${apiBase}/emails/single/${emailId}`); if (r.ok) setSelectedAdminEmail(await r.json()); } catch (e) { /* */ }
-  }, [apiBase]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault(); if (!password) return;
-    setLoading(true); setError(null);
-    try {
-      const r = await fetch(`${apiBase}/admin/domains`, { headers: { 'x-admin-password': password } });
-      if (r.status === 401) { setError('Geçersiz şifre'); setLoading(false); return; }
-      const d = await r.json();
-      if (d.domains) { setDomains(d.domains); setIsAuthenticated(true); localStorage.setItem('tempmail-admin-password', password); flash('Giriş başarılı!'); }
-    } catch (e) { setError('Bağlantı hatası'); } finally { setLoading(false); }
+  const flash = (msg, t = 'success') => {
+    t === 'success' ? setOk(msg) : setErr(msg);
+    setTimeout(() => { setOk(null); setErr(null); }, 3000);
   };
 
-  const handleLogout = () => { setIsAuthenticated(false); setPassword(''); localStorage.removeItem('tempmail-admin-password'); setStats(null); setAllEmails([]); setViewingMailbox(null); };
+  const apiGet = useCallback(async (path) => {
+    const r = await fetch(`${api}${path}`, { headers: H });
+    if (r.status === 401) { setAuth(false); return null; }
+    if (!r.ok) return null;
+    return r.json();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api, pw]);
+
+  const apiPost = useCallback(async (path, body) => {
+    const r = await fetch(`${api}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...H }, body: JSON.stringify(body) });
+    return r.json();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api, pw]);
+
+  const loadDomains = useCallback(async () => { const d = await apiGet('/admin/domains'); if (d?.domains) { setDomains(d.domains); setAuth(true); } }, [apiGet]);
+  const loadStats = useCallback(async () => { const d = await apiGet('/admin/stats'); if (d) setStats(d); }, [apiGet]);
+  const loadAddrs = useCallback(async () => { const d = await apiGet('/admin/addresses'); if (d?.addresses) setAddrs(d.addresses); }, [apiGet]);
+  const loadEmails = useCallback(async (p = 1) => { const d = await apiGet(`/admin/emails?page=${p}&limit=50`); if (d) { setEmails(d.emails || []); setEmailsTotal(d.total || 0); setEmailsPage(p); } }, [apiGet]);
+  const openMbox = useCallback(async (addr) => { const d = await apiGet(`/admin/mailbox/${encodeURIComponent(addr)}`); if (d) { setMbox(d); setMboxEmails(d.emails || []); setMboxSel(null); } }, [apiGet]);
+  const openMboxEmail = useCallback(async (id) => { try { const r = await fetch(`${api}/emails/single/${id}`); if (r.ok) setMboxSel(await r.json()); } catch (e) { /* */ } }, [api]);
+
+  const login = async (e) => {
+    e.preventDefault(); if (!pw) return;
+    setLoading(true); setErr(null);
+    try {
+      const r = await fetch(`${api}/admin/domains`, { headers: { 'x-admin-password': pw } });
+      if (r.status === 401) { setErr('Geçersiz şifre'); setLoading(false); return; }
+      const d = await r.json();
+      if (d.domains) { setDomains(d.domains); setAuth(true); localStorage.setItem('tm-admin-pw', pw); flash('Giriş başarılı!'); }
+    } catch (e) { setErr('Bağlantı hatası'); } finally { setLoading(false); }
+  };
+
+  const logout = () => { setAuth(false); setPw(''); localStorage.removeItem('tm-admin-pw'); setStats(null); setEmails([]); setMbox(null); };
 
   const addDomain = async (e) => {
-    e.preventDefault(); if (!newDomain.trim()) return; setLoading(true); setError(null);
-    try { const r = await fetch(`${apiBase}/admin/domains`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ domain: newDomain.trim() }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setNewDomain(''); flash(`"${d.domain.domain}" eklendi!`); fetchDomains(); } catch (e) { setError(e.message); } finally { setLoading(false); }
+    e.preventDefault(); if (!newDom.trim()) return; setLoading(true); setErr(null);
+    try { const d = await apiPost('/admin/domains', { domain: newDom.trim() }); if (d.error) throw new Error(d.error); setNewDom(''); flash(`"${d.domain.domain}" eklendi!`); loadDomains(); } catch (e) { setErr(e.message); } finally { setLoading(false); }
   };
 
-  const toggleDomain = async (id, active) => { await fetch(`${apiBase}/admin/domains/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ is_active: !active }) }); fetchDomains(); };
-  const deleteDomain = async (id, name) => { if (!confirm(`"${name}" silinecek?`)) return; await fetch(`${apiBase}/admin/domains/${id}`, { method: 'DELETE', headers }); fetchDomains(); };
-  const triggerCleanup = async () => { if (!confirm('TÜM adresler ve mailler silinecek?')) return; const r = await fetch(`${apiBase}/admin/cleanup`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ type: 'all' }) }); const d = await r.json(); flash(d.message); fetchDomains(); fetchStats(); };
-  const copyToClipboard = (text, label) => { navigator.clipboard.writeText(text); flash(`"${label}" kopyalandı!`); };
+  const toggleDom = async (id, active) => {
+    await fetch(`${api}/admin/domains/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...H }, body: JSON.stringify({ is_active: !active }) });
+    loadDomains();
+  };
 
-  useEffect(() => { if (isAuthenticated) { fetchDomains(); fetchStats(); fetchAllAddresses(); fetchAllEmails(); } }, [isAuthenticated]); // eslint-disable-line
+  const delDom = async (id, name) => { if (!confirm(`"${name}" silinecek?`)) return; await fetch(`${api}/admin/domains/${id}`, { method: 'DELETE', headers: H }); loadDomains(); };
+
+  const cleanup = async () => { if (!confirm('TÜM adresler ve mailler silinecek?')) return; const d = await apiPost('/admin/cleanup', { type: 'all' }); flash(d.message); loadDomains(); loadStats(); };
+
+  const copy = (t, l) => { navigator.clipboard.writeText(t); flash(`"${l}" kopyalandı!`); };
+
+  useEffect(() => { if (auth) { loadDomains(); loadStats(); loadAddrs(); loadEmails(); } }, [auth]); // eslint-disable-line
 
   const fmt = (d) => new Date(d).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
-  /* Chart data */
-  const domainChartData = stats?.top_domains?.slice(0, 8).map((d) => ({ name: d.domain.length > 15 ? d.domain.slice(0, 12) + '...' : d.domain, value: d.email_count })) || [];
-  const otpPieData = stats ? [{ name: 'OTP', value: stats.otp_count }, { name: 'Normal', value: stats.total_emails - stats.otp_count }] : [];
+  const barData = stats?.top_domains?.slice(0, 8).map((d) => ({ name: d.domain.length > 12 ? d.domain.slice(0, 10) + '..' : d.domain, value: d.email_count })) || [];
+  const pieData = stats ? [{ name: 'OTP', value: stats.otp_count || 0 }, { name: 'Normal', value: (stats.total_emails || 0) - (stats.otp_count || 0) }] : [];
 
-  if (!isAuthenticated) {
+  /* ===== LOGIN ===== */
+  if (!auth) {
     return (
-      <div className="max-w-md mx-auto card">
-        <div className="text-center mb-6">
-          <span className="text-5xl block mb-3">🔐</span>
-          <h2 className="text-xl font-bold text-gray-800 dark:text-dark-100">Admin Girişi</h2>
+      <div className="max-w-sm mx-auto mt-10">
+        <div className="bg-white dark:bg-dark-900 rounded-2xl border border-gray-200 dark:border-dark-700 shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-br from-primary-600 to-primary-700 px-6 py-8 text-center">
+            <span className="text-5xl block mb-3">🔐</span>
+            <h2 className="text-xl font-bold text-white">Admin Paneli</h2>
+            <p className="text-primary-200 text-xs mt-1">Yönetim arayüzüne erişim</p>
+          </div>
+          <form onSubmit={login} className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-dark-400 mb-1.5">Şifre</label>
+              <input type="password" value={pw} onChange={(e) => { setPw(e.target.value); setErr(null); }} placeholder="Admin şifresi" className="w-full px-4 py-2.5 border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" autoFocus />
+            </div>
+            {err && <p className="text-red-500 text-xs flex items-center gap-1">⚠️ {err}</p>}
+            <button type="submit" disabled={loading || !pw} className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-50 shadow-sm">
+              {loading ? '⏳ Giriş yapılıyor...' : '🔓 Giriş Yap'}
+            </button>
+            <p className="text-[10px] text-gray-400 dark:text-dark-500 text-center">Varsayılan: <code className="bg-gray-100 dark:bg-dark-700 px-1 rounded">admin123</code></p>
+          </form>
         </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Admin şifresi" className="input-field" autoFocus />
-          {error && <p className="text-red-500 dark:text-red-400 text-sm">⚠️ {error}</p>}
-          <button type="submit" className="btn-primary w-full" disabled={loading}>{loading ? '⏳' : 'Giriş Yap'}</button>
-        </form>
       </div>
     );
   }
 
-  /* Mailbox viewer */
-  if (viewingMailbox) {
+  /* ===== MAILBOX VIEWER ===== */
+  if (mbox) {
     return (
       <div className="space-y-4">
-        <div className="card flex items-center justify-between">
+        <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 px-5 py-4 flex items-center justify-between">
           <div>
-            <button onClick={() => { setViewingMailbox(null); setSelectedAdminEmail(null); }} className="btn-ghost text-sm mb-2">← Admin Paneline Dön</button>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-dark-100">📬 {viewingMailbox.address}</h2>
-            <p className="text-xs text-gray-500 dark:text-dark-400">{mailboxEmails.length} mail • Oluşturulma: {fmt(viewingMailbox.created_at)}</p>
+            <button onClick={() => { setMbox(null); setMboxSel(null); }} className="text-xs text-gray-500 dark:text-dark-400 hover:text-gray-700 dark:hover:text-dark-200 mb-1">← Admin Paneline Dön</button>
+            <h2 className="text-base font-bold text-gray-800 dark:text-dark-100 font-mono">📬 {mbox.address}</h2>
+            <p className="text-[10px] text-gray-500 dark:text-dark-400">{mboxEmails.length} mail • {fmt(mbox.created_at)}</p>
           </div>
+          <button onClick={() => copy(mbox.address, 'Adres')} className="text-xs px-3 py-1.5 rounded-md bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 border border-gray-200 dark:border-dark-600">📋 Kopyala</button>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="card p-0 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50">
-              <h3 className="font-semibold text-sm text-gray-700 dark:text-dark-200">Mailler ({mailboxEmails.length})</h3>
-            </div>
-            <div className="max-h-[500px] overflow-y-auto divide-y divide-gray-50 dark:divide-dark-700/50">
-              {mailboxEmails.length === 0 ? (
-                <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-sm">📭 Henüz mail yok</div>
-              ) : mailboxEmails.map((m) => (
-                <div key={m.id} onClick={() => openAdminEmailDetail(m.id)} className={`px-4 py-3 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-dark-700/30 transition-colors ${selectedAdminEmail?.id === m.id ? 'bg-primary-50/80 dark:bg-primary-900/20 border-l-3 border-primary-500' : ''}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-800 dark:text-dark-100 truncate text-sm">{m.sender}</p>
-                      <p className="text-xs text-gray-500 dark:text-dark-400 truncate">{m.subject || '(Konu yok)'}</p>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      {m.otp_code && <span className="badge-otp text-[9px]">🔑 {m.otp_code}</span>}
-                      <span className="text-[10px] text-gray-400 dark:text-dark-500">{fmt(m.received_at)}</span>
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-2 bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 text-xs font-semibold text-gray-600 dark:text-dark-300">Mailler ({mboxEmails.length})</div>
+            <div className="max-h-[500px] overflow-y-auto">
+              {mboxEmails.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">📭 Boş</div> : mboxEmails.map((m) => (
+                <div key={m.id} onClick={() => openMboxEmail(m.id)} className={`px-4 py-2.5 cursor-pointer border-b border-gray-50 dark:border-dark-800 last:border-0 transition-colors hover:bg-blue-50/50 dark:hover:bg-dark-800/50 ${mboxSel?.id === m.id ? 'bg-primary-50/80 dark:bg-primary-900/20' : ''}`}>
+                  <p className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
+                  <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">{m.subject || '(Konu yok)'}</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    {m.otp_code && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded font-mono">🔑 {m.otp_code}</span>}
+                    <span className="text-[9px] text-gray-400 dark:text-dark-500">{fmt(m.received_at)}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div>
-            {selectedAdminEmail ? (
-              <div className="card p-0 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50">
-                  <p className="text-xs text-gray-500 dark:text-dark-400">{selectedAdminEmail.sender}</p>
-                  <p className="font-medium text-gray-800 dark:text-dark-100 text-sm">{selectedAdminEmail.subject || '(Konu yok)'}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-dark-500 mt-1">{fmt(selectedAdminEmail.received_at)}</p>
-                  {selectedAdminEmail.otp_code && (
+          <div className="lg:col-span-3">
+            {mboxSel ? (
+              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700">
+                  <p className="text-[10px] text-gray-500 dark:text-dark-400">{mboxSel.sender}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-dark-100">{mboxSel.subject || '(Konu yok)'}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-dark-500 mt-0.5">{fmt(mboxSel.received_at)}</p>
+                  {mboxSel.otp_code && (
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="badge-otp">{selectedAdminEmail.otp_code}</span>
-                      <button onClick={() => copyToClipboard(selectedAdminEmail.otp_code, 'OTP')} className="text-xs text-primary-600 dark:text-primary-400">📋 Kopyala</button>
+                      <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-mono font-bold text-sm">{mboxSel.otp_code}</span>
+                      <button onClick={() => copy(mboxSel.otp_code, 'OTP')} className="text-xs text-primary-600 dark:text-primary-400">📋 Kopyala</button>
                     </div>
                   )}
                 </div>
                 <div className="max-h-[400px] overflow-y-auto p-4">
-                  <div className="text-sm text-gray-700 dark:text-dark-300 whitespace-pre-wrap font-mono">{selectedAdminEmail.body_text || '(HTML içerik)'}</div>
+                  <pre className="text-xs text-gray-700 dark:text-dark-300 whitespace-pre-wrap font-mono">{mboxSel.body_text || '(HTML içerik)'}</pre>
                 </div>
               </div>
             ) : (
-              <div className="card flex items-center justify-center min-h-[300px]">
-                <div className="text-center text-gray-400 dark:text-dark-500 text-sm">
-                  <span className="text-4xl block mb-2">✉️</span>
-                  <p>Bir mail seçin</p>
-                </div>
+              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 flex items-center justify-center min-h-[300px]">
+                <div className="text-center text-gray-400 dark:text-dark-500"><span className="text-3xl block mb-2">✉️</span><p className="text-xs">Bir mail seçin</p></div>
               </div>
             )}
           </div>
@@ -176,100 +173,96 @@ export default function AdminPanel({ apiBase }) {
     );
   }
 
+  /* ===== MAIN PANEL ===== */
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="card">
+      {/* Top bar */}
+      <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 px-5 py-3">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-gray-800 dark:text-dark-100">⚙️ Admin Paneli</h2>
+          <h2 className="text-base font-bold text-gray-800 dark:text-dark-100">⚙️ Admin</h2>
           <div className="flex gap-2">
-            <button onClick={triggerCleanup} className="btn-secondary text-xs">🧹 Temizle</button>
-            <button onClick={handleLogout} className="btn-secondary text-xs">🚪 Çıkış</button>
+            <button onClick={cleanup} className="text-xs px-3 py-1.5 rounded-md bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40">🧹 Temizle</button>
+            <button onClick={logout} className="text-xs px-3 py-1.5 rounded-md bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 border border-gray-200 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600">🚪 Çıkış</button>
           </div>
         </div>
-        <div className="flex gap-1 border-t border-gray-100 dark:border-dark-700 pt-3">
+        <div className="flex gap-1">
           {[
-            { id: 'dashboard', label: '📊 Dashboard' },
-            { id: 'addresses', label: '📬 Adresler' },
-            { id: 'domains', label: '🌐 Domainler' },
-            { id: 'emails', label: '📧 Tüm Mailler' },
+            { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+            { id: 'addresses', icon: '📬', label: 'Adresler' },
+            { id: 'domains', icon: '🌐', label: 'Domainler' },
+            { id: 'emails', icon: '📧', label: 'Mailler' },
           ].map((t) => (
-            <button key={t.id} onClick={() => { setActiveTab(t.id); if (t.id === 'emails') fetchAllEmails(1); if (t.id === 'addresses') fetchAllAddresses(); }} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeTab === t.id ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-dark-300 hover:bg-gray-100 dark:hover:bg-dark-700'}`}>{t.label}</button>
+            <button key={t.id} onClick={() => { setTab(t.id); if (t.id === 'emails') loadEmails(1); if (t.id === 'addresses') loadAddrs(); }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-500 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-700'}`}>
+              {t.icon} {t.label}
+            </button>
           ))}
         </div>
       </div>
 
-      {success && <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-4 py-2.5 rounded-xl text-sm border border-emerald-200 dark:border-emerald-800 animate-slide-in">✅ {success}</div>}
-      {error && <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-4 py-2.5 rounded-xl text-sm border border-red-200 dark:border-red-800 animate-slide-in">⚠️ {error}</div>}
+      {/* Flash */}
+      {ok && <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-4 py-2 rounded-lg text-xs border border-emerald-200 dark:border-emerald-800 animate-slide-in">✅ {ok}</div>}
+      {err && <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-4 py-2 rounded-lg text-xs border border-red-200 dark:border-red-800 animate-slide-in">⚠️ {err}</div>}
 
       {/* ===== DASHBOARD ===== */}
-      {activeTab === 'dashboard' && stats && (
+      {tab === 'dashboard' && stats && (
         <div className="space-y-4">
-          {/* Stat Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: 'Toplam Mail', value: stats.total_emails, icon: '📧', color: 'from-blue-500 to-blue-600' },
-              { label: 'Toplam Adres', value: stats.total_addresses, icon: '📬', color: 'from-emerald-500 to-emerald-600' },
-              { label: 'Son 24 Saat', value: stats.recent_24h, icon: '⏰', color: 'from-amber-500 to-amber-600' },
-              { label: 'OTP Algılanan', value: stats.otp_count, icon: '🔑', color: 'from-purple-500 to-purple-600' },
+              { label: 'Toplam Mail', value: stats.total_emails, icon: '📧', grad: 'from-blue-500 to-blue-600' },
+              { label: 'Toplam Adres', value: stats.total_addresses, icon: '📬', grad: 'from-emerald-500 to-emerald-600' },
+              { label: 'Son 24 Saat', value: stats.recent_24h, icon: '⏰', grad: 'from-amber-500 to-amber-600' },
+              { label: 'OTP Kodları', value: stats.otp_count, icon: '🔑', grad: 'from-purple-500 to-purple-600' },
             ].map((s) => (
-              <div key={s.label} className={`bg-gradient-to-br ${s.color} rounded-xl p-4 text-white shadow-lg`}>
-                <span className="text-2xl">{s.icon}</span>
+              <div key={s.label} className={`bg-gradient-to-br ${s.grad} rounded-xl p-4 text-white shadow-lg`}>
+                <span className="text-xl">{s.icon}</span>
                 <p className="text-2xl font-bold mt-1">{s.value}</p>
-                <p className="text-xs opacity-80 mt-0.5">{s.label}</p>
+                <p className="text-[10px] opacity-80">{s.label}</p>
               </div>
             ))}
           </div>
 
-          {/* Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Bar Chart - Top Domains */}
-            {domainChartData.length > 0 && (
-              <div className="card">
-                <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm mb-3">🏢 En Çok Mail Gelen Şirketler</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={domainChartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+            {barData.length > 0 && (
+              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
+                <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-3">🏢 Şirket Bazlı Mail</h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={barData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e5e7eb' }} />
                     <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
-
-            {/* Pie Chart - OTP vs Normal */}
             {stats.total_emails > 0 && (
-              <div className="card">
-                <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm mb-3">🔑 OTP Dağılımı</h3>
-                <ResponsiveContainer width="100%" height={250}>
+              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
+                <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-3">🔑 OTP Dağılımı</h3>
+                <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
-                    <Pie data={otpPieData} cx="50%" cy="50%" outerRadius={80} innerRadius={40} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
-                      {otpPieData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i]} />)}
+                    <Pie data={pieData} cx="50%" cy="50%" outerRadius={70} innerRadius={35} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
+                      {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             )}
           </div>
 
-          {/* OTP List */}
           {stats.otp_emails?.length > 0 && (
-            <div className="card p-0 overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50">
-                <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm">🔑 Son OTP Kodları</h3>
-              </div>
-              <div className="divide-y divide-gray-50 dark:divide-dark-700/50">
-                {stats.otp_emails.slice(0, 10).map((m) => (
-                  <div key={m.id} className="px-4 py-2.5 flex items-center justify-between">
+            <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 text-xs font-semibold text-gray-600 dark:text-dark-300">🔑 Son OTP Kodları</div>
+              <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[250px] overflow-y-auto">
+                {stats.otp_emails.slice(0, 8).map((m) => (
+                  <div key={m.id} className="px-4 py-2 flex items-center justify-between">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
+                      <p className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
                       <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">→ {m.address}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="badge-otp">{m.otp_code}</span>
-                      <button onClick={() => copyToClipboard(m.otp_code, 'OTP')} className="text-gray-400 hover:text-gray-600 dark:hover:text-dark-200">📋</button>
+                      <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-mono font-bold text-xs">{m.otp_code}</span>
+                      <button onClick={() => copy(m.otp_code, 'OTP')} className="text-gray-400 hover:text-gray-600 dark:hover:text-dark-200 text-xs">📋</button>
                     </div>
                   </div>
                 ))}
@@ -277,25 +270,24 @@ export default function AdminPanel({ apiBase }) {
             </div>
           )}
 
-          {/* Latest Emails */}
           {stats.latest_emails?.length > 0 && (
-            <div className="card p-0 overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm">📬 Son Mailler</h3>
-                <button onClick={() => setActiveTab('emails')} className="text-xs text-primary-600 dark:text-primary-400 hover:underline">Tümü →</button>
+            <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 flex items-center justify-between">
+                <span className="text-xs font-semibold text-gray-600 dark:text-dark-300">📬 Son Mailler</span>
+                <button onClick={() => setTab('emails')} className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline">Tümü →</button>
               </div>
-              <div className="divide-y divide-gray-50 dark:divide-dark-700/50 max-h-[300px] overflow-y-auto">
-                {stats.latest_emails.slice(0, 10).map((m) => (
-                  <div key={m.id} className="px-4 py-2.5 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-700/30">
+              <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[250px] overflow-y-auto">
+                {stats.latest_emails.slice(0, 8).map((m) => (
+                  <div key={m.id} className="px-4 py-2 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-800/50">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
-                        {m.otp_code && <span className="badge-otp text-[9px]">🔑</span>}
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
+                        {m.otp_code && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded">🔑</span>}
                         {m.has_attachments && <span className="text-[10px] text-amber-500">📎</span>}
                       </div>
                       <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">→ {m.recipient_address}</p>
                     </div>
-                    <span className="text-[10px] text-gray-400 dark:text-dark-500 flex-shrink-0">{fmt(m.received_at)}</span>
+                    <span className="text-[9px] text-gray-400 dark:text-dark-500 flex-shrink-0">{fmt(m.received_at)}</span>
                   </div>
                 ))}
               </div>
@@ -305,29 +297,24 @@ export default function AdminPanel({ apiBase }) {
       )}
 
       {/* ===== ADDRESSES ===== */}
-      {activeTab === 'addresses' && (
-        <div className="card p-0 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm">📬 Tüm Adresler ({allAddresses.length})</h3>
-            <button onClick={fetchAllAddresses} className="text-xs px-2 py-1 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">🔄 Yenile</button>
+      {tab === 'addresses' && (
+        <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-600 dark:text-dark-300">📬 Adresler ({addrs.length})</span>
+            <button onClick={loadAddrs} className="text-[10px] px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">🔄</button>
           </div>
-          {allAddresses.length === 0 ? (
-            <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-sm">📭 Henüz adres yok</div>
-          ) : (
-            <div className="divide-y divide-gray-50 dark:divide-dark-700/50 max-h-[600px] overflow-y-auto">
-              {allAddresses.map((a) => (
-                <div key={a.id} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-700/30 transition-colors">
+          {addrs.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">📭 Henüz adres yok</div> : (
+            <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[600px] overflow-y-auto">
+              {addrs.map((a) => (
+                <div key={a.id} className="px-4 py-2.5 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-800/50">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-mono font-medium text-gray-800 dark:text-dark-100 text-sm">{a.address}</p>
-                      {a.has_password && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1.5 py-0 rounded">🔒</span>}
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-xs font-medium text-gray-800 dark:text-dark-100">{a.address}</span>
+                      {a.has_password && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded">🔒</span>}
                     </div>
-                    <p className="text-[10px] text-gray-500 dark:text-dark-400 mt-0.5">
-                      {a.email_count} mail • Oluşturulma: {fmt(a.created_at)}
-                      {a.last_email_at && ` • Son mail: ${fmt(a.last_email_at)}`}
-                    </p>
+                    <p className="text-[10px] text-gray-500 dark:text-dark-400">{a.email_count} mail • {fmt(a.created_at)}{a.last_email_at ? ` • Son: ${fmt(a.last_email_at)}` : ''}</p>
                   </div>
-                  <button onClick={() => openMailbox(a.address)} className="btn-primary text-xs px-3 py-1.5">📬 Aç</button>
+                  <button onClick={() => openMbox(a.address)} className="text-xs px-3 py-1.5 rounded-md bg-primary-600 hover:bg-primary-700 text-white transition-colors">📬 Aç</button>
                 </div>
               ))}
             </div>
@@ -336,39 +323,35 @@ export default function AdminPanel({ apiBase }) {
       )}
 
       {/* ===== DOMAINS ===== */}
-      {activeTab === 'domains' && (
+      {tab === 'domains' && (
         <div className="space-y-4">
-          <div className="card">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm mb-3">🌐 Sunucu IP</h3>
+          <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
+            <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-2">🌐 Sunucu IP</h3>
             <div className="flex gap-2">
-              <input type="text" value={serverIp} onChange={(e) => setServerIp(e.target.value)} placeholder="Sunucu IP" className="input-field flex-1 text-sm" />
-              <button onClick={() => fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { setServerIp(d.ip); flash('IP: ' + d.ip); }).catch(() => flash('IP algılanamadı', 'error'))} className="btn-secondary text-xs">🔍 Algıla</button>
+              <input value={serverIp} onChange={(e) => setServerIp(e.target.value)} placeholder="IP adresi" className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 outline-none" />
+              <button onClick={() => fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { setServerIp(d.ip); flash('IP: ' + d.ip); }).catch(() => flash('Algılanamadı', 'error'))} className="text-xs px-3 py-2 rounded-lg bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 border border-gray-200 dark:border-dark-600">🔍</button>
             </div>
           </div>
-          <div className="card">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm mb-3">Yeni Domain</h3>
+          <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
+            <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-2">Yeni Domain</h3>
             <form onSubmit={addDomain} className="flex gap-2">
-              <input type="text" value={newDomain} onChange={(e) => setNewDomain(e.target.value)} placeholder="ornek.com" className="input-field flex-1 text-sm" />
-              <button type="submit" disabled={loading || !newDomain.trim()} className="btn-primary text-sm">{loading ? '⏳' : '➕'} Ekle</button>
+              <input value={newDom} onChange={(e) => setNewDom(e.target.value)} placeholder="ornek.com" className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 outline-none" />
+              <button type="submit" disabled={loading || !newDom.trim()} className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg disabled:opacity-50">{loading ? '⏳' : '➕ Ekle'}</button>
             </form>
           </div>
-          <div className="card p-0 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50">
-              <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm">Domainler ({domains.length})</h3>
-            </div>
-            {domains.length === 0 ? (
-              <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-sm">🌐 Henüz domain yok</div>
-            ) : (
-              <div className="divide-y divide-gray-50 dark:divide-dark-700/50">
+          <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 text-xs font-semibold text-gray-600 dark:text-dark-300">Domainler ({domains.length})</div>
+            {domains.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">🌐 Henüz domain yok</div> : (
+              <div className="divide-y divide-gray-50 dark:divide-dark-800">
                 {domains.map((d) => (
-                  <div key={d.id} className="px-4 py-3 flex items-center justify-between">
+                  <div key={d.id} className="px-4 py-2.5 flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-800 dark:text-dark-100 text-sm">{d.domain}</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-dark-100">{d.domain}</p>
                       <p className="text-[10px] text-gray-500 dark:text-dark-400">{d.address_count} adres • {d.is_active ? <span className="text-green-600 dark:text-green-400">Aktif</span> : <span className="text-red-600 dark:text-red-400">Pasif</span>}</p>
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => toggleDomain(d.id, d.is_active)} className={`px-2 py-1 rounded text-[10px] font-medium ${d.is_active ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'}`}>{d.is_active ? '⏸ Pasif' : '▶ Aktif'}</button>
-                      <button onClick={() => deleteDomain(d.id, d.domain)} className="px-2 py-1 rounded text-[10px] font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">🗑</button>
+                      <button onClick={() => toggleDom(d.id, d.is_active)} className={`px-2 py-1 rounded text-[10px] font-medium ${d.is_active ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'}`}>{d.is_active ? '⏸' : '▶'}</button>
+                      <button onClick={() => delDom(d.id, d.domain)} className="px-2 py-1 rounded text-[10px] font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">🗑</button>
                     </div>
                   </div>
                 ))}
@@ -379,36 +362,34 @@ export default function AdminPanel({ apiBase }) {
       )}
 
       {/* ===== EMAILS ===== */}
-      {activeTab === 'emails' && (
-        <div className="card p-0 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-200 text-sm">📧 Tüm Mailler ({emailsTotal})</h3>
-            <button onClick={() => fetchAllEmails(1)} className="text-xs px-2 py-1 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">🔄 Yenile</button>
+      {tab === 'emails' && (
+        <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-600 dark:text-dark-300">📧 Tüm Mailler ({emailsTotal})</span>
+            <button onClick={() => loadEmails(1)} className="text-[10px] px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">🔄</button>
           </div>
-          {allEmails.length === 0 ? (
-            <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-sm">📭 Henüz mail yok</div>
-          ) : (
-            <div className="divide-y divide-gray-50 dark:divide-dark-700/50 max-h-[600px] overflow-y-auto">
-              {allEmails.map((m) => (
-                <div key={m.id} className="px-4 py-2.5 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-700/30">
+          {emails.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">📭 Henüz mail yok</div> : (
+            <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[600px] overflow-y-auto">
+              {emails.map((m) => (
+                <div key={m.id} className="px-4 py-2 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-800/50">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
-                      {m.otp_code && <span className="badge-otp text-[9px]">🔑 {m.otp_code}</span>}
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</span>
+                      {m.otp_code && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded font-mono">🔑 {m.otp_code}</span>}
                       {m.has_attachments && <span className="text-[10px] text-amber-500">📎</span>}
                     </div>
                     <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">→ <span className="font-mono">{m.recipient_address}</span> • {m.subject || '(Konu yok)'}</p>
                   </div>
-                  <span className="text-[10px] text-gray-400 dark:text-dark-500 flex-shrink-0">{fmt(m.received_at)}</span>
+                  <span className="text-[9px] text-gray-400 dark:text-dark-500 flex-shrink-0">{fmt(m.received_at)}</span>
                 </div>
               ))}
             </div>
           )}
           {emailsTotal > 50 && (
-            <div className="px-4 py-2 border-t border-gray-100 dark:border-dark-700 bg-gray-50/80 dark:bg-dark-900/50 flex items-center justify-center gap-2">
-              <button onClick={() => fetchAllEmails(emailsPage - 1)} disabled={emailsPage <= 1} className="btn-secondary text-xs">←</button>
-              <span className="text-xs text-gray-500 dark:text-dark-400">Sayfa {emailsPage}</span>
-              <button onClick={() => fetchAllEmails(emailsPage + 1)} disabled={allEmails.length < 50} className="btn-secondary text-xs">→</button>
+            <div className="px-4 py-2 border-t border-gray-100 dark:border-dark-700 flex items-center justify-center gap-2">
+              <button onClick={() => loadEmails(emailsPage - 1)} disabled={emailsPage <= 1} className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 disabled:opacity-30">←</button>
+              <span className="text-[10px] text-gray-500 dark:text-dark-400">{emailsPage}</span>
+              <button onClick={() => loadEmails(emailsPage + 1)} disabled={emails.length < 50} className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 disabled:opacity-30">→</button>
             </div>
           )}
         </div>
