@@ -2,20 +2,50 @@ import { useState, useEffect, useCallback } from 'react';
 
 const API = '/api';
 
+const GUEST_USER = { id: null, username: 'Misafir', email: '', role: 'guest' };
+const GUEST_PACKAGE = {
+  name: 'guest',
+  display_name: 'Hesapsız Kullanım',
+  max_addresses: 3,
+  max_emails: 50,
+  email_retention_days: 7,
+  custom_domains: 0,
+  webhook_support: 0,
+  priority_support: 0,
+  price_monthly: 0,
+  features: ['Hesapsız kullanım', 'Temel inbox', 'Giriş isteğe bağlı'],
+};
+const GUEST_STATS = { address_count: 0, email_count: 0 };
+
 /**
  * Auth hook - JWT tabanlı kimlik doğrulama
  * localStorage'da token saklar
  */
 export default function useAuth() {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('tm-token'));
-  const [pkg, setPkg] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const initialToken = typeof window !== 'undefined' ? localStorage.getItem('tm-token') : null;
+  const [user, setUser] = useState(initialToken ? null : GUEST_USER);
+  const [token, setToken] = useState(initialToken);
+  const [pkg, setPkg] = useState(initialToken ? null : GUEST_PACKAGE);
+  const [stats, setStats] = useState(initialToken ? null : GUEST_STATS);
+  const [loading, setLoading] = useState(!!initialToken);
+
+  const setGuestSession = useCallback(() => {
+    localStorage.removeItem('tm-token');
+    setToken(null);
+    setUser(GUEST_USER);
+    setPkg(GUEST_PACKAGE);
+    setStats(GUEST_STATS);
+  }, []);
 
   // Token varsa kullanıcı bilgisini getir
   const loadMe = useCallback(async () => {
-    if (!token) { setLoading(false); return; }
+    if (!token) {
+      setGuestSession();
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     try {
       const r = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
       if (r.ok) {
@@ -25,16 +55,15 @@ export default function useAuth() {
         setStats(d.stats);
       } else {
         // Token geçersiz
-        localStorage.removeItem('tm-token');
-        setToken(null);
-        setUser(null);
+        setGuestSession();
       }
     } catch (e) {
       console.warn('Auth me hatası:', e);
+      setGuestSession();
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, setGuestSession]);
 
   useEffect(() => { loadMe(); }, [loadMe]);
 
@@ -70,15 +99,15 @@ export default function useAuth() {
 
   // Çıkış yap
   const logout = () => {
-    localStorage.removeItem('tm-token');
-    setToken(null);
-    setUser(null);
-    setPkg(null);
-    setStats(null);
+    setGuestSession();
   };
 
   // Pro isteği gönder
   const requestPro = async (message) => {
+    if (!token) {
+      throw new Error('Pro isteği göndermek için önce giriş yapın veya kayıt olun');
+    }
+
     const r = await fetch(`${API}/auth/request-pro`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -89,10 +118,35 @@ export default function useAuth() {
     return d;
   };
 
+  const updateProfile = async ({ username }) => {
+    if (!token) {
+      throw new Error('Bu işlem için giriş yapın');
+    }
+
+    const r = await fetch(`${API}/auth/me`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ username }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Profil güncellenemedi');
+
+    if (d.token) {
+      localStorage.setItem('tm-token', d.token);
+      setToken(d.token);
+    }
+    if (d.user) {
+      setUser(d.user);
+    }
+
+    return d;
+  };
+
   // Yetki kontrolü
+  const isGuest = user?.role === 'guest';
   const isAdmin = user?.role === 'admin';
   const isPro = user?.role === 'pro' || isAdmin;
   const isFree = user?.role === 'free';
 
-  return { user, token, pkg, stats, loading, isAdmin, isPro, isFree, register, login, logout, requestPro, loadMe };
+  return { user, token, pkg, stats, loading, isGuest, isAdmin, isPro, isFree, register, login, logout, requestPro, updateProfile, loadMe };
 }

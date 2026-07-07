@@ -1,14 +1,24 @@
-import { useState } from 'react';
-import { Mail, User, Lock, ArrowRight, Shield, Zap, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, User, Lock, ArrowRight, Shield, Crown, Eye, EyeOff, X } from 'lucide-react';
 
-export default function AuthPage({ onLogin, onRegister }) {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue, defaultMode = 'login' }) {
+  const [mode, setMode] = useState(defaultMode); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setMode(defaultMode);
+    setUsername('');
+    setEmail('');
+    setPassword('');
+    setShowPw(false);
+    setError('');
+    setLoading(false);
+  }, [defaultMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +37,25 @@ export default function AuthPage({ onLogin, onRegister }) {
     }
   };
 
+  const userTypes = [
+    { icon: User, title: 'Hesapsız', text: 'Giriş yapmadan başla', tone: 'text-accent-green', bg: 'bg-accent-green/10' },
+    { icon: Shield, title: 'Free', text: 'Ücretsiz hesap aç', tone: 'text-accent-blue', bg: 'bg-accent-blue/10' },
+    { icon: Crown, title: 'Pro', text: 'Yükseltilmiş hesap', tone: 'text-accent-purple', bg: 'bg-accent-purple/10' },
+  ];
+
   return (
-    <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4">
+    <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4 relative">
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-brand-surface2 border border-brand-border/30 text-txt-muted hover:text-txt-secondary hover:bg-brand-surface3 transition-colors flex items-center justify-center"
+          aria-label="Kapat"
+        >
+          <X size={14} />
+        </button>
+      )}
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -37,6 +64,7 @@ export default function AuthPage({ onLogin, onRegister }) {
           </div>
           <h1 className="text-xl font-bold"><span className="text-txt-primary">Temp</span><span className="text-accent-cyan">Mail</span></h1>
           <p className="text-xs text-txt-muted mt-1">Geçici e-posta, daha az spam.</p>
+          <p className="text-[10px] text-txt-disabled mt-1">Hesapsız kalabilir, ücretsiz hesap açabilir veya Pro'ya yükseltebilirsin.</p>
         </div>
 
         {/* Card */}
@@ -87,6 +115,12 @@ export default function AuthPage({ onLogin, onRegister }) {
               {loading ? '⏳ İşleniyor...' : mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
               {!loading && <ArrowRight size={14} />}
             </button>
+
+            {onGuestContinue && (
+              <button type="button" onClick={onGuestContinue} className="btn-secondary w-full justify-center py-2.5 text-sm">
+                Hesapsız devam et
+              </button>
+            )}
           </form>
 
           {mode === 'login' && (
@@ -96,16 +130,15 @@ export default function AuthPage({ onLogin, onRegister }) {
           )}
         </div>
 
-        {/* Features */}
+        {/* User types */}
         <div className="mt-6 grid grid-cols-3 gap-3">
-          {[
-            { icon: Shield, label: 'Gizlilik Odaklı' },
-            { icon: Zap, label: 'Anlık Inbox' },
-            { icon: Lock, label: 'Şifre Koruması' },
-          ].map((f) => (
-            <div key={f.label} className="text-center">
-              <f.icon size={16} className="mx-auto mb-1 text-accent-cyan/50" />
-              <p className="text-[9px] text-txt-muted">{f.label}</p>
+          {userTypes.map((item) => (
+            <div key={item.title} className="text-center card p-3">
+              <div className={`w-9 h-9 rounded-xl ${item.bg} flex items-center justify-center mx-auto mb-2`}>
+                <item.icon size={14} className={item.tone} />
+              </div>
+              <p className="text-[10px] font-semibold text-txt-primary">{item.title}</p>
+              <p className="text-[9px] text-txt-muted mt-0.5 leading-tight">{item.text}</p>
             </div>
           ))}
         </div>

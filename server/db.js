@@ -90,6 +90,20 @@ async function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       domain TEXT UNIQUE NOT NULL,
       is_active INTEGER DEFAULT 1,
+      server_ip TEXT DEFAULT '',
+      a_host TEXT DEFAULT 'mail',
+      a_value TEXT DEFAULT '',
+      mx_host TEXT DEFAULT '@',
+      mx_value TEXT DEFAULT '',
+      mx_priority INTEGER DEFAULT 10,
+      txt_spf_host TEXT DEFAULT '@',
+      txt_spf_value TEXT DEFAULT '',
+      txt_verification_host TEXT DEFAULT '@',
+      txt_verification_value TEXT DEFAULT '',
+      dkim_host TEXT DEFAULT 'default._domainkey',
+      dkim_value TEXT DEFAULT '',
+      dmarc_host TEXT DEFAULT '_dmarc',
+      dmarc_value TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -143,6 +157,20 @@ async function initDatabase() {
     'ALTER TABLE addresses ADD COLUMN is_persistent INTEGER DEFAULT 0',
     'ALTER TABLE addresses ADD COLUMN last_accessed DATETIME',
     'ALTER TABLE addresses ADD COLUMN user_id INTEGER',
+    "ALTER TABLE domains ADD COLUMN server_ip TEXT DEFAULT ''",
+    "ALTER TABLE domains ADD COLUMN a_host TEXT DEFAULT 'mail'",
+    "ALTER TABLE domains ADD COLUMN a_value TEXT DEFAULT ''",
+    "ALTER TABLE domains ADD COLUMN mx_host TEXT DEFAULT '@'",
+    "ALTER TABLE domains ADD COLUMN mx_value TEXT DEFAULT ''",
+    "ALTER TABLE domains ADD COLUMN mx_priority INTEGER DEFAULT 10",
+    "ALTER TABLE domains ADD COLUMN txt_spf_host TEXT DEFAULT '@'",
+    "ALTER TABLE domains ADD COLUMN txt_spf_value TEXT DEFAULT ''",
+    "ALTER TABLE domains ADD COLUMN txt_verification_host TEXT DEFAULT '@'",
+    "ALTER TABLE domains ADD COLUMN txt_verification_value TEXT DEFAULT ''",
+    "ALTER TABLE domains ADD COLUMN dkim_host TEXT DEFAULT 'default._domainkey'",
+    "ALTER TABLE domains ADD COLUMN dkim_value TEXT DEFAULT ''",
+    "ALTER TABLE domains ADD COLUMN dmarc_host TEXT DEFAULT '_dmarc'",
+    "ALTER TABLE domains ADD COLUMN dmarc_value TEXT DEFAULT ''",
   ];
 
   for (const sql of migrations) {

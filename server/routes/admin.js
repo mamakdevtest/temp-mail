@@ -7,11 +7,51 @@ const { extractOtp, stripHtml } = require('./emails');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tempmail-secret-key-change-in-production';
 
-/**
- * Admin auth middleware - hem JWT token hem eski şifre yöntemini destekler
- */
+function getDefaultServerIp() {
+  return process.env.MAIL_SERVER_IP || process.env.PUBLIC_IP || process.env.SERVER_IP || '127.0.0.1';
+}
+
+function buildDomainDnsDefaults(domain) {
+  const serverIp = getDefaultServerIp();
+  return {
+    server_ip: serverIp,
+    a_host: 'mail',
+    a_value: serverIp,
+    mx_host: '@',
+    mx_value: `mail.${domain}`,
+    mx_priority: 10,
+    txt_spf_host: '@',
+    txt_spf_value: `v=spf1 mx ip4:${serverIp} ~all`,
+    txt_verification_host: '@',
+    txt_verification_value: `ms-temp-mail-domain=${domain.replace(/[^a-z0-9]/gi, '-')}`,
+    dkim_host: 'default._domainkey',
+    dkim_value: 'v=DKIM1; k=rsa; p=REPLACE_WITH_PUBLIC_KEY',
+    dmarc_host: '_dmarc',
+    dmarc_value: `v=DMARC1; p=none; rua=mailto:postmaster@${domain}`,
+  };
+}
+
+function normalizeDomainConfig(domainName, body = {}) {
+  const defaults = buildDomainDnsDefaults(domainName);
+  return {
+    server_ip: String(body.server_ip ?? defaults.server_ip).trim(),
+    a_host: String(body.a_host ?? defaults.a_host).trim() || '@',
+    a_value: String(body.a_value ?? defaults.a_value).trim(),
+    mx_host: String(body.mx_host ?? defaults.mx_host).trim() || '@',
+    mx_value: String(body.mx_value ?? defaults.mx_value).trim(),
+    mx_priority: Number.isFinite(Number(body.mx_priority)) ? Number(body.mx_priority) : defaults.mx_priority,
+    txt_spf_host: String(body.txt_spf_host ?? defaults.txt_spf_host).trim() || '@',
+    txt_spf_value: String(body.txt_spf_value ?? defaults.txt_spf_value).trim(),
+    txt_verification_host: String(body.txt_verification_host ?? defaults.txt_verification_host).trim() || '@',
+    txt_verification_value: String(body.txt_verification_value ?? defaults.txt_verification_value).trim(),
+    dkim_host: String(body.dkim_host ?? defaults.dkim_host).trim() || 'default._domainkey',
+    dkim_value: String(body.dkim_value ?? defaults.dkim_value).trim(),
+    dmarc_host: String(body.dmarc_host ?? defaults.dmarc_host).trim() || '_dmarc',
+    dmarc_value: String(body.dmarc_value ?? defaults.dmarc_value).trim(),
+  };
+}
+
 function adminAuth(req, res, next) {
-  // 1. JWT token kontrolü
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
@@ -20,10 +60,11 @@ function adminAuth(req, res, next) {
         req.user = decoded;
         return next();
       }
-    } catch (e) { /* token geçersiz, diğer yöntemi dene */ }
+    } catch (e) {
+      /* token geçersiz, şifre fallback'ini dene */
+    }
   }
 
-  // 2. Eski şifre yöntemi (geriye uyumluluk)
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
   const providedPassword = req.headers['x-admin-password'] || req.query.password;
   if (providedPassword === adminPassword) {
@@ -35,10 +76,23 @@ function adminAuth(req, res, next) {
 
 router.use(adminAuth);
 
-/**
- * GET /api/admin/domains
- * Tüm domainleri listeler
- */
+function enrichMailWithOtp(db, mail) {
+  const fullMail = db.get('SELECT body_text, body_html FROM emails WHERE id = ?', [mail.id]);
+  const text = fullMail?.body_text || stripHtml(fullMail?.body_html || '');
+  const otp = extractOtp(text);
+  return { ...mail, otp_code: otp, has_attachments: mail.has_attachments === 1 };
+}
+
+function getAddressRecord(db, address) {
+  return db.get(`
+    SELECT a.id, a.address, a.username, a.created_at, a.last_accessed, a.expires_at, a.is_persistent, a.user_id,
+           a.password_hash IS NOT NULL as has_password, d.domain
+    FROM addresses a
+    JOIN domains d ON a.domain_id = d.id
+    WHERE a.address = ?
+  `, [address]);
+}
+
 router.get('/domains', (req, res) => {
   try {
     const db = getDb();
@@ -56,10 +110,6 @@ router.get('/domains', (req, res) => {
   }
 });
 
-/**
- * POST /api/admin/domains
- * Yeni domain ekler
- */
 router.post('/domains', (req, res) => {
   try {
     const db = getDb();
@@ -79,7 +129,31 @@ router.post('/domains', (req, res) => {
       return res.status(409).json({ error: 'Bu domain zaten ekli' });
     }
 
-    const result = db.run('INSERT INTO domains (domain) VALUES (?)', [domain.toLowerCase()]);
+    const normalizedDomain = domain.toLowerCase();
+    const dnsDefaults = normalizeDomainConfig(normalizedDomain, req.body);
+    const result = db.run(`
+      INSERT INTO domains (
+        domain, server_ip, a_host, a_value, mx_host, mx_value, mx_priority,
+        txt_spf_host, txt_spf_value, txt_verification_host, txt_verification_value,
+        dkim_host, dkim_value, dmarc_host, dmarc_value
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      normalizedDomain,
+      dnsDefaults.server_ip,
+      dnsDefaults.a_host,
+      dnsDefaults.a_value,
+      dnsDefaults.mx_host,
+      dnsDefaults.mx_value,
+      dnsDefaults.mx_priority,
+      dnsDefaults.txt_spf_host,
+      dnsDefaults.txt_spf_value,
+      dnsDefaults.txt_verification_host,
+      dnsDefaults.txt_verification_value,
+      dnsDefaults.dkim_host,
+      dnsDefaults.dkim_value,
+      dnsDefaults.dmarc_host,
+      dnsDefaults.dmarc_value,
+    ]);
     const newDomain = db.get('SELECT * FROM domains WHERE id = ?', [result.lastInsertRowid]);
 
     res.json({ domain: newDomain });
@@ -89,10 +163,6 @@ router.post('/domains', (req, res) => {
   }
 });
 
-/**
- * PUT /api/admin/domains/:id
- * Domain günceller (aktif/pasif)
- */
 router.put('/domains/:id', (req, res) => {
   try {
     const db = getDb();
@@ -104,7 +174,31 @@ router.put('/domains/:id', (req, res) => {
       return res.status(404).json({ error: 'Domain bulunamadı' });
     }
 
-    db.run('UPDATE domains SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, id]);
+    const config = normalizeDomainConfig(domain.domain, { ...domain, ...req.body });
+    db.run(`
+      UPDATE domains
+      SET is_active = ?, server_ip = ?, a_host = ?, a_value = ?, mx_host = ?, mx_value = ?, mx_priority = ?,
+          txt_spf_host = ?, txt_spf_value = ?, txt_verification_host = ?, txt_verification_value = ?,
+          dkim_host = ?, dkim_value = ?, dmarc_host = ?, dmarc_value = ?
+      WHERE id = ?
+    `, [
+      typeof is_active === 'undefined' ? domain.is_active : (is_active ? 1 : 0),
+      config.server_ip,
+      config.a_host,
+      config.a_value,
+      config.mx_host,
+      config.mx_value,
+      config.mx_priority,
+      config.txt_spf_host,
+      config.txt_spf_value,
+      config.txt_verification_host,
+      config.txt_verification_value,
+      config.dkim_host,
+      config.dkim_value,
+      config.dmarc_host,
+      config.dmarc_value,
+      id,
+    ]);
     const updated = db.get('SELECT * FROM domains WHERE id = ?', [id]);
 
     res.json({ domain: updated });
@@ -114,10 +208,6 @@ router.put('/domains/:id', (req, res) => {
   }
 });
 
-/**
- * DELETE /api/admin/domains/:id
- * Domain siler
- */
 router.delete('/domains/:id', (req, res) => {
   try {
     const db = getDb();
@@ -137,10 +227,6 @@ router.delete('/domains/:id', (req, res) => {
   }
 });
 
-/**
- * POST /api/admin/cleanup
- * Manuel temizleme tetikler
- */
 router.post('/cleanup', (req, res) => {
   try {
     const { type } = req.body;
@@ -152,60 +238,39 @@ router.post('/cleanup', (req, res) => {
   }
 });
 
-/**
- * GET /api/admin/stats
- * Dashboard istatistikleri
- * - Toplam mail sayısı
- * - OTP gelen mail sayısı
- * - En çok mail gönderenler (şirketler)
- * - Toplam adres sayısı
- * - Son 24 saatte gelen mail sayısı
- */
 router.get('/stats', (req, res) => {
   try {
     const db = getDb();
 
-    // Toplam mail sayısı
     const totalEmails = db.get('SELECT COUNT(*) as count FROM emails');
-
-    // Toplam adres sayısı
     const totalAddresses = db.get('SELECT COUNT(*) as count FROM addresses');
-
-    // Son 24 saatte gelen mail sayısı
     const recentEmails = db.get(
       "SELECT COUNT(*) as count FROM emails WHERE received_at > datetime('now', '-24 hours')"
     );
 
-    // En çok mail gönderenler (gönderen email adresinden domain çıkar)
     const topSenders = db.all(`
-      SELECT
-        sender,
-        COUNT(*) as email_count,
-        MAX(received_at) as last_received
+      SELECT sender, COUNT(*) as email_count, MAX(received_at) as last_received
       FROM emails
       GROUP BY sender
       ORDER BY email_count DESC
       LIMIT 20
     `);
 
-    // Gönderen domainlerine göre grupla (şirket tespiti)
     const senderDomains = {};
-    for (const s of topSenders) {
-      const match = s.sender.match(/@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    for (const sender of topSenders) {
+      const match = sender.sender.match(/@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
       const domain = match ? match[1].toLowerCase() : 'bilinmeyen';
       if (!senderDomains[domain]) {
         senderDomains[domain] = { domain, email_count: 0, senders: [] };
       }
-      senderDomains[domain].email_count += s.email_count;
-      senderDomains[domain].senders.push({ sender: s.sender, count: s.email_count });
+      senderDomains[domain].email_count += sender.email_count;
+      senderDomains[domain].senders.push({ sender: sender.sender, count: sender.email_count });
     }
 
-    // Domain bazlı sırala
     const topDomains = Object.values(senderDomains)
       .sort((a, b) => b.email_count - a.email_count)
       .slice(0, 15);
 
-    // OTP tespiti: son 100 mailde OTP var mı?
     const recentMailBodies = db.all(`
       SELECT e.id, e.body_text, e.body_html, e.sender, e.subject, e.received_at, a.address
       FROM emails e
@@ -220,7 +285,7 @@ router.get('/stats', (req, res) => {
       const text = mail.body_text || stripHtml(mail.body_html || '');
       const otp = extractOtp(text);
       if (otp) {
-        otpCount++;
+        otpCount += 1;
         otpEmails.push({
           id: mail.id,
           sender: mail.sender,
@@ -232,7 +297,6 @@ router.get('/stats', (req, res) => {
       }
     }
 
-    // Son mailler (tüm adreslerden, detaylı)
     const latestEmails = db.all(`
       SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments,
              a.address as recipient_address
@@ -240,15 +304,7 @@ router.get('/stats', (req, res) => {
       JOIN addresses a ON e.address_id = a.id
       ORDER BY e.received_at DESC
       LIMIT 50
-    `);
-
-    // Her mail için OTP kontrolü
-    const latestWithOtp = latestEmails.map((mail) => {
-      const fullMail = db.get('SELECT body_text, body_html FROM emails WHERE id = ?', [mail.id]);
-      const text = fullMail?.body_text || stripHtml(fullMail?.body_html || '');
-      const otp = extractOtp(text);
-      return { ...mail, otp_code: otp, has_attachments: mail.has_attachments === 1 };
-    });
+    `).map((mail) => enrichMailWithOtp(db, mail));
 
     res.json({
       total_emails: totalEmails?.count || 0,
@@ -258,7 +314,7 @@ router.get('/stats', (req, res) => {
       otp_emails: otpEmails,
       top_domains: topDomains,
       top_senders: topSenders.slice(0, 10),
-      latest_emails: latestWithOtp,
+      latest_emails: latestEmails,
     });
   } catch (err) {
     console.error('İstatistik hatası:', err);
@@ -266,11 +322,6 @@ router.get('/stats', (req, res) => {
   }
 });
 
-/**
- * GET /api/admin/emails
- * Tüm mailleri listele (sayfalı)
- * Query params: page (default 1), limit (default 50)
- */
 router.get('/emails', (req, res) => {
   try {
     const db = getDb();
@@ -279,7 +330,6 @@ router.get('/emails', (req, res) => {
     const offset = (page - 1) * limit;
 
     const total = db.get('SELECT COUNT(*) as count FROM emails');
-
     const emails = db.all(`
       SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments,
              a.address as recipient_address
@@ -287,17 +337,10 @@ router.get('/emails', (req, res) => {
       JOIN addresses a ON e.address_id = a.id
       ORDER BY e.received_at DESC
       LIMIT ? OFFSET ?
-    `, [limit, offset]);
-
-    const emailsWithOtp = emails.map((mail) => {
-      const fullMail = db.get('SELECT body_text, body_html FROM emails WHERE id = ?', [mail.id]);
-      const text = fullMail?.body_text || stripHtml(fullMail?.body_html || '');
-      const otp = extractOtp(text);
-      return { ...mail, otp_code: otp, has_attachments: mail.has_attachments === 1 };
-    });
+    `, [limit, offset]).map((mail) => enrichMailWithOtp(db, mail));
 
     res.json({
-      emails: emailsWithOtp,
+      emails,
       total: total?.count || 0,
       page,
       limit,
@@ -309,17 +352,32 @@ router.get('/emails', (req, res) => {
   }
 });
 
-/**
- * GET /api/admin/addresses
- * Tüm adresleri listeler (email sayısıyla birlikte)
- * Admin panelinden mailbox erişimi için
- */
+router.delete('/emails/:id', (req, res) => {
+  try {
+    const db = getDb();
+    const emailId = req.params.id;
+
+    const email = db.get('SELECT id FROM emails WHERE id = ?', [emailId]);
+    if (!email) {
+      return res.status(404).json({ error: 'Mail bulunamadı' });
+    }
+
+    db.run('DELETE FROM attachments WHERE email_id = ?', [emailId]);
+    db.run('DELETE FROM emails WHERE id = ?', [emailId]);
+
+    res.json({ message: 'Mail silindi', id: parseInt(emailId, 10) });
+  } catch (err) {
+    console.error('Admin mail silme hatası:', err);
+    res.status(500).json({ error: 'Mail silinemedi' });
+  }
+});
+
 router.get('/addresses', (req, res) => {
   try {
     const db = getDb();
 
     const addresses = db.all(`
-      SELECT a.id, a.address, a.username, a.created_at, a.last_accessed,
+      SELECT a.id, a.address, a.username, a.created_at, a.last_accessed, a.expires_at, a.is_persistent, a.user_id,
              a.password_hash IS NOT NULL as has_password,
              d.domain,
              (SELECT COUNT(*) FROM emails e WHERE e.address_id = a.id) as email_count,
@@ -330,9 +388,10 @@ router.get('/addresses', (req, res) => {
     `);
 
     res.json({
-      addresses: addresses.map((a) => ({
-        ...a,
-        has_password: a.has_password === 1,
+      addresses: addresses.map((address) => ({
+        ...address,
+        has_password: address.has_password === 1,
+        is_persistent: address.is_persistent === 1,
       })),
     });
   } catch (err) {
@@ -341,48 +400,125 @@ router.get('/addresses', (req, res) => {
   }
 });
 
-/**
- * GET /api/admin/mailbox/:address
- * Belirli bir adresin maillerini getirir (admin erişimi - şifre gerektirmez)
- */
-router.get('/mailbox/:address', (req, res) => {
+router.get('/addresses/:address', (req, res) => {
   try {
     const db = getDb();
-    const address = req.params.address.toLowerCase();
-
-    const addr = db.get(
-      `SELECT a.*, d.domain FROM addresses a
-       JOIN domains d ON a.domain_id = d.id
-       WHERE a.address = ?`,
-      [address]
-    );
+    const address = decodeURIComponent(req.params.address).toLowerCase();
+    const addr = getAddressRecord(db, address);
 
     if (!addr) {
       return res.status(404).json({ error: 'Adres bulunamadı' });
     }
 
-    const emails = db.all(
-      `SELECT id, sender, subject, received_at, has_attachments
-       FROM emails WHERE address_id = ?
-       ORDER BY received_at DESC`,
-      [addr.id]
-    );
+    const emails = db.all(`
+      SELECT id, sender, subject, received_at, has_attachments
+      FROM emails
+      WHERE address_id = ?
+      ORDER BY received_at DESC
+    `, [addr.id]).map((mail) => enrichMailWithOtp(db, mail));
 
-    // OTP algılama
-    const emailsWithOtp = emails.map((mail) => {
-      const fullMail = db.get('SELECT body_text, body_html FROM emails WHERE id = ?', [mail.id]);
-      const text = fullMail?.body_text || stripHtml(fullMail?.body_html || '');
-      const otp = extractOtp(text);
-      return { ...mail, otp_code: otp, has_attachments: mail.has_attachments === 1 };
+    const otpHistory = emails
+      .filter((mail) => mail.otp_code)
+      .map((mail) => ({
+        id: mail.id,
+        sender: mail.sender,
+        subject: mail.subject,
+        otp_code: mail.otp_code,
+        received_at: mail.received_at,
+      }));
+
+    res.json({
+      address: {
+        ...addr,
+        has_password: addr.has_password === 1,
+        is_persistent: addr.is_persistent === 1,
+      },
+      stats: {
+        total_emails: emails.length,
+        otp_count: otpHistory.length,
+        attachment_count: emails.filter((mail) => mail.has_attachments).length,
+        last_email_at: emails[0]?.received_at || null,
+      },
+      otp_history: otpHistory,
+      emails,
     });
+  } catch (err) {
+    console.error('Adres detay hatası:', err);
+    res.status(500).json({ error: 'Adres detayı alınamadı' });
+  }
+});
+
+router.post('/addresses/:address/cleanup', (req, res) => {
+  try {
+    const db = getDb();
+    const address = decodeURIComponent(req.params.address).toLowerCase();
+    const addr = getAddressRecord(db, address);
+
+    if (!addr) {
+      return res.status(404).json({ error: 'Adres bulunamadı' });
+    }
+
+    const emailIds = db.all('SELECT id FROM emails WHERE address_id = ?', [addr.id]);
+    emailIds.forEach((row) => {
+      db.run('DELETE FROM attachments WHERE email_id = ?', [row.id]);
+    });
+    db.run('DELETE FROM emails WHERE address_id = ?', [addr.id]);
+
+    res.json({ message: 'Adresin mail geçmişi temizlendi', deleted: emailIds.length });
+  } catch (err) {
+    console.error('Adres temizleme hatası:', err);
+    res.status(500).json({ error: 'Adres geçmişi temizlenemedi' });
+  }
+});
+
+router.delete('/addresses/:address', (req, res) => {
+  try {
+    const db = getDb();
+    const address = decodeURIComponent(req.params.address).toLowerCase();
+    const addr = getAddressRecord(db, address);
+
+    if (!addr) {
+      return res.status(404).json({ error: 'Adres bulunamadı' });
+    }
+
+    const emailIds = db.all('SELECT id FROM emails WHERE address_id = ?', [addr.id]);
+    emailIds.forEach((row) => {
+      db.run('DELETE FROM attachments WHERE email_id = ?', [row.id]);
+    });
+    db.run('DELETE FROM emails WHERE address_id = ?', [addr.id]);
+    db.run('DELETE FROM addresses WHERE id = ?', [addr.id]);
+
+    res.json({ message: 'Adres silindi', address: addr.address });
+  } catch (err) {
+    console.error('Adres silme hatası:', err);
+    res.status(500).json({ error: 'Adres silinemedi' });
+  }
+});
+
+router.get('/mailbox/:address', (req, res) => {
+  try {
+    const db = getDb();
+    const address = req.params.address.toLowerCase();
+    const addr = getAddressRecord(db, address);
+
+    if (!addr) {
+      return res.status(404).json({ error: 'Adres bulunamadı' });
+    }
+
+    const emails = db.all(`
+      SELECT id, sender, subject, received_at, has_attachments
+      FROM emails
+      WHERE address_id = ?
+      ORDER BY received_at DESC
+    `, [addr.id]).map((mail) => enrichMailWithOtp(db, mail));
 
     res.json({
       address: addr.address,
       username: addr.username,
       domain: addr.domain,
-      has_password: !!addr.password_hash,
+      has_password: !!addr.has_password,
       created_at: addr.created_at,
-      emails: emailsWithOtp,
+      emails,
     });
   } catch (err) {
     console.error('Mailbox hatası:', err);
@@ -390,10 +526,6 @@ router.get('/mailbox/:address', (req, res) => {
   }
 });
 
-/**
- * GET /api/admin/users
- * Tüm kullanıcıları listeler
- */
 router.get('/users', (req, res) => {
   try {
     const db = getDb();
@@ -410,11 +542,6 @@ router.get('/users', (req, res) => {
   }
 });
 
-/**
- * PUT /api/admin/users/:id/role
- * Kullanıcı rolünü değiştirir
- * Body: { role: 'free' | 'pro' | 'admin' }
- */
 router.put('/users/:id/role', (req, res) => {
   try {
     const db = getDb();
@@ -426,7 +553,9 @@ router.put('/users/:id/role', (req, res) => {
     }
 
     const user = db.get('SELECT * FROM users WHERE id = ?', [id]);
-    if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    if (!user) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
 
     db.run('UPDATE users SET role = ? WHERE id = ?', [role, id]);
     res.json({ message: `${user.username} kullanıcısının rolü ${role} olarak değiştirildi` });
@@ -436,10 +565,6 @@ router.put('/users/:id/role', (req, res) => {
   }
 });
 
-/**
- * PUT /api/admin/users/:id/status
- * Kullanıcıyı aktif/pasif yapar
- */
 router.put('/users/:id/status', (req, res) => {
   try {
     const db = getDb();
@@ -449,14 +574,11 @@ router.put('/users/:id/status', (req, res) => {
     db.run('UPDATE users SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, id]);
     res.json({ message: is_active ? 'Kullanıcı aktif edildi' : 'Kullanıcı pasif edildi' });
   } catch (err) {
+    console.error('Durum değiştirme hatası:', err);
     res.status(500).json({ error: 'Durum değiştirilemedi' });
   }
 });
 
-/**
- * GET /api/admin/package-requests
- * Tüm pro yükseltme isteklerini listeler
- */
 router.get('/package-requests', (req, res) => {
   try {
     const db = getDb();
@@ -473,11 +595,6 @@ router.get('/package-requests', (req, res) => {
   }
 });
 
-/**
- * PUT /api/admin/package-requests/:id
- * Pro yükseltme isteğini onayla veya reddet
- * Body: { status: 'approved' | 'rejected' }
- */
 router.put('/package-requests/:id', (req, res) => {
   try {
     const db = getDb();
@@ -489,12 +606,19 @@ router.put('/package-requests/:id', (req, res) => {
     }
 
     const request = db.get('SELECT * FROM package_requests WHERE id = ?', [id]);
-    if (!request) return res.status(404).json({ error: 'İstek bulunamadı' });
-    if (request.status !== 'pending') return res.status(400).json({ error: 'Bu istek zaten işlenmiş' });
+    if (!request) {
+      return res.status(404).json({ error: 'İstek bulunamadı' });
+    }
+    if (request.status !== 'pending') {
+      return res.status(400).json({ error: 'Bu istek zaten işlenmiş' });
+    }
 
     const reviewerId = req.user?.id || null;
 
-    db.run('UPDATE package_requests SET status = ?, reviewed_by = ?, reviewed_at = datetime("now") WHERE id = ?', [status, reviewerId, id]);
+    db.run(
+      'UPDATE package_requests SET status = ?, reviewed_by = ?, reviewed_at = datetime("now") WHERE id = ?',
+      [status, reviewerId, id]
+    );
 
     if (status === 'approved') {
       db.run('UPDATE users SET role = ? WHERE id = ?', ['pro', request.user_id]);

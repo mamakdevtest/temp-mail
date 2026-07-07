@@ -31,23 +31,24 @@ function createTransporter() {
  */
 function extractOtp(text) {
   if (!text) return null;
+  const normalized = String(text).replace(/\u00a0/g, ' ');
 
   // 1. Öncelik: OTP/verification anahtar kelimesi yakınındaki kodları ara
-  const contextPattern = /(?:code|otp|verification|passcode|token|kod|doğrulama|verify|confirm)[\s\S]{0,30}?\b(\d{4,8})\b/i;
-  const contextMatch = text.match(contextPattern);
+  const contextPattern = /(?:code|otp|one-time|security code|verification|passcode|token|kod|doğrulama|verify|confirm|2fa|auth code|verification code|confirmation code)[\s\S]{0,40}?\b([a-z0-9]{4,10})\b/i;
+  const contextMatch = normalized.match(contextPattern);
   if (contextMatch && contextMatch[1]) {
     return contextMatch[1];
   }
 
   // 2. Ters yön: kod anahtar kelimeden önce gelebilir
-  const reversePattern = /\b(\d{4,8})\b[\s\S]{0,20}?(?:code|otp|verification|passcode|token|kod|doğrulama)/i;
-  const reverseMatch = text.match(reversePattern);
+  const reversePattern = /\b([a-z0-9]{4,10})\b[\s\S]{0,24}?(?:code|otp|one-time|security code|verification|passcode|token|kod|doğrulama|verify|confirm|2fa|auth code|verification code|confirmation code)/i;
+  const reverseMatch = normalized.match(reversePattern);
   if (reverseMatch && reverseMatch[1]) {
     return reverseMatch[1];
   }
 
   // 3. Fallback: yıl olmayan 4-8 haneli sayıları ara
-  const allNumbers = [...text.matchAll(/\b(\d{4,8})\b/g)].map((m) => m[1]);
+  const allNumbers = [...normalized.matchAll(/\b(\d{4,8})\b/g)].map((m) => m[1]);
   if (allNumbers.length === 0) return null;
 
   // Yıl benzeri sayıları filtrele (2000-2099 arası)
@@ -91,11 +92,22 @@ router.get('/:address', (req, res) => {
     }
 
     const emails = db.all(
-      `SELECT id, sender, subject, received_at, has_attachments
+      `SELECT id, sender, subject, body_text, body_html, received_at, has_attachments
        FROM emails WHERE address_id = ?
        ORDER BY received_at DESC`,
       [addr.id]
-    );
+    ).map((mail) => {
+      const otpSource = mail.body_text || stripHtml(mail.body_html || '');
+      const otp_code = extractOtp(otpSource);
+      return {
+        id: mail.id,
+        sender: mail.sender,
+        subject: mail.subject,
+        received_at: mail.received_at,
+        has_attachments: mail.has_attachments,
+        otp_code,
+      };
+    });
 
     res.json({ address, emails });
   } catch (err) {

@@ -176,6 +176,56 @@ router.get('/me', authMiddleware, (req, res) => {
 });
 
 /**
+ * PUT /api/auth/me
+ * Kullanıcı profilini günceller
+ * Body: { username }
+ */
+router.put('/me', authMiddleware, (req, res) => {
+  try {
+    const db = getDb();
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: 'Kullanıcı adı gerekli' });
+    }
+
+    const normalized = username.trim().toLowerCase();
+
+    if (normalized.length < 3 || normalized.length > 30) {
+      return res.status(400).json({ error: 'Kullanıcı adı 3-30 karakter olmalı' });
+    }
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(normalized)) {
+      return res.status(400).json({ error: 'Kullanıcı adı sadece harf, rakam, nokta, tire ve alt çizgi içerebilir' });
+    }
+
+    const currentUser = db.get('SELECT id, username, email, role, created_at FROM users WHERE id = ?', [req.user.id]);
+    if (!currentUser) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
+
+    const existing = db.get('SELECT id FROM users WHERE username = ? AND id != ?', [normalized, req.user.id]);
+    if (existing) {
+      return res.status(409).json({ error: 'Bu kullanıcı adı zaten kullanılıyor' });
+    }
+
+    db.run('UPDATE users SET username = ? WHERE id = ?', [normalized, req.user.id]);
+
+    const updatedUser = db.get('SELECT id, username, email, role, created_at FROM users WHERE id = ?', [req.user.id]);
+    const token = signToken(updatedUser);
+
+    res.json({
+      message: 'Kullanıcı adı güncellendi',
+      token,
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error('Profil güncelleme hatası:', err);
+    res.status(500).json({ error: 'Profil güncellenemedi' });
+  }
+});
+
+/**
  * GET /api/auth/packages
  * Tüm paketleri listeler (public)
  */

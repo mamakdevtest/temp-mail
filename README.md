@@ -116,6 +116,8 @@ sudo NODE_ENV=production npm start
 2. **Admin** sekmesine tıklayın
 3. `.env`'deki şifrenizle giriş yapın
 4. **Domain ekleyin** (örn: `temp.ornek.com`)
+   Admin panelindeki `DNS Ayarları` ile domaine özel A, MX, SPF, DKIM, DMARC ve verification kayıtlarını düzenleyin.
+   `Domain Docs` butonu ile DNS sağlayıcınıza gireceğiniz değerleri hazır tablo halinde alın.
 5. Ana sayfaya dönün ve adres oluşturun
 6. Harici bir mail hesabından test maili gönderin
 7. Mail otomatik olarak gelen kutusunda görünecek!
@@ -125,6 +127,25 @@ sudo NODE_ENV=production npm start
 ## DNS Ayarları (ÇOK ÖNEMLİ)
 
 Domaininizden mail alabilmek için MX kayıtlarını doğru ayarlamanız gerekir.
+
+### Admin Paneli ile Otomatik DNS Şablonu
+
+Yeni eklenen her domain artık otomatik DNS başlangıç değerleri alır:
+
+- `server_ip`
+- `A record`
+- `MX record`
+- `SPF TXT`
+- `Verification TXT`
+- `DKIM TXT`
+- `DMARC TXT`
+
+Bu değerleri admin panelindeki `Domain Yönetimi` ekranında:
+
+- `DNS Ayarları` butonu ile güncelleyebilirsiniz
+- `Domain Docs` butonu ile sağlayıcınıza kopyalayabilirsiniz
+
+Varsayılan otomatik IP değeri `.env` içindeki `MAIL_SERVER_IP` alanından gelir.
 
 ### Adım 1: MX Kaydı Oluşturun
 
