@@ -8,7 +8,7 @@ const { Server: SocketServer } = require('socket.io');
 const { initDatabase } = require('./db');
 
 const app = express();
-const API_PORT = parseInt(process.env.API_PORT || '3001', 10);
+const API_PORT = parseInt(process.env.API_PORT || process.env.PORT || '3001', 10);
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '25', 10);
 
 // Middleware
@@ -108,6 +108,11 @@ async function main() {
   console.log('🔌 Socket.io başlatıldı');
 
   // 5. Express API sunucusunu başlat
+  server.on('error', (err) => {
+    console.error(`❌ API sunucusu başlatılamadı (${API_PORT}):`, err.message);
+    process.exit(1);
+  });
+
   server.listen(API_PORT, () => {
     console.log(`🚀 API sunucusu port ${API_PORT} üzerinde çalışıyor`);
     console.log(`   Sağlık kontrolü: http://localhost:${API_PORT}/api/health`);
@@ -132,10 +137,12 @@ async function main() {
   console.log('✅ Temp Mail servisi hazır!');
 }
 
-// Uygulamayı başlat
-main().catch((err) => {
-  console.error('❌ Başlatma hatası:', err);
-  process.exit(1);
-});
+// Sadece doğrudan çalıştırıldığında başlat; test/import senaryolarında port açma.
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('❌ Başlatma hatası:', err);
+    process.exit(1);
+  });
+}
 
-module.exports = { getIo };
+module.exports = { getIo, main, app };

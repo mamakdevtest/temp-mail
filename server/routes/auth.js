@@ -997,7 +997,7 @@ router.post('/request-pro', authMiddleware, (req, res) => {
 
     // Bekleyen istek var mı?
     const pending = db.get('SELECT id FROM package_requests WHERE user_id = ? AND status = "pending"', [req.user.id]);
-    if (pending) return res.status(400).json({ error: 'Zaten bekleyen bir Pro isteğiniz var' });
+    if (pending) return res.status(409).json({ error: 'Pro isteği zaten yapıldı' });
 
     db.run('INSERT INTO package_requests (user_id, message) VALUES (?, ?)', [req.user.id, message || '']);
 

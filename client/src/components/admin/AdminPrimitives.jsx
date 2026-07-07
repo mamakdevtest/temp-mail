@@ -1,7 +1,7 @@
 export function AdminPanelCard({ title, icon: Icon, action, children, className = '' }) {
   return (
     <section className={`card p-5 ${className}`}>
-      <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
           {Icon ? (
             <div className="w-10 h-10 rounded-2xl panel-soft flex items-center justify-center shrink-0">
@@ -9,10 +9,10 @@ export function AdminPanelCard({ title, icon: Icon, action, children, className 
             </div>
           ) : null}
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-txt-primary truncate">{title}</h3>
+            <h3 className="text-sm sm:text-base font-semibold text-txt-primary truncate">{title}</h3>
           </div>
         </div>
-        {action}
+        {action ? <div className="w-full sm:w-auto">{action}</div> : null}
       </div>
       {children}
     </section>
@@ -44,12 +44,12 @@ export function AdminStatCard({ title, value, subtitle, icon: Icon, tone = 'blue
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm text-txt-secondary">{title}</p>
-          <p className="text-4xl font-semibold tracking-tight text-txt-primary mt-2">{value}</p>
+          <p className="text-3xl sm:text-4xl font-semibold tracking-tight text-txt-primary mt-2">{value}</p>
           <p className="text-xs text-txt-muted mt-2">{subtitle}</p>
         </div>
         {Icon ? (
-          <div className={`w-14 h-14 rounded-3xl bg-gradient-to-br ${toneMap[tone] || toneMap.blue} flex items-center justify-center shrink-0`}>
-            <Icon size={24} />
+          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-3xl bg-gradient-to-br ${toneMap[tone] || toneMap.blue} flex items-center justify-center shrink-0`}>
+            <Icon size={22} />
           </div>
         ) : null}
       </div>
@@ -69,9 +69,9 @@ export function AdminEmptyState({ title, subtitle, action }) {
 
 export function AdminInfoRow({ label, value, valueClassName = '' }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 border-b border-brand-border/10 last:border-0">
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4 py-3 border-b border-brand-border/10 last:border-0">
       <span className="text-sm text-txt-secondary">{label}</span>
-      <span className={`text-sm text-txt-primary text-right ${valueClassName}`}>{value}</span>
+      <span className={`text-sm text-txt-primary sm:text-right break-words ${valueClassName}`}>{value}</span>
     </div>
   );
 }

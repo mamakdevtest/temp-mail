@@ -15,7 +15,11 @@
   html { @apply bg-brand-bg; }
   body {
     @apply bg-brand-bg text-txt-primary font-sans antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-image:
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.04), transparent 26%),
       radial-gradient(circle at 15% 10%, var(--bg-top), transparent 28%),
       radial-gradient(circle at 88% 22%, var(--bg-right), transparent 24%),
       radial-gradient(circle at 50% 100%, var(--bg-bottom), transparent 30%),
@@ -23,6 +27,10 @@
     min-height: 100vh;
   }
   ::selection { @apply bg-accent-blue/30 text-white; }
+  :focus-visible {
+    outline: 2px solid rgba(52, 215, 255, 0.75);
+    outline-offset: 2px;
+  }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { @apply bg-brand-bg; }
   ::-webkit-scrollbar-thumb { @apply bg-brand-border rounded-full; }
@@ -112,6 +120,17 @@
     border-color: rgba(27, 45, 82, 0.7);
     background-color: rgba(16, 29, 57, 0.9);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

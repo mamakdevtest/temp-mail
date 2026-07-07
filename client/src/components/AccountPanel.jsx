@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { AdminPanelCard, AdminStatCard, AdminEmptyState, AdminInfoRow } from './admin/AdminPrimitives';
 import { formatAdminDate, formatRetention } from './admin/adminUtils';
-import Modal from './Modal';
+import AccountEditorModal from './AccountEditorModal';
 
 function buildAddressDrafts(addresses = []) {
   return addresses.reduce((acc, addr) => {
@@ -105,6 +105,7 @@ export default function AccountPanel({
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
 
   const [profileDraft, setProfileDraft] = useState({
     username: currentUser?.username || '',
@@ -238,6 +239,7 @@ export default function AccountPanel({
       display_name: currentUser?.display_name || currentUser?.username || '',
     });
     setProfilePhotoPreview(currentUser?.avatar_url || '');
+    setAvatarLoadError(false);
     setEmailDraft(currentUser?.email || '');
     setEmailPending(currentUser?.pending_email || '');
   }, [currentUser?.username, currentUser?.display_name, currentUser?.avatar_url, currentUser?.email, currentUser?.pending_email]);
@@ -564,16 +566,10 @@ export default function AccountPanel({
     );
   }
 
-  const tabs = [
-    { id: 'profile', label: 'Profil', icon: User },
-    { id: 'security', label: 'Güvenlik', icon: Shield },
-    { id: 'preferences', label: 'Tercihler', icon: Settings },
-    { id: 'plan', label: 'Plan', icon: Crown },
-  ];
-
   const planName = isAdmin ? 'Admin' : isPro ? 'Pro' : 'Free';
   const usagePercent = Math.min(Math.round(((currentStats?.address_count || 0) / (currentPkg?.max_addresses || 3)) * 100), 100);
   const avatarInitial = (profileDraft.display_name || profileDraft.username || currentUser?.username || 'M')[0].toUpperCase();
+  const activeDomainLabel = activeDomain || domains[0]?.domain || '-';
 
   return (
     <div className="card p-5 sm:p-6 h-full min-h-[530px] flex flex-col">
@@ -590,55 +586,85 @@ export default function AccountPanel({
         </button>
       </div>
 
-      <div className="panel-soft p-4 rounded-[24px] border-brand-border/55 mb-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center text-white text-2xl font-semibold shadow-glow-blue bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple">
-            {profilePhotoPreview ? (
-              <img src={profilePhotoPreview} alt="avatar" className="w-full h-full object-cover" />
+      <div className="panel-soft p-4 sm:p-5 rounded-[24px] border-brand-border/55 mb-4 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-[26px] overflow-hidden flex items-center justify-center text-white text-2xl font-semibold shadow-glow-blue bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple shrink-0">
+            {profilePhotoPreview && !avatarLoadError ? (
+              <img src={profilePhotoPreview} alt="avatar" className="w-full h-full object-cover" onError={() => setAvatarLoadError(true)} />
             ) : (
               <span>{avatarInitial}</span>
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xl sm:text-2xl font-semibold tracking-tight text-txt-primary leading-none truncate">
+            <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Hesap Alanı</p>
+            <p className="text-lg sm:text-2xl font-semibold tracking-tight text-txt-primary leading-tight break-words mt-1">
               {profileDraft.display_name || currentUser?.display_name || currentUser?.username}
             </p>
-            <p className="text-sm text-accent-green mt-2 flex items-center gap-2">
+            <p className="text-sm text-accent-green mt-2 flex items-center gap-2 flex-wrap">
               <span className="w-2 h-2 rounded-full bg-accent-green" />
               {isAdmin ? 'Admin Kullanıcı' : isPro ? 'Pro Kullanıcı' : 'Free Kullanıcı'}
             </p>
           </div>
-          <div className="text-right hidden md:block">
+          <div className="hidden md:block md:text-right md:shrink-0">
             <p className="text-xs text-txt-muted">Plan</p>
             <p className="text-lg font-semibold text-txt-primary">{planName}</p>
+            <p className="text-[11px] text-txt-muted mt-1">{usagePercent}% kullanım</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 mt-4">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <AdminInfoRow label="Adres" value={currentStats?.address_count || 0} />
           <AdminInfoRow label="Mail" value={currentStats?.email_count || 0} />
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button onClick={openProfileEditor} className="btn-primary">
-            <Pencil size={12} /> Düzenle / Edit
-          </button>
-          <span className="text-xs text-txt-muted self-center">Sadece temel profil bilgileri popup üzerinden düzenlenir.</span>
-        </div>
-      </div>
 
-      <div className="hidden flex flex-wrap gap-2 mb-4">
-        {tabs.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={tab === item.id ? 'nav-pill nav-pill-active' : 'nav-pill'}
-            >
-              <Icon size={14} /> {item.label}
-            </button>
-          );
-        })}
+        <div className="h-2 rounded-full bg-brand-surface2 overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-accent-blue to-accent-cyan" style={{ width: `${usagePercent}%` }} />
+        </div>
+
+        <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">Aktif Alan Adı</p>
+              <p className="text-sm font-semibold text-txt-primary mt-1 truncate">{activeDomainLabel}</p>
+            </div>
+            <span className="badge-green">Aktif</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <button onClick={openProfileEditor} className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-4 py-3 text-left text-txt-primary hover:bg-brand-surface2/45 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <Pencil size={14} className="text-accent-blue shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Hesap Ayarları</p>
+                <p className="text-[11px] text-txt-muted break-words sm:truncate">Profil, güvenlik ve tercihleri düzenle</p>
+              </div>
+            </div>
+            <ChevronRight size={14} className="text-txt-muted self-end sm:self-auto" />
+          </button>
+
+          <button onClick={() => (onRequestPro ? onRequestPro() : null)} className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-4 py-3 text-left text-txt-primary hover:bg-brand-surface2/45 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <Crown size={14} className="text-accent-purple shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Planı Yönet</p>
+                <p className="text-[11px] text-txt-muted break-words sm:truncate">{isPro || isAdmin ? 'Plan isteği zaten yapıldı' : 'Pro isteği gönder'}</p>
+              </div>
+            </div>
+            <ChevronRight size={14} className="text-txt-muted self-end sm:self-auto" />
+          </button>
+
+          <button onClick={onLogout} className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-accent-red/20 bg-accent-red/5 px-4 py-3 text-left text-accent-red hover:bg-accent-red/10 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <LogOut size={14} className="shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Çıkış Yap</p>
+                <p className="text-[11px] text-accent-red/80 break-words sm:truncate">Hesaptan güvenli şekilde çık</p>
+              </div>
+            </div>
+            <ChevronRight size={14} className="text-accent-red/80 self-end sm:self-auto" />
+          </button>
+        </div>
       </div>
 
       {message && <div className="mb-3 text-sm rounded-2xl border border-accent-green/20 bg-accent-green/10 text-accent-green px-4 py-3">{message}</div>}
@@ -1134,134 +1160,46 @@ export default function AccountPanel({
         )}
       </div>
 
-      <Modal
+      <AccountEditorModal
         show={showProfileEditor}
         onClose={closeProfileEditor}
-        title="Profili Düzenle"
-        subtitle="Temel hesap bilgilerini buradan değiştirebilirsin."
-        size="full"
-        footer={(
-          <>
-            <button type="button" onClick={closeProfileEditor} className="btn-secondary">
-              Kaydetme
-            </button>
-            <button type="button" onClick={saveProfile} disabled={saving} className="btn-primary">
-              <Save size={12} /> Kaydet
-            </button>
-          </>
-        )}
-        >
-        <div className="grid grid-cols-1 xl:grid-cols-[240px_1fr] gap-4">
-          <div className="panel-soft rounded-3xl p-4 flex flex-col items-center justify-between text-center gap-4">
-            <div className="w-28 h-28 rounded-3xl overflow-hidden border border-brand-border/30 bg-brand-surface2/45 flex items-center justify-center">
-              {profilePhotoPreview ? (
-                <img src={profilePhotoPreview} alt="Profil fotoğrafı" className="w-full h-full object-cover" />
-              ) : (
-                <User size={40} className="text-accent-blue" />
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-txt-primary">{currentUser?.display_name || currentUser?.username || '-'}</p>
-              <p className="text-xs text-txt-muted mt-1 break-all">{currentUser?.email || '-'}</p>
-            </div>
-            <label className="btn-secondary cursor-pointer w-full justify-center">
-              <Pencil size={12} /> Fotoğraf Değiştir
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => uploadAvatar(e.target.files?.[0] || null)}
-              />
-            </label>
-            <div className="w-full space-y-2 text-left">
-              <AdminInfoRow label="Hesap oluşturma" value={formatAdminDate(currentUser?.created_at)} />
-              <AdminInfoRow label="Son giriş" value={formatAdminDate(currentUser?.last_login)} />
-              <AdminInfoRow label="Durum" value={usernameLocked ? 'Kullanıcı adı kilitli' : 'Düzenlenebilir'} />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="panel-soft rounded-2xl p-4">
-                <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">Görünen ad</p>
-                <input
-                  value={profileDraft.display_name}
-                  onChange={(e) => setProfileDraft((p) => ({ ...p, display_name: e.target.value }))}
-                  className="input mt-2"
-                  placeholder="Görünen ad"
-                />
-              </div>
-              <div className="panel-soft rounded-2xl p-4">
-                <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">Kullanıcı adı</p>
-                <input
-                  value={profileDraft.username}
-                  onChange={(e) => setProfileDraft((p) => ({ ...p, username: e.target.value }))}
-                  className="input mt-2"
-                  placeholder="kullaniciadi"
-                  disabled={usernameLocked}
-                />
-                <p className="text-[11px] text-txt-muted mt-2">
-                  {usernameLocked ? 'Kullanıcı adı değişimi kullanıldı ve tekrar açılamaz.' : 'Bu alan yalnızca bir kez değiştirilebilir.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="panel-soft rounded-2xl p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">E-posta</p>
-                  <p className="text-sm text-txt-secondary mt-1">Adres değişikliği doğrulama kodu ile yapılır.</p>
-                </div>
-                {emailPending ? <span className="badge-blue">Doğrulama Bekliyor</span> : null}
-              </div>
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-                <input
-                  value={emailDraft}
-                  onChange={(e) => setEmailDraft(e.target.value)}
-                  className="input"
-                  placeholder="eposta@ornek.com"
-                />
-                <button
-                  type="button"
-                  onClick={requestEmailChange}
-                  disabled={saving || emailChangeCooldownActive || !!emailPending}
-                  className="btn-secondary"
-                >
-                  <Mail size={12} /> Kodu Gönder
-                </button>
-              </div>
-              <p className="text-[11px] text-txt-muted mt-2">
-                {emailChangeCooldownActive ? 'E-posta değişimi için kısa bir bekleme süresi uygulanıyor.' : 'Yeni e-posta adresine kod gönderilir, sonra doğrulanır.'}
-              </p>
-              {emailStep === 'verify' ? (
-                <div className="mt-4 rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">Doğrulama Kodu</p>
-                  <div className="mt-3 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-                    <input
-                      value={emailCode}
-                      onChange={(e) => setEmailCode(e.target.value)}
-                      className="input"
-                      placeholder="Doğrulama kodu"
-                    />
-                    <button type="button" onClick={confirmEmailChange} disabled={saving} className="btn-primary">
-                      <CheckCircle2 size={12} /> Onayla
-                    </button>
-                  </div>
-                  {emailPending ? <p className="text-[11px] text-txt-muted mt-2">Bekleyen yeni e-posta: {emailPending}</p> : null}
-                </div>
-              ) : null}
-            </div>
-
-            <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-4">
-              <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">Hızlı Özet</p>
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <AdminInfoRow label="E-posta" value={currentUser?.email || '-'} />
-                <AdminInfoRow label="Dil / Tema" value={`${currentPrefs?.language || currentUser?.language || 'tr'} / ${currentPrefs?.theme || currentUser?.theme || 'system'}`} />
-              </div>
-            </div>
-          </div>
-        </div>
-        </Modal>
+        tab={tab}
+        setTab={setTab}
+        currentUser={currentUser}
+        currentPkg={currentPkg}
+        currentStats={currentStats}
+        currentPrefs={currentPrefs}
+        profilePhotoPreview={profilePhotoPreview}
+        avatarInitial={avatarInitial}
+        onUploadAvatar={uploadAvatar}
+        planName={planName}
+        usernameLocked={usernameLocked}
+        emailPending={emailPending}
+        emailChangeCooldownActive={emailChangeCooldownActive}
+        profileDraft={profileDraft}
+        setProfileDraft={setProfileDraft}
+        openProfileEditor={openProfileEditor}
+        saveProfile={saveProfile}
+        savePassword={savePassword}
+        passwordDraft={passwordDraft}
+        setPasswordDraft={setPasswordDraft}
+        saving={saving}
+        loadCenter={loadCenter}
+        center={center}
+        revokeSession={revokeSession}
+        formatAdminDate={formatAdminDate}
+        prefDraft={prefDraft}
+        setPrefDraft={setPrefDraft}
+        domains={domains}
+        toggleFavoriteDomain={toggleFavoriteDomain}
+        notificationSounds={notificationSounds}
+        onPreviewNotificationSound={onPreviewNotificationSound}
+        savePreferences={savePreferences}
+        onRequestPro={onRequestPro}
+        isAdmin={isAdmin}
+        isPro={isPro}
+        emailCount={emailCount}
+      />
     </div>
   );
 }

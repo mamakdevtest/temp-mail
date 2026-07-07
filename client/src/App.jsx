@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { lazy, Suspense, startTransition, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, User, Crown, Shield, Sparkles } from 'lucide-react';
 import useAuth from './hooks/useAuth';
-import AuthPage from './components/AuthPage';
 import AddressBar from './components/AddressBar';
 import Inbox from './components/Inbox';
 import EmailView from './components/EmailView';
 import AccountPanel from './components/AccountPanel';
-import AdminPanel from './components/AdminPanel';
 import Modal from './components/Modal';
 import { playNotificationSound, NOTIFICATION_SOUNDS } from './utils/notificationSound';
+
+const AuthPage = lazy(() => import('./components/AuthPage'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
 
 const API = '/api';
 const DEFAULT_NOTIFICATION_SOUND = NOTIFICATION_SOUNDS.find((sound) => sound.id === 'chime')?.id || 'classic';
@@ -98,6 +99,13 @@ export default function App() {
       document.removeEventListener('keydown', h);
     };
   }, [initBeep]);
+
+  useEffect(() => {
+    return () => {
+      if (notifTimer.current) clearTimeout(notifTimer.current);
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const h = (e) => {
@@ -423,13 +431,17 @@ export default function App() {
 
   const copyAddr = () => {
     if (!addr) return;
-    navigator.clipboard.writeText(addr.address);
-    toast('Kopyalandı', 'success');
+    navigator.clipboard.writeText(addr.address).then(
+      () => toast('Kopyalandı', 'success'),
+      () => toast('Kopyalama başarısız oldu', 'error')
+    );
   };
 
   const copyOtp = useCallback((o) => {
-    navigator.clipboard.writeText(o);
-    toast(`OTP: ${o}`, 'success');
+    navigator.clipboard.writeText(o).then(
+      () => toast(`OTP: ${o}`, 'success'),
+      () => toast('OTP kopyalanamadı', 'error')
+    );
   }, [toast]);
 
   useEffect(() => {
@@ -497,9 +509,9 @@ export default function App() {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <button onClick={() => setPage('inbox')} className={`nav-pill ${page === 'inbox' ? 'nav-pill-active' : ''}`}><InboxIcon size={16} /> Inbox <span className="w-1.5 h-1.5 rounded-full bg-accent-blue" /></button>
-            <button onClick={() => setPage('domains')} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> Domains</button>
-            {auth.isAdmin && <button onClick={() => setPage('admin')} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> Admin</button>}
+            <button onClick={() => startTransition(() => setPage('inbox'))} className={`nav-pill ${page === 'inbox' ? 'nav-pill-active' : ''}`}><InboxIcon size={16} /> Inbox <span className="w-1.5 h-1.5 rounded-full bg-accent-blue" /></button>
+            <button onClick={() => startTransition(() => setPage('domains'))} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> Domains</button>
+            {auth.isAdmin && <button onClick={() => startTransition(() => setPage('admin'))} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> Admin</button>}
           </div>
 
           <div className="flex items-center gap-3">
@@ -529,7 +541,7 @@ export default function App() {
                       <p className="text-sm font-semibold text-txt-primary">{auth.user?.display_name || auth.user?.username}</p>
                       <p className="text-xs text-txt-muted mt-1">{auth.user?.email}</p>
                     </div>
-                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); setPage('admin'); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> Admin Paneli</button>}
+                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); startTransition(() => setPage('admin')); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> Admin Paneli</button>}
                     {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-purple hover:bg-accent-purple/5 transition-colors"><Crown size={14} /> Pro'ya Geç</button>}
                     <button onClick={() => auth.logout()} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-red hover:bg-accent-red/5 transition-colors"><X size={14} /> Çıkış Yap</button>
                   </div>
@@ -609,13 +621,15 @@ export default function App() {
 
       {showAuth && (
         <div className="fixed inset-0 z-[200] overflow-y-auto bg-brand-bg/92 backdrop-blur-xl">
-          <AuthPage
-            defaultMode={authMode}
-            onLogin={auth.login}
-            onRegister={auth.register}
-            onClose={() => setShowAuth(false)}
-            onGuestContinue={() => setShowAuth(false)}
-          />
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-txt-muted">Yükleniyor...</div>}>
+            <AuthPage
+              defaultMode={authMode}
+              onLogin={auth.login}
+              onRegister={auth.register}
+              onClose={() => setShowAuth(false)}
+              onGuestContinue={() => setShowAuth(false)}
+            />
+          </Suspense>
         </div>
       )}
 
@@ -677,14 +691,16 @@ export default function App() {
             </div>
           </div>
         ) : auth.isAdmin ? (
-          <AdminPanel
-            api={API}
-            token={auth.token}
-            notificationSound={notificationSound}
-            notificationSounds={NOTIFICATION_SOUNDS}
-            onNotificationSoundChange={setNotificationSound}
-            onPreviewNotificationSound={handlePreviewNotificationSound}
-          />
+          <Suspense fallback={<div className="card p-10 text-center text-txt-muted">Admin paneli yükleniyor...</div>}>
+            <AdminPanel
+              api={API}
+              token={auth.token}
+              notificationSound={notificationSound}
+              notificationSounds={NOTIFICATION_SOUNDS}
+              onNotificationSoundChange={setNotificationSound}
+              onPreviewNotificationSound={handlePreviewNotificationSound}
+            />
+          </Suspense>
         ) : (
           <div className="card p-10 text-center">
             <Shield size={40} className="mx-auto mb-3 text-txt-disabled" />

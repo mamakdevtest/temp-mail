@@ -99,7 +99,8 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
     if (d) setSelectedFullDomain(d);
     setPw('');
     setShowHistory(false);
-    onSubmit(u, d, null);
+    const info = findDomainInfo(d);
+    onSubmit(u, info?.mainDomain || d, null, info?.subdomain || null);
   };
 
   const handleCopy = () => {
@@ -149,11 +150,11 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
             <p className="text-sm text-txt-secondary">Adresiniz anında aktif olur, mailler aşağıdaki gelen kutusuna düşer.</p>
           </div>
 
-          <div className="max-w-[860px] mx-auto">
+          <div className="relative z-50 max-w-[860px] mx-auto">
             <div className="panel-soft rounded-[26px] p-2 border-brand-border/70 shadow-panel">
               <div className="grid grid-cols-[1fr_72px] gap-2 items-center">
-                <form onSubmit={handleSubmit} className="min-w-0 rounded-[22px] bg-brand-bg/70 border border-brand-border/40 px-4 py-4 sm:px-6 sm:py-5">
-                  <div className="flex items-center justify-center gap-2 sm:gap-3 flex-nowrap overflow-visible">
+                <form onSubmit={handleSubmit} className="relative z-50 min-w-0 rounded-[22px] bg-brand-bg/70 border border-brand-border/40 px-4 py-4 sm:px-6 sm:py-5 isolate">
+                  <div className="relative z-10 flex items-center justify-center gap-2 sm:gap-3 flex-nowrap overflow-visible">
                     <input
                       type="text"
                       value={username}
@@ -164,7 +165,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
                       autoComplete="off"
                     />
                     <span className="shrink-0 text-xl sm:text-[2.15rem] font-bold text-accent-red">@</span>
-                    <div className="relative min-w-0 flex-[1_1_320px]" ref={domainRef}>
+                    <div className="relative z-20 min-w-0 flex-[1_1_320px]" ref={domainRef}>
                       <button
                         type="button"
                         onClick={() => setShowDomainMenu((v) => !v)}
@@ -180,7 +181,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
                       {showDomainMenu && (
                         <div
                           ref={dropdownRef}
-                          className="absolute left-0 right-0 top-full mt-3 z-[70] card p-2 animate-slide-down shadow-panel"
+                          className="absolute left-0 right-0 top-full mt-3 z-[999] card p-2 animate-slide-down shadow-panel"
                         >
                           <div className="px-3 py-2 border-b border-brand-border/20">
                             <p className="text-[11px] uppercase tracking-[0.24em] text-txt-muted">Domain Seçin</p>
@@ -268,14 +269,14 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
                   </div>
                 </form>
 
-                <button onClick={handleCopy} className={`h-[72px] rounded-[22px] panel-soft border-brand-border/70 flex items-center justify-center transition-all ${copied ? 'text-accent-green' : 'text-txt-secondary hover:text-white'}`}>
+                <button onClick={handleCopy} className={`relative z-0 h-[72px] rounded-[22px] panel-soft border-brand-border/70 flex items-center justify-center transition-all ${copied ? 'text-accent-green' : 'text-txt-secondary hover:text-white'}`}>
                   {copied ? <CheckCircle2 size={24} /> : <Copy size={22} />}
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="relative z-0 flex flex-wrap items-center justify-center gap-3">
             {isModified ? (
               <button onClick={handleSubmit} disabled={loading || !username || !selectedFullDomain} className="btn-primary min-w-[160px]">
                 {loading ? 'Hazırlanıyor...' : 'Bu Adresi Aç'}

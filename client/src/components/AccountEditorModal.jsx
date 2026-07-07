@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Crown,
   Globe,
@@ -11,6 +11,7 @@ import {
   Pencil,
   RefreshCw,
   Save,
+  Upload,
   Shield,
   ShieldCheck,
   Star,
@@ -29,7 +30,7 @@ function OptionBadge({ active, children, tone = 'blue', onClick }) {
     green: active ? 'border-accent-green/30 bg-accent-green/12 text-accent-green' : 'border-brand-border/20 bg-brand-surface2/25 text-txt-secondary',
   };
   return (
-    <button type="button" onClick={onClick} className={`rounded-2xl border px-4 py-3 text-sm transition-colors ${toneClass[tone]}`}>
+    <button type="button" onClick={onClick} className={`w-full rounded-2xl border px-4 py-3 text-sm min-h-12 transition-colors ${toneClass[tone]}`}>
       {children}
     </button>
   );
@@ -47,6 +48,7 @@ export default function AccountEditorModal({
   currentUserName,
   profilePhotoPreview,
   avatarInitial,
+  onUploadAvatar,
   planName,
   usernameLocked,
   emailPending,
@@ -54,6 +56,7 @@ export default function AccountEditorModal({
   profileDraft,
   setProfileDraft,
   openProfileEditor,
+  saveProfile,
   savePassword,
   passwordDraft,
   setPasswordDraft,
@@ -81,8 +84,14 @@ export default function AccountEditorModal({
     { id: 'preferences', label: 'Tercihler', icon: Globe },
     { id: 'plan', label: 'Kullanım', icon: Crown },
   ]), []);
+  const activeTab = tabs.find((item) => item.id === tab) || tabs[0];
 
   const usagePercent = useMemo(() => Math.min(Math.round(((currentStats?.address_count || 0) / (currentPkg?.max_addresses || 3)) * 100), 100), [currentPkg?.max_addresses, currentStats?.address_count]);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [profilePhotoPreview]);
 
   return (
     <Modal
@@ -90,52 +99,166 @@ export default function AccountEditorModal({
       onClose={onClose}
       title="Hesap Ayarları"
       subtitle="Profil, güvenlik, tercihler ve kullanım burada."
-      size="3xl"
+      size="full"
       footer={(
         <button type="button" onClick={onClose} className="btn-secondary">
           Kapat
         </button>
       )}
     >
-      <div className="flex flex-wrap gap-2 mb-4">
-        {tabs.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={tab === item.id ? 'nav-pill nav-pill-active' : 'nav-pill'}
-            >
-              <Icon size={14} /> {item.label}
-            </button>
-          );
-        })}
-      </div>
+      <div className="flex h-full flex-col gap-4 lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="space-y-4 lg:sticky lg:top-0 lg:self-start">
+          <div className="panel-soft rounded-3xl p-4 sm:p-5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-3xl overflow-hidden border border-brand-border/30 bg-brand-surface2/45 flex items-center justify-center shrink-0">
+                {profilePhotoPreview && !avatarLoadError ? (
+                  <img
+                    src={profilePhotoPreview}
+                    alt="Profil fotoğrafı"
+                    className="w-full h-full object-cover"
+                    onError={() => setAvatarLoadError(true)}
+                  />
+                ) : (
+                  <User size={28} className="text-accent-blue" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Hesap</p>
+                <h4 className="text-lg font-semibold text-txt-primary mt-1 truncate">{currentUser?.display_name || currentUser?.username || '-'}</h4>
+                <p className="text-xs text-txt-muted mt-1 break-all">{currentUser?.email || '-'}</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+              <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">Plan</p>
+                <p className="text-base font-semibold text-txt-primary mt-1">{planName}</p>
+                <p className="text-xs text-txt-muted mt-1">{activeTab.label} bölümündesin</p>
+              </div>
+              <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">Kullanım</p>
+                <div className="mt-2 h-2 rounded-full bg-brand-surface2 overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-accent-blue to-accent-cyan" style={{ width: `${usagePercent}%` }} />
+                </div>
+                <p className="text-xs text-txt-muted mt-2">{usagePercent}% adres kotası kullanıldı</p>
+              </div>
+            </div>
+          </div>
 
+          <div className="panel-soft rounded-3xl p-3 hidden lg:block">
+            <div className="space-y-2">
+              {tabs.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setTab(item.id)}
+                    className={`${tab === item.id ? 'nav-pill nav-pill-active' : 'nav-pill'} w-full justify-start min-h-12 px-4 py-3 text-sm`}
+                  >
+                    <Icon size={14} /> {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="panel-soft rounded-3xl p-3 lg:hidden">
+            <div className="flex w-max min-w-full flex-nowrap gap-2 overflow-x-auto pb-1">
+              {tabs.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setTab(item.id)}
+                    className={`${tab === item.id ? 'nav-pill nav-pill-active' : 'nav-pill'} whitespace-nowrap min-h-12 px-4 py-3 text-sm`}
+                  >
+                    <Icon size={14} /> {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0 space-y-4">
       {tab === 'profile' && (
         <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.75fr] gap-4">
           <AdminPanelCard title="Profil Alanı" icon={User}>
-            <div className="panel-soft p-5 rounded-3xl">
+            <div className="panel-soft p-4 sm:p-5 rounded-3xl">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="w-24 h-24 rounded-3xl overflow-hidden border border-brand-border/30 bg-brand-surface2/45 flex items-center justify-center shrink-0">
-                  {profilePhotoPreview ? (
-                    <img src={profilePhotoPreview} alt="Profil fotoğrafı" className="w-full h-full object-cover" />
+                  {profilePhotoPreview && !avatarLoadError ? (
+                    <img
+                      src={profilePhotoPreview}
+                      alt="Profil fotoğrafı"
+                      className="w-full h-full object-cover"
+                      onError={() => setAvatarLoadError(true)}
+                    />
                   ) : (
                     <User size={34} className="text-accent-blue" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Hesap bilgileri</p>
-                  <h4 className="text-2xl font-semibold text-txt-primary mt-1 truncate">{currentUser?.display_name || currentUser?.username || '-'}</h4>
+                  <h4 className="text-xl sm:text-2xl font-semibold text-txt-primary mt-1 break-words leading-tight">{currentUser?.display_name || currentUser?.username || '-'}</h4>
                   <p className="text-sm text-txt-muted mt-1 break-all">{currentUser?.email || '-'}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className={usernameLocked ? 'badge-purple' : 'badge-green'}>{usernameLocked ? 'Kullanıcı adı kilitli' : 'Kullanıcı adı değiştirilebilir'}</span>
                     {emailPending ? <span className="badge-blue">E-posta doğrulaması bekliyor</span> : null}
                   </div>
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label className="btn-secondary cursor-pointer w-full">
+                      <Upload size={12} /> Fotoğraf Yükle
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => onUploadAvatar?.(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                    <button type="button" onClick={openProfileEditor} className="btn-primary w-full">
+                      <Pencil size={12} /> Düzenle / Edit
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="mt-5 rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">Hızlı Düzenleme</p>
+                <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-txt-muted">Görünen ad</p>
+                    <input
+                      value={profileDraft.display_name}
+                      onChange={(e) => setProfileDraft((p) => ({ ...p, display_name: e.target.value }))}
+                      className="input mt-2"
+                      placeholder="Görünen ad"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs text-txt-muted">Kullanıcı adı</p>
+                    <input
+                      value={profileDraft.username}
+                      onChange={(e) => setProfileDraft((p) => ({ ...p, username: e.target.value }))}
+                      className="input mt-2"
+                      placeholder="kullaniciadi"
+                      disabled={usernameLocked}
+                    />
+                    <p className="text-[11px] text-txt-muted mt-2">
+                      {usernameLocked ? 'Kullanıcı adı kilitli.' : 'Bu alan bir kez değiştirilebilir.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-col sm:flex-row gap-2 sm:justify-end">
+                  <button type="button" onClick={openProfileEditor} className="btn-secondary w-full sm:w-auto">
+                    <Pencil size={12} /> Sıfırla
+                  </button>
+                  <button type="button" onClick={saveProfile} disabled={saving} className="btn-primary w-full sm:w-auto">
+                    <Save size={12} /> Profili Kaydet
+                  </button>
+                </div>
+              </div>
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <AdminInfoRow label="Kullanıcı adı" value={currentUser?.username || '-'} />
                 <AdminInfoRow label="Görünen ad" value={currentUser?.display_name || currentUser?.username || '-'} />
                 <AdminInfoRow label="E-posta" value={currentUser?.email || '-'} />
@@ -143,12 +266,7 @@ export default function AccountEditorModal({
                 <AdminInfoRow label="Son giriş" value={formatAdminDate(currentUser?.last_login)} />
                 <AdminInfoRow label="Dil / Tema" value={`${currentPrefs?.language || currentUser?.language || 'tr'} / ${currentPrefs?.theme || currentUser?.theme || 'system'}`} />
               </div>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <button onClick={openProfileEditor} className="btn-primary">
-                  <Pencil size={12} /> Profili Düzenle
-                </button>
-                <span className="text-xs text-txt-muted">Profil değişiklikleri ayrıca açılan küçük pencerede yapılır.</span>
-              </div>
+              <div className="mt-5 text-xs text-txt-muted leading-relaxed">Profil değişiklikleri ayrıca açılan büyük pencerede yapılır. Küçük ekranda alanlar alt alta iner ve okunabilir kalır.</div>
             </div>
           </AdminPanelCard>
 
@@ -284,7 +402,7 @@ export default function AccountEditorModal({
           <div className="space-y-4">
             <div className="panel-soft p-4 rounded-2xl">
               <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Tema</p>
-              <div className="grid grid-cols-3 gap-2 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
                 <OptionBadge tone="blue" active={prefDraft.theme === 'light'} onClick={() => setPrefDraft((p) => ({ ...p, theme: 'light' }))}>
                   <Sun size={14} /> Açık
                 </OptionBadge>
@@ -299,7 +417,7 @@ export default function AccountEditorModal({
 
             <div className="panel-soft p-4 rounded-2xl">
               <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Dil</p>
-              <div className="grid grid-cols-2 gap-2 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
                 <OptionBadge active={prefDraft.language === 'tr'} onClick={() => setPrefDraft((p) => ({ ...p, language: 'tr' }))}>
                   <Languages size={14} /> Türkçe
                 </OptionBadge>
@@ -361,7 +479,7 @@ export default function AccountEditorModal({
             </div>
 
             <div className="flex justify-end">
-              <button onClick={savePreferences} disabled={saving} className="btn-primary">
+              <button onClick={savePreferences} disabled={saving} className="btn-primary w-full sm:w-auto">
                 <Save size={12} /> Kaydet
               </button>
             </div>
@@ -410,6 +528,8 @@ export default function AccountEditorModal({
           </AdminPanelCard>
         </div>
       )}
+        </div>
+      </div>
     </Modal>
   );
 }

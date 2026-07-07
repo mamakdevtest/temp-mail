@@ -11,13 +11,56 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 40, textAlign: 'center', fontFamily: 'Inter, sans-serif', background: '#f9fafb', minHeight: '100vh' }}>
-          <h1 style={{ fontSize: 24, marginBottom: 16 }}>⚠️ Bir hata oluştu</h1>
-          <p style={{ color: '#666', marginBottom: 16 }}>{this.state.error?.message}</p>
-          <button onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}
-            style={{ padding: '10px 24px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>
-            🔄 Sayfayı Yenile
-          </button>
+        <div style={{
+          minHeight: '100vh',
+          display: 'grid',
+          placeItems: 'center',
+          padding: 24,
+          background: 'radial-gradient(circle at top, rgba(59,130,255,0.12), transparent 35%), linear-gradient(180deg, #060d1f 0%, #040918 100%)',
+          color: '#F6FAFF',
+          fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: 520,
+            borderRadius: 28,
+            border: '1px solid rgba(27,45,82,0.55)',
+            background: 'rgba(10,19,41,0.88)',
+            boxShadow: '0 28px 80px rgba(0,0,0,0.32)',
+            padding: 32,
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: 20,
+              margin: '0 auto 18px',
+              display: 'grid',
+              placeItems: 'center',
+              background: 'linear-gradient(135deg, rgba(59,130,255,0.24), rgba(52,215,255,0.2))',
+              border: '1px solid rgba(59,130,255,0.22)',
+            }}>
+              ⚠️
+            </div>
+            <h1 style={{ fontSize: 28, marginBottom: 10, letterSpacing: '-0.03em' }}>Bir hata oluştu</h1>
+            <p style={{ color: '#9ab0d3', marginBottom: 22, lineHeight: 1.6 }}>{this.state.error?.message}</p>
+            <button
+              onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}
+              style={{
+                padding: '12px 20px',
+                background: 'linear-gradient(90deg, #3b82ff 0%, #4b8cff 100%)',
+                color: '#fff',
+                border: '1px solid rgba(59,130,255,0.42)',
+                borderRadius: 16,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 600,
+                boxShadow: '0 16px 36px rgba(59,130,255,0.24)',
+              }}
+            >
+              Sayfayı Yenile
+            </button>
+          </div>
         </div>
       );
     }
