@@ -2,182 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Temel Stillenme ===== */
 @layer base {
-  body {
-    @apply text-gray-800 dark:text-dark-200 antialiased font-sans;
-  }
-
-  /* Scrollbar - dark mode uyumlu */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-dark-800;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-dark-600 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-dark-500;
-  }
-
-  /* Seçim rengi */
-  ::selection {
-    @apply bg-primary-200 dark:bg-primary-800 text-primary-900 dark:text-primary-100;
-  }
+  * { @apply border-brand-border/30; }
+  body { @apply bg-brand-bg text-txt-primary font-sans antialiased; }
+  ::selection { @apply bg-accent-blue/30 text-white; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-brand-bg; }
+  ::-webkit-scrollbar-thumb { @apply bg-brand-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-brand-border2; }
 }
 
-/* ===== Bileşen Sınıfları ===== */
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600
-           text-white font-medium py-2 px-4 rounded-xl
-           transition-all duration-200 flex items-center gap-1.5
-           shadow-sm hover:shadow-md active:scale-[0.97]
-           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+    @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold
+           bg-accent-blue hover:bg-accent-blue/90 text-white
+           transition-all duration-200 shadow-sm hover:shadow-glow-blue
+           active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none;
   }
-
   .btn-secondary {
-    @apply bg-gray-100 hover:bg-gray-200
-           dark:bg-dark-700 dark:hover:bg-dark-600
-           text-gray-700 dark:text-dark-200 font-medium py-2 px-4 rounded-xl
-           transition-all duration-200 flex items-center gap-1.5
-           border border-gray-200/50 dark:border-dark-600/50
-           active:scale-[0.97];
+    @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium
+           bg-brand-surface2 hover:bg-brand-surface3 text-txt-secondary hover:text-txt-primary
+           border border-brand-border/50 transition-all duration-200
+           active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none;
   }
-
   .btn-ghost {
-    @apply text-gray-600 dark:text-dark-300 hover:text-gray-800 dark:hover:text-dark-100
-           hover:bg-gray-100 dark:hover:bg-dark-700
-           font-medium py-2 px-4 rounded-xl
-           transition-all duration-200 flex items-center gap-1.5;
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+           text-txt-muted hover:text-txt-secondary hover:bg-brand-surface2/50
+           transition-all duration-200;
   }
-
+  .btn-danger {
+    @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold
+           bg-accent-red/15 hover:bg-accent-red/25 text-accent-red
+           border border-accent-red/20 transition-all duration-200;
+  }
   .card {
-    @apply bg-white dark:bg-dark-900
-           rounded-xl shadow-sm
-           border border-gray-200/50 dark:border-dark-700/50
-           p-5
-           transition-colors duration-200;
+    @apply bg-brand-surface border border-brand-border/40 rounded-2xl shadow-card;
   }
-
-  .card-glass {
-    @apply bg-white/70 dark:bg-dark-900/70
-           backdrop-blur-lg
-           rounded-2xl shadow-sm
-           border border-gray-200/30 dark:border-dark-700/30
-           p-5
-           transition-colors duration-200;
+  .input {
+    @apply w-full px-3.5 py-2.5 rounded-xl text-sm
+           bg-brand-surface2 border border-brand-border/50
+           text-txt-primary placeholder-txt-muted
+           focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue/50
+           outline-none transition-all duration-200;
   }
-
-  .input-field {
-    @apply w-full px-4 py-2.5
-           border border-gray-200 dark:border-dark-600
-           rounded-xl
-           bg-white dark:bg-dark-700
-           text-gray-800 dark:text-dark-100
-           placeholder-gray-400 dark:placeholder-dark-500
-           focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500
-           dark:focus:ring-primary-400/20 dark:focus:border-primary-400
-           outline-none transition-all duration-200 text-sm;
-  }
-
   .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium;
   }
-
-  .badge-primary {
-    @apply badge bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300;
-  }
-
-  .badge-success {
-    @apply badge bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300;
-  }
-
-  .badge-warning {
-    @apply badge bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300;
-  }
-
-  .badge-otp {
-    @apply badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300
-           font-mono font-bold text-sm tracking-wider
-           border border-purple-200 dark:border-purple-700;
+  .badge-blue { @apply badge bg-accent-blue/15 text-accent-blue border border-accent-blue/20; }
+  .badge-cyan { @apply badge bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/20; }
+  .badge-green { @apply badge bg-accent-green/15 text-accent-green border border-accent-green/20; }
+  .badge-purple { @apply badge bg-accent-purple/15 text-accent-purple border border-accent-purple/20; }
+  .badge-red { @apply badge bg-accent-red/15 text-accent-red border border-accent-red/20; }
+  .section-title {
+    @apply text-[10px] font-semibold text-txt-muted uppercase tracking-widest;
   }
 }
 
-/* ===== HTML Mail Render iframe ===== */
-.mail-iframe {
-  width: 100%;
-  min-height: 400px;
-  border: none;
-  @apply bg-white;
-}
+/* Animations */
+@keyframes slideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.animate-slide-up { animation: slideUp 0.25s ease-out; }
+.animate-slide-down { animation: slideDown 0.25s ease-out; }
 
-/* ===== Animasyonlar ===== */
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out;
-}
-
-/* ===== OTP Kartı ===== */
-.otp-card {
-  @apply bg-gradient-to-r from-purple-50 to-indigo-50
-         dark:from-purple-900/20 dark:to-indigo-900/20
-         border border-purple-200 dark:border-purple-700
-         rounded-xl p-4
-         flex items-center justify-between gap-4;
-}
-
-.otp-code {
-  @apply text-3xl font-mono font-bold tracking-[0.3em]
-         text-purple-700 dark:text-purple-300
-         select-all;
-}
-
-/* ===== Loading Skeleton ===== */
-.skeleton {
-  @apply bg-gray-200 dark:bg-dark-700 rounded animate-pulse;
-}
-
-/* ===== Gradient Arka Plan ===== */
-.bg-gradient-main {
-  @apply bg-gradient-to-br from-blue-50 via-white to-indigo-50
-         dark:from-dark-950 dark:via-dark-900 dark:to-dark-950;
-}
-
-/* ===== Glass-morphism Header ===== */
-.header-glass {
-  @apply bg-white/80 dark:bg-dark-900/80
-         backdrop-blur-md
-         border-b border-gray-200 dark:border-dark-700;
-}
-
-/* ===== Mail Liste Hover Efekti ===== */
-.mail-item {
-  @apply px-6 py-4 cursor-pointer transition-all duration-150
-         hover:bg-blue-50/50 dark:hover:bg-dark-700/50
-         active:bg-blue-100/50 dark:active:bg-dark-700;
-}
-
-.mail-item-selected {
-  @apply bg-primary-50 dark:bg-primary-900/20
-         border-l-4 border-primary-500 dark:border-primary-400;
-}
+/* Email iframe */
+.mail-iframe { width:100%; min-height:400px; border:none; background:white; }

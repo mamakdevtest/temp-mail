@@ -94,7 +94,7 @@ export default function AdminPanel({ api }) {
   if (!auth) {
     return (
       <div className="max-w-sm mx-auto mt-10">
-        <div className="bg-white dark:bg-dark-900 rounded-2xl border border-gray-200 dark:border-dark-700 shadow-lg overflow-hidden">
+        <div className="bg-brand-surface rounded-2xl border border-brand-border/40 shadow-lg overflow-hidden">
           <div className="bg-gradient-to-br from-primary-600 to-primary-700 px-6 py-8 text-center">
             <span className="text-5xl block mb-3">🔐</span>
             <h2 className="text-xl font-bold text-white">Admin Paneli</h2>
@@ -102,14 +102,14 @@ export default function AdminPanel({ api }) {
           </div>
           <form onSubmit={login} className="p-6 space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-dark-400 mb-1.5">Şifre</label>
-              <input type="password" value={pw} onChange={(e) => { setPw(e.target.value); setErr(null); }} placeholder="Admin şifresi" className="w-full px-4 py-2.5 border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" autoFocus />
+              <label className="block text-xs font-medium text-txt-muted mb-1.5">Şifre</label>
+              <input type="password" value={pw} onChange={(e) => { setPw(e.target.value); setErr(null); }} placeholder="Admin şifresi" className="w-full px-4 py-2.5 border border-brand-border/40 rounded-lg bg-brand-surface2 text-txt-primary focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" autoFocus />
             </div>
             {err && <p className="text-red-500 text-xs flex items-center gap-1">⚠️ {err}</p>}
             <button type="submit" disabled={loading || !pw} className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-50 shadow-sm">
               {loading ? '⏳ Giriş yapılıyor...' : '🔓 Giriş Yap'}
             </button>
-            <p className="text-[10px] text-gray-400 dark:text-dark-500 text-center">Varsayılan: <code className="bg-gray-100 dark:bg-dark-700 px-1 rounded">admin123</code></p>
+            <p className="text-[10px] text-txt-disabled text-center">Varsayılan: <code className="bg-brand-surface2 px-1 rounded">admin123</code></p>
           </form>
         </div>
       </div>
@@ -120,25 +120,25 @@ export default function AdminPanel({ api }) {
   if (mbox) {
     return (
       <div className="space-y-4">
-        <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 px-5 py-4 flex items-center justify-between">
+        <div className="bg-brand-surface rounded-xl border border-brand-border/40 px-5 py-4 flex items-center justify-between">
           <div>
-            <button onClick={() => { setMbox(null); setMboxSel(null); }} className="text-xs text-gray-500 dark:text-dark-400 hover:text-gray-700 dark:hover:text-dark-200 mb-1">← Admin Paneline Dön</button>
-            <h2 className="text-base font-bold text-gray-800 dark:text-dark-100 font-mono">📬 {mbox.address}</h2>
-            <p className="text-[10px] text-gray-500 dark:text-dark-400">{mboxEmails.length} mail • {fmt(mbox.created_at)}</p>
+            <button onClick={() => { setMbox(null); setMboxSel(null); }} className="text-xs text-txt-muted hover:text-gray-700 dark:hover:text-dark-200 mb-1">← Admin Paneline Dön</button>
+            <h2 className="text-base font-bold text-txt-primary font-mono">📬 {mbox.address}</h2>
+            <p className="text-[10px] text-txt-muted">{mboxEmails.length} mail • {fmt(mbox.created_at)}</p>
           </div>
-          <button onClick={() => copy(mbox.address, 'Adres')} className="text-xs px-3 py-1.5 rounded-md bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 border border-gray-200 dark:border-dark-600">📋 Kopyala</button>
+          <button onClick={() => copy(mbox.address, 'Adres')} className="text-xs px-3 py-1.5 rounded-md bg-brand-surface2 text-txt-secondary border border-brand-border/40">📋 Kopyala</button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-2 bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 text-xs font-semibold text-gray-600 dark:text-dark-300">Mailler ({mboxEmails.length})</div>
+          <div className="lg:col-span-2 bg-brand-surface rounded-xl border border-brand-border/40 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-brand-border/20 text-xs font-semibold text-txt-secondary">Mailler ({mboxEmails.length})</div>
             <div className="max-h-[500px] overflow-y-auto">
-              {mboxEmails.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">📭 Boş</div> : mboxEmails.map((m) => (
-                <div key={m.id} onClick={() => openMboxEmail(m.id)} className={`px-4 py-2.5 cursor-pointer border-b border-gray-50 dark:border-dark-800 last:border-0 transition-colors hover:bg-blue-50/50 dark:hover:bg-dark-800/50 ${mboxSel?.id === m.id ? 'bg-primary-50/80 dark:bg-primary-900/20' : ''}`}>
-                  <p className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
-                  <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">{m.subject || '(Konu yok)'}</p>
+              {mboxEmails.length === 0 ? <div className="py-12 text-center text-txt-disabled text-xs">📭 Boş</div> : mboxEmails.map((m) => (
+                <div key={m.id} onClick={() => openMboxEmail(m.id)} className={`px-4 py-2.5 cursor-pointer border-b border-brand-border/20 last:border-0 transition-colors hover:bg-brand-surface2/50 ${mboxSel?.id === m.id ? 'bg-accent-blue/10' : ''}`}>
+                  <p className="text-xs font-medium text-txt-primary truncate">{m.sender}</p>
+                  <p className="text-[10px] text-txt-muted truncate">{m.subject || '(Konu yok)'}</p>
                   <div className="flex items-center gap-1 mt-0.5">
                     {m.otp_code && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded font-mono">🔑 {m.otp_code}</span>}
-                    <span className="text-[9px] text-gray-400 dark:text-dark-500">{fmt(m.received_at)}</span>
+                    <span className="text-[9px] text-txt-disabled">{fmt(m.received_at)}</span>
                   </div>
                 </div>
               ))}
@@ -146,11 +146,11 @@ export default function AdminPanel({ api }) {
           </div>
           <div className="lg:col-span-3">
             {mboxSel ? (
-              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700">
-                  <p className="text-[10px] text-gray-500 dark:text-dark-400">{mboxSel.sender}</p>
-                  <p className="text-sm font-medium text-gray-800 dark:text-dark-100">{mboxSel.subject || '(Konu yok)'}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-dark-500 mt-0.5">{fmt(mboxSel.received_at)}</p>
+              <div className="bg-brand-surface rounded-xl border border-brand-border/40 overflow-hidden">
+                <div className="px-4 py-3 border-b border-brand-border/20">
+                  <p className="text-[10px] text-txt-muted">{mboxSel.sender}</p>
+                  <p className="text-sm font-medium text-txt-primary">{mboxSel.subject || '(Konu yok)'}</p>
+                  <p className="text-[10px] text-txt-disabled mt-0.5">{fmt(mboxSel.received_at)}</p>
                   {mboxSel.otp_code && (
                     <div className="mt-2 flex items-center gap-2">
                       <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-mono font-bold text-sm">{mboxSel.otp_code}</span>
@@ -163,8 +163,8 @@ export default function AdminPanel({ api }) {
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 flex items-center justify-center min-h-[300px]">
-                <div className="text-center text-gray-400 dark:text-dark-500"><span className="text-3xl block mb-2">✉️</span><p className="text-xs">Bir mail seçin</p></div>
+              <div className="bg-brand-surface rounded-xl border border-brand-border/40 flex items-center justify-center min-h-[300px]">
+                <div className="text-center text-txt-disabled"><span className="text-3xl block mb-2">✉️</span><p className="text-xs">Bir mail seçin</p></div>
               </div>
             )}
           </div>
@@ -177,12 +177,12 @@ export default function AdminPanel({ api }) {
   return (
     <div className="space-y-4">
       {/* Top bar */}
-      <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 px-5 py-3">
+      <div className="bg-brand-surface rounded-xl border border-brand-border/40 px-5 py-3">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-gray-800 dark:text-dark-100">⚙️ Admin</h2>
+          <h2 className="text-base font-bold text-txt-primary">⚙️ Admin</h2>
           <div className="flex gap-2">
             <button onClick={cleanup} className="text-xs px-3 py-1.5 rounded-md bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40">🧹 Temizle</button>
-            <button onClick={logout} className="text-xs px-3 py-1.5 rounded-md bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 border border-gray-200 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600">🚪 Çıkış</button>
+            <button onClick={logout} className="text-xs px-3 py-1.5 rounded-md bg-brand-surface2 text-txt-secondary border border-brand-border/40 hover:bg-brand-surface3">🚪 Çıkış</button>
           </div>
         </div>
         <div className="flex gap-1">
@@ -192,7 +192,7 @@ export default function AdminPanel({ api }) {
             { id: 'domains', icon: '🌐', label: 'Domainler' },
             { id: 'emails', icon: '📧', label: 'Mailler' },
           ].map((t) => (
-            <button key={t.id} onClick={() => { setTab(t.id); if (t.id === 'emails') loadEmails(1); if (t.id === 'addresses') loadAddrs(); }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-500 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-700'}`}>
+            <button key={t.id} onClick={() => { setTab(t.id); if (t.id === 'emails') loadEmails(1); if (t.id === 'addresses') loadAddrs(); }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-primary-600 text-white shadow-sm' : 'text-txt-muted hover:bg-gray-100 dark:hover:bg-dark-700'}`}>
               {t.icon} {t.label}
             </button>
           ))}
@@ -223,8 +223,8 @@ export default function AdminPanel({ api }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {barData.length > 0 && (
-              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
-                <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-3">🏢 Şirket Bazlı Mail</h3>
+              <div className="bg-brand-surface rounded-xl border border-brand-border/40 p-4">
+                <h3 className="text-xs font-semibold text-txt-secondary mb-3">🏢 Şirket Bazlı Mail</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={barData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} />
@@ -236,8 +236,8 @@ export default function AdminPanel({ api }) {
               </div>
             )}
             {stats.total_emails > 0 && (
-              <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
-                <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-3">🔑 OTP Dağılımı</h3>
+              <div className="bg-brand-surface rounded-xl border border-brand-border/40 p-4">
+                <h3 className="text-xs font-semibold text-txt-secondary mb-3">🔑 OTP Dağılımı</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie data={pieData} cx="50%" cy="50%" outerRadius={70} innerRadius={35} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
@@ -251,14 +251,14 @@ export default function AdminPanel({ api }) {
           </div>
 
           {stats.otp_emails?.length > 0 && (
-            <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 text-xs font-semibold text-gray-600 dark:text-dark-300">🔑 Son OTP Kodları</div>
+            <div className="bg-brand-surface rounded-xl border border-brand-border/40 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-brand-border/20 text-xs font-semibold text-txt-secondary">🔑 Son OTP Kodları</div>
               <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[250px] overflow-y-auto">
                 {stats.otp_emails.slice(0, 8).map((m) => (
                   <div key={m.id} className="px-4 py-2 flex items-center justify-between">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
-                      <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">→ {m.address}</p>
+                      <p className="text-xs font-medium text-txt-primary truncate">{m.sender}</p>
+                      <p className="text-[10px] text-txt-muted truncate">→ {m.address}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-mono font-bold text-xs">{m.otp_code}</span>
@@ -271,9 +271,9 @@ export default function AdminPanel({ api }) {
           )}
 
           {stats.latest_emails?.length > 0 && (
-            <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-600 dark:text-dark-300">📬 Son Mailler</span>
+            <div className="bg-brand-surface rounded-xl border border-brand-border/40 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-brand-border/20 flex items-center justify-between">
+                <span className="text-xs font-semibold text-txt-secondary">📬 Son Mailler</span>
                 <button onClick={() => setTab('emails')} className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline">Tümü →</button>
               </div>
               <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[250px] overflow-y-auto">
@@ -281,13 +281,13 @@ export default function AdminPanel({ api }) {
                   <div key={m.id} className="px-4 py-2 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-800/50">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1">
-                        <p className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</p>
+                        <p className="text-xs font-medium text-txt-primary truncate">{m.sender}</p>
                         {m.otp_code && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded">🔑</span>}
                         {m.has_attachments && <span className="text-[10px] text-amber-500">📎</span>}
                       </div>
-                      <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">→ {m.recipient_address}</p>
+                      <p className="text-[10px] text-txt-muted truncate">→ {m.recipient_address}</p>
                     </div>
-                    <span className="text-[9px] text-gray-400 dark:text-dark-500 flex-shrink-0">{fmt(m.received_at)}</span>
+                    <span className="text-[9px] text-txt-disabled flex-shrink-0">{fmt(m.received_at)}</span>
                   </div>
                 ))}
               </div>
@@ -298,21 +298,21 @@ export default function AdminPanel({ api }) {
 
       {/* ===== ADDRESSES ===== */}
       {tab === 'addresses' && (
-        <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-600 dark:text-dark-300">📬 Adresler ({addrs.length})</span>
+        <div className="bg-brand-surface rounded-xl border border-brand-border/40 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-brand-border/20 flex items-center justify-between">
+            <span className="text-xs font-semibold text-txt-secondary">📬 Adresler ({addrs.length})</span>
             <button onClick={loadAddrs} className="text-[10px] px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">🔄</button>
           </div>
-          {addrs.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">📭 Henüz adres yok</div> : (
+          {addrs.length === 0 ? <div className="py-12 text-center text-txt-disabled text-xs">📭 Henüz adres yok</div> : (
             <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[600px] overflow-y-auto">
               {addrs.map((a) => (
                 <div key={a.id} className="px-4 py-2.5 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-800/50">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-xs font-medium text-gray-800 dark:text-dark-100">{a.address}</span>
+                      <span className="font-mono text-xs font-medium text-txt-primary">{a.address}</span>
                       {a.has_password && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded">🔒</span>}
                     </div>
-                    <p className="text-[10px] text-gray-500 dark:text-dark-400">{a.email_count} mail • {fmt(a.created_at)}{a.last_email_at ? ` • Son: ${fmt(a.last_email_at)}` : ''}</p>
+                    <p className="text-[10px] text-txt-muted">{a.email_count} mail • {fmt(a.created_at)}{a.last_email_at ? ` • Son: ${fmt(a.last_email_at)}` : ''}</p>
                   </div>
                   <button onClick={() => openMbox(a.address)} className="text-xs px-3 py-1.5 rounded-md bg-primary-600 hover:bg-primary-700 text-white transition-colors">📬 Aç</button>
                 </div>
@@ -325,29 +325,29 @@ export default function AdminPanel({ api }) {
       {/* ===== DOMAINS ===== */}
       {tab === 'domains' && (
         <div className="space-y-4">
-          <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
-            <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-2">🌐 Sunucu IP</h3>
+          <div className="bg-brand-surface rounded-xl border border-brand-border/40 p-4">
+            <h3 className="text-xs font-semibold text-txt-secondary mb-2">🌐 Sunucu IP</h3>
             <div className="flex gap-2">
-              <input value={serverIp} onChange={(e) => setServerIp(e.target.value)} placeholder="IP adresi" className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 outline-none" />
-              <button onClick={() => fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { setServerIp(d.ip); flash('IP: ' + d.ip); }).catch(() => flash('Algılanamadı', 'error'))} className="text-xs px-3 py-2 rounded-lg bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 border border-gray-200 dark:border-dark-600">🔍</button>
+              <input value={serverIp} onChange={(e) => setServerIp(e.target.value)} placeholder="IP adresi" className="flex-1 px-3 py-2 text-sm border border-brand-border/40 rounded-lg bg-brand-surface2 text-txt-primary focus:ring-2 focus:ring-primary-500 outline-none" />
+              <button onClick={() => fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { setServerIp(d.ip); flash('IP: ' + d.ip); }).catch(() => flash('Algılanamadı', 'error'))} className="text-xs px-3 py-2 rounded-lg bg-brand-surface2 text-txt-secondary border border-brand-border/40">🔍</button>
             </div>
           </div>
-          <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 p-4">
-            <h3 className="text-xs font-semibold text-gray-600 dark:text-dark-300 mb-2">Yeni Domain</h3>
+          <div className="bg-brand-surface rounded-xl border border-brand-border/40 p-4">
+            <h3 className="text-xs font-semibold text-txt-secondary mb-2">Yeni Domain</h3>
             <form onSubmit={addDomain} className="flex gap-2">
-              <input value={newDom} onChange={(e) => setNewDom(e.target.value)} placeholder="ornek.com" className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-800 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 outline-none" />
+              <input value={newDom} onChange={(e) => setNewDom(e.target.value)} placeholder="ornek.com" className="flex-1 px-3 py-2 text-sm border border-brand-border/40 rounded-lg bg-brand-surface2 text-txt-primary focus:ring-2 focus:ring-primary-500 outline-none" />
               <button type="submit" disabled={loading || !newDom.trim()} className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg disabled:opacity-50">{loading ? '⏳' : '➕ Ekle'}</button>
             </form>
           </div>
-          <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 text-xs font-semibold text-gray-600 dark:text-dark-300">Domainler ({domains.length})</div>
-            {domains.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">🌐 Henüz domain yok</div> : (
+          <div className="bg-brand-surface rounded-xl border border-brand-border/40 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-brand-border/20 text-xs font-semibold text-txt-secondary">Domainler ({domains.length})</div>
+            {domains.length === 0 ? <div className="py-12 text-center text-txt-disabled text-xs">🌐 Henüz domain yok</div> : (
               <div className="divide-y divide-gray-50 dark:divide-dark-800">
                 {domains.map((d) => (
                   <div key={d.id} className="px-4 py-2.5 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-800 dark:text-dark-100">{d.domain}</p>
-                      <p className="text-[10px] text-gray-500 dark:text-dark-400">{d.address_count} adres • {d.is_active ? <span className="text-green-600 dark:text-green-400">Aktif</span> : <span className="text-red-600 dark:text-red-400">Pasif</span>}</p>
+                      <p className="text-sm font-medium text-txt-primary">{d.domain}</p>
+                      <p className="text-[10px] text-txt-muted">{d.address_count} adres • {d.is_active ? <span className="text-green-600 dark:text-green-400">Aktif</span> : <span className="text-red-600 dark:text-red-400">Pasif</span>}</p>
                     </div>
                     <div className="flex gap-1">
                       <button onClick={() => toggleDom(d.id, d.is_active)} className={`px-2 py-1 rounded text-[10px] font-medium ${d.is_active ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'}`}>{d.is_active ? '⏸' : '▶'}</button>
@@ -363,33 +363,33 @@ export default function AdminPanel({ api }) {
 
       {/* ===== EMAILS ===== */}
       {tab === 'emails' && (
-        <div className="bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-gray-100 dark:border-dark-700 flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-600 dark:text-dark-300">📧 Tüm Mailler ({emailsTotal})</span>
+        <div className="bg-brand-surface rounded-xl border border-brand-border/40 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-brand-border/20 flex items-center justify-between">
+            <span className="text-xs font-semibold text-txt-secondary">📧 Tüm Mailler ({emailsTotal})</span>
             <button onClick={() => loadEmails(1)} className="text-[10px] px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">🔄</button>
           </div>
-          {emails.length === 0 ? <div className="py-12 text-center text-gray-400 dark:text-dark-500 text-xs">📭 Henüz mail yok</div> : (
+          {emails.length === 0 ? <div className="py-12 text-center text-txt-disabled text-xs">📭 Henüz mail yok</div> : (
             <div className="divide-y divide-gray-50 dark:divide-dark-800 max-h-[600px] overflow-y-auto">
               {emails.map((m) => (
                 <div key={m.id} className="px-4 py-2 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-dark-800/50">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-gray-800 dark:text-dark-100 truncate">{m.sender}</span>
+                      <span className="text-xs font-medium text-txt-primary truncate">{m.sender}</span>
                       {m.otp_code && <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded font-mono">🔑 {m.otp_code}</span>}
                       {m.has_attachments && <span className="text-[10px] text-amber-500">📎</span>}
                     </div>
-                    <p className="text-[10px] text-gray-500 dark:text-dark-400 truncate">→ <span className="font-mono">{m.recipient_address}</span> • {m.subject || '(Konu yok)'}</p>
+                    <p className="text-[10px] text-txt-muted truncate">→ <span className="font-mono">{m.recipient_address}</span> • {m.subject || '(Konu yok)'}</p>
                   </div>
-                  <span className="text-[9px] text-gray-400 dark:text-dark-500 flex-shrink-0">{fmt(m.received_at)}</span>
+                  <span className="text-[9px] text-txt-disabled flex-shrink-0">{fmt(m.received_at)}</span>
                 </div>
               ))}
             </div>
           )}
           {emailsTotal > 50 && (
-            <div className="px-4 py-2 border-t border-gray-100 dark:border-dark-700 flex items-center justify-center gap-2">
-              <button onClick={() => loadEmails(emailsPage - 1)} disabled={emailsPage <= 1} className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 disabled:opacity-30">←</button>
-              <span className="text-[10px] text-gray-500 dark:text-dark-400">{emailsPage}</span>
-              <button onClick={() => loadEmails(emailsPage + 1)} disabled={emails.length < 50} className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-dark-300 disabled:opacity-30">→</button>
+            <div className="px-4 py-2 border-t border-brand-border/20 flex items-center justify-center gap-2">
+              <button onClick={() => loadEmails(emailsPage - 1)} disabled={emailsPage <= 1} className="text-xs px-2 py-1 rounded bg-brand-surface2 text-txt-secondary disabled:opacity-30">←</button>
+              <span className="text-[10px] text-txt-muted">{emailsPage}</span>
+              <button onClick={() => loadEmails(emailsPage + 1)} disabled={emails.length < 50} className="text-xs px-2 py-1 rounded bg-brand-surface2 text-txt-secondary disabled:opacity-30">→</button>
             </div>
           )}
         </div>

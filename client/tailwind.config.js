@@ -1,79 +1,59 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
-  // Dark mode: class tabanlı (JS ile toggle)
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+        brand: {
+          bg: '#07111F',
+          surface: '#0E1B30',
+          surface2: '#11203A',
+          surface3: '#162744',
+          border: '#1C3050',
+          border2: '#243B5C',
         },
-        // Dark mode arka plan tonları
-        dark: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
+        accent: {
+          blue: '#2F80FF',
+          cyan: '#30D5FF',
+          teal: '#22D3C5',
+          purple: '#7C5CFF',
+          green: '#2DD4A8',
+          red: '#FF5D62',
+        },
+        txt: {
+          primary: '#F0F4F8',
+          secondary: '#8899B0',
+          muted: '#5A6E85',
+          disabled: '#3A4D63',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
+      borderRadius: {
+        '2xl': '16px',
+        '3xl': '20px',
+      },
+      boxShadow: {
+        'glow-blue': '0 0 20px rgba(47,128,255,0.15)',
+        'glow-cyan': '0 0 20px rgba(48,213,255,0.12)',
+        'card': '0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2)',
+      },
       animation: {
-        'slide-in': 'slideIn 0.3s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
-        'fade-in': 'fadeIn 0.2s ease-out',
+        'slide-down': 'slideDown 0.3s ease-out',
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
-        'bounce-soft': 'bounceSoft 1s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {
-        slideIn: {
-          from: { opacity: '0', transform: 'translateY(-10px)' },
-          to: { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideUp: {
-          from: { opacity: '0', transform: 'translateY(10px)' },
-          to: { opacity: '1', transform: 'translateY(0)' },
-        },
-        fadeIn: {
-          from: { opacity: '0' },
-          to: { opacity: '1' },
-        },
-        pulseSoft: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.7' },
-        },
-        bounceSoft: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-4px)' },
-        },
-        glow: {
-          from: { boxShadow: '0 0 5px rgba(59, 130, 246, 0.3)' },
-          to: { boxShadow: '0 0 20px rgba(59, 130, 246, 0.6)' },
-        },
-      },
-      backdropBlur: {
-        xs: '2px',
+        fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
+        slideUp: { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideDown: { from: { opacity: '0', transform: 'translateY(-8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        pulseSoft: { '0%,100%': { opacity: '1' }, '50%': { opacity: '0.6' } },
+        glow: { from: { boxShadow: '0 0 5px rgba(47,128,255,0.2)' }, to: { boxShadow: '0 0 15px rgba(47,128,255,0.4)' } },
       },
     },
   },
