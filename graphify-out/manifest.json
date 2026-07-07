@@ -1,0 +1,197 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1783357742.249514,
+    "ast_hash": "4b6b758b41aed7525522c7d17d47d443",
+    "semantic_hash": ""
+  },
+  ".claude/settings.local.json": {
+    "mtime": 1783359777.7193444,
+    "ast_hash": "18833dd054b422dffb83ead42a2283ab",
+    "semantic_hash": ""
+  },
+  ".claude/statusline.sh": {
+    "mtime": 1776424311.4233768,
+    "ast_hash": "7bce6c609a97f4df2bec916253b174fa",
+    "semantic_hash": ""
+  },
+  "client/package.json": {
+    "mtime": 1783376781.38818,
+    "ast_hash": "8744573b13015f02f1c5d550f4b3f0bd",
+    "semantic_hash": ""
+  },
+  "client/postcss.config.js": {
+    "mtime": 1783358454.7736118,
+    "ast_hash": "c735540bb63936a123bc867d950c9f69",
+    "semantic_hash": ""
+  },
+  "client/src/App.jsx": {
+    "mtime": 1783429259.7784865,
+    "ast_hash": "d886be0000470527f4419712e337eb2f",
+    "semantic_hash": ""
+  },
+  "client/src/components/AccountPanel.jsx": {
+    "mtime": 1783429483.5035152,
+    "ast_hash": "ae9bce545ff4891dc747c7f5f8a6a221",
+    "semantic_hash": ""
+  },
+  "client/src/components/AddressBar.jsx": {
+    "mtime": 1783429579.6452854,
+    "ast_hash": "ca5938b13ba91ee52b427c55cae07b78",
+    "semantic_hash": ""
+  },
+  "client/src/components/AdminPanel.jsx": {
+    "mtime": 1783429969.5318322,
+    "ast_hash": "a981754e9e93f0b781a61e501d81a522",
+    "semantic_hash": ""
+  },
+  "client/src/components/AuthPage.jsx": {
+    "mtime": 1783411196.2809536,
+    "ast_hash": "5971a5069cafb43a1ea9396dd66befa3",
+    "semantic_hash": ""
+  },
+  "client/src/components/EmailView.jsx": {
+    "mtime": 1783412936.0853193,
+    "ast_hash": "d3db0d788de69eb172b7231072bda462",
+    "semantic_hash": ""
+  },
+  "client/src/components/Inbox.jsx": {
+    "mtime": 1783424220.1592283,
+    "ast_hash": "3d51553e537b90002357be1a2629b392",
+    "semantic_hash": ""
+  },
+  "client/src/components/Modal.jsx": {
+    "mtime": 1783425463.8418372,
+    "ast_hash": "cef65c5d11776d2301a1350058a0c63f",
+    "semantic_hash": ""
+  },
+  "client/src/components/Skeleton.jsx": {
+    "mtime": 1783380445.2807245,
+    "ast_hash": "02588ba94effa5c3e98dfe724adf756c",
+    "semantic_hash": ""
+  },
+  "client/src/components/admin/AdminPrimitives.jsx": {
+    "mtime": 1783416750.4209912,
+    "ast_hash": "6dd2120a1097ded607335f54f0ad8008",
+    "semantic_hash": ""
+  },
+  "client/src/components/admin/adminUtils.js": {
+    "mtime": 1783416772.1862793,
+    "ast_hash": "b84af4aa555c32df15e7c0e65a4e636a",
+    "semantic_hash": ""
+  },
+  "client/src/hooks/useAuth.js": {
+    "mtime": 1783429225.1367724,
+    "ast_hash": "de7a2e72b0316a27fd6ba982c2841dd4",
+    "semantic_hash": ""
+  },
+  "client/src/main.jsx": {
+    "mtime": 1783370530.679623,
+    "ast_hash": "1695b318d080ff6a5b2eab19470c1375",
+    "semantic_hash": ""
+  },
+  "client/src/utils/notificationSound.js": {
+    "mtime": 1783422497.7214296,
+    "ast_hash": "a5aee1ac153796b2c3a00656c0d186b1",
+    "semantic_hash": ""
+  },
+  "client/tailwind.config.js": {
+    "mtime": 1783412585.724476,
+    "ast_hash": "489e3809340916e256c83f435f0a664d",
+    "semantic_hash": ""
+  },
+  "client/vite.config.js": {
+    "mtime": 1783368283.8291264,
+    "ast_hash": "9c9dbf1bf6c87d80e395be654a76aaa3",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1783386672.4318266,
+    "ast_hash": "8a95029274d5c97742de925b8b5fd8d1",
+    "semantic_hash": ""
+  },
+  "server/db.js": {
+    "mtime": 1783429376.088256,
+    "ast_hash": "1727e1bd9d3ebe35f7cd78fb56e66cd5",
+    "semantic_hash": ""
+  },
+  "server/index.js": {
+    "mtime": 1783427159.7381084,
+    "ast_hash": "962e9cd2a1ab37952a06711cd71bc0be",
+    "semantic_hash": ""
+  },
+  "server/routes/addresses.js": {
+    "mtime": 1783429450.858228,
+    "ast_hash": "76835d5b7f3cba37557ed9b831bb83bf",
+    "semantic_hash": ""
+  },
+  "server/routes/admin.js": {
+    "mtime": 1783429423.8698843,
+    "ast_hash": "efefa10863d699ba894151d87e6f6f65",
+    "semantic_hash": ""
+  },
+  "server/routes/auth.js": {
+    "mtime": 1783429558.6019204,
+    "ast_hash": "b9dc29f9b326ea18ca7b50bb6ff05b58",
+    "semantic_hash": ""
+  },
+  "server/routes/emails.js": {
+    "mtime": 1783426604.3907843,
+    "ast_hash": "b6633ca6180210a8ce27141b6666cd8b",
+    "semantic_hash": ""
+  },
+  "server/services/cleanup.js": {
+    "mtime": 1783367945.1194205,
+    "ast_hash": "83853743ae5ad0cd053a21a05a980ec9",
+    "semantic_hash": ""
+  },
+  "server/services/smtpServer.js": {
+    "mtime": 1783426636.6803856,
+    "ast_hash": "5735cf3d2433432af9d19c4f07f2a0f3",
+    "semantic_hash": ""
+  },
+  "server/utils.js": {
+    "mtime": 1783358273.1776006,
+    "ast_hash": "0d158d67324bb9afd821eaba648bbe55",
+    "semantic_hash": ""
+  },
+  "server/utils/otpDetection.js": {
+    "mtime": 1783426764.6614282,
+    "ast_hash": "f19f54dbc85d55d33e725ff589427cbc",
+    "semantic_hash": ""
+  },
+  "Coolify.md": {
+    "mtime": 1783362636.606273,
+    "ast_hash": "d3eaf615f3af5da1380648ea37623b4f",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1783422348.561955,
+    "ast_hash": "7abf992f917f1bebc2a7ce0d64a654a4",
+    "semantic_hash": ""
+  },
+  "client/index.html": {
+    "mtime": 1783380414.2491992,
+    "ast_hash": "ec6264f1783e48ddadba85f4c12213cc",
+    "semantic_hash": ""
+  },
+  "docker-compose.yaml": {
+    "mtime": 1783364077.7031236,
+    "ast_hash": "1defbefb47989d7269360e0c595098a2",
+    "semantic_hash": ""
+  },
+  "docs/ui-ux-update-notes.md": {
+    "mtime": 1783422363.1342845,
+    "ast_hash": "042513d74aff9dceb218f0dfe2918242",
+    "semantic_hash": ""
+  },
+  "server/uploads/avatars/user-1-1783428274030.jpg": {
+    "mtime": 1783428274.0306246,
+    "ast_hash": "e0b72812d531c6ef102938248450da63",
+    "semantic_hash": ""
+  },
+  "server/uploads/avatars/user-1-1783428282542.jpg": {
+    "mtime": 1783428282.5417295,
+    "ast_hash": "e0b72812d531c6ef102938248450da63",
+    "semantic_hash": ""
+  }
+}

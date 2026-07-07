@@ -34,6 +34,7 @@ import {
   Crown,
   ArrowLeft,
   Copy,
+  X,
   Search,
   ChevronDown,
   Filter,
@@ -45,6 +46,8 @@ import {
   FolderLock,
   FileText,
   Pencil,
+  Server,
+  LoaderCircle,
 } from 'lucide-react';
 import { AdminPanelCard, AdminStatCard, AdminEmptyState, AdminInfoRow, AdminToolbar } from './admin/AdminPrimitives';
 import Modal from './Modal';
@@ -120,10 +123,20 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
   const [showDomainForm, setShowDomainForm] = useState(false);
   const [newDom, setNewDom] = useState('');
+  const [newDomWildcard, setNewDomWildcard] = useState(false);
   const [docsDomain, setDocsDomain] = useState(null);
   const [docsIp, setDocsIp] = useState('');
+  const [docsRefreshing, setDocsRefreshing] = useState(false);
   const [editingDomain, setEditingDomain] = useState(null);
   const [editDomainIp, setEditDomainIp] = useState('');
+  const [editDomainWildcard, setEditDomainWildcard] = useState(false);
+
+  // Subdomain yönetimi
+  const [domainSubdomains, setDomainSubdomains] = useState({});
+  const [subdomainDrafts, setSubdomainDrafts] = useState({});
+  const [addingSubdomainTo, setAddingSubdomainTo] = useState(null);
+  const [loadingSubdomains, setLoadingSubdomains] = useState({});
+  const [expandedDomains, setExpandedDomains] = useState({});
 
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [selectedAddressDetail, setSelectedAddressDetail] = useState(null);
@@ -183,6 +196,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     }
 
     if (!res.ok) {
+      if (typeof data.message === 'string' && data.message.includes('Cannot ') && data.message.includes('/api/')) {
+        throw new Error('API endpoint bulunamadı. Backend sunucusunu yeniden başlatın.');
+      }
       throw new Error(data.error || data.message || 'İşlem başarısız');
     }
 
@@ -191,8 +207,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
   const loadDomains = useCallback(async () => {
     const data = await apiRequest('/admin/domains');
-    setDomains(data.domains || []);
+    const nextDomains = data.domains || [];
+    setDomains(nextDomains);
+    setExpandedDomains((prev) => nextDomains.reduce((acc, domain) => {
+      acc[domain.id] = prev[domain.id] ?? true;
+      return acc;
+    }, {}));
     setAuth(true);
+    return nextDomains;
   }, [apiRequest]);
 
   const loadStats = useCallback(async () => {
@@ -303,10 +325,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     if (!newDom.trim()) return;
     setLoading(true);
     try {
-      const data = await apiRequest('/admin/domains', { method: 'POST', body: { domain: newDom.trim() } });
+      const data = await apiRequest('/admin/domains', {
+        method: 'POST',
+        body: { domain: newDom.trim(), wildcard_subdomains: newDomWildcard }
+      });
       setNewDom('');
+      setNewDomWildcard(false);
       setShowDomainForm(false);
-      flash(`"${data.domain.domain}" eklendi`);
+      flash(`"${data.domain.domain}" eklendi${data.domain.wildcard_subdomains ? ' (subdomain destekli)' : ''}`);
       await Promise.all([loadDomains(), loadStats()]);
     } catch (e2) {
       flash(e2.message, 'error');
@@ -315,9 +341,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     }
   };
 
-  const toggleDom = async (id, active) => {
+  const toggleDom = async (id, active, wildcard) => {
     try {
-      await apiRequest(`/admin/domains/${id}`, { method: 'PUT', body: { is_active: !active } });
+      await apiRequest(`/admin/domains/${id}`, { method: 'PUT', body: { is_active: !active, wildcard_subdomains: !!wildcard } });
       flash(active ? 'Domain pasife alındı' : 'Domain aktifleştirildi');
       await Promise.all([loadDomains(), loadStats()]);
     } catch (e) {
@@ -339,7 +365,58 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const openDomainEditor = useCallback((domain) => {
     setEditingDomain(domain);
     setEditDomainIp(domain.server_ip || '');
+    setEditDomainWildcard(domain.wildcard_subdomains === 1);
   }, []);
+
+  // Subdomain yönetimi fonksiyonları
+  const loadSubdomains = useCallback(async (domainId) => {
+    setLoadingSubdomains(prev => ({ ...prev, [domainId]: true }));
+    try {
+      const data = await apiRequest(`/admin/domains/${domainId}/subdomains`);
+      setDomainSubdomains(prev => ({ ...prev, [domainId]: data.subdomains || [] }));
+    } catch (e) {
+      const message = String(e.message || '');
+      if (message.includes('Cannot GET') || message.includes('404')) {
+        setDomainSubdomains(prev => ({ ...prev, [domainId]: [] }));
+      } else {
+        flash(e.message, 'error');
+      }
+    } finally {
+      setLoadingSubdomains(prev => ({ ...prev, [domainId]: false }));
+    }
+  }, [apiRequest, flash]);
+
+  const addSubdomain = async (domainId, domainName) => {
+    const nextSubdomain = String(subdomainDrafts[domainId] || '').trim();
+    if (!nextSubdomain) return;
+    setLoading(true);
+    setAddingSubdomainTo(domainId);
+    try {
+      const data = await apiRequest(`/admin/domains/${domainId}/subdomains`, {
+        method: 'POST',
+        body: { subdomain: nextSubdomain },
+      });
+      setSubdomainDrafts((prev) => ({ ...prev, [domainId]: '' }));
+      flash(`"${data.full_domain}" subdomain eklendi`);
+      await loadSubdomains(domainId);
+    } catch (e) {
+      flash(e.message, 'error');
+    } finally {
+      setAddingSubdomainTo(null);
+      setLoading(false);
+    }
+  };
+
+  const deleteSubdomain = async (domainId, subdomainId, subdomainName) => {
+    if (!confirm(`"${subdomainName}" subdomain'i silinecek. Devam edilsin mi?`)) return;
+    try {
+      await apiRequest(`/admin/domains/${domainId}/subdomains/${subdomainId}`, { method: 'DELETE', withJson: false });
+      flash(`"${subdomainName}" subdomain silindi`);
+      await loadSubdomains(domainId);
+    } catch (e) {
+      flash(e.message, 'error');
+    }
+  };
 
   const saveDomainEditor = async () => {
     if (!editingDomain) return;
@@ -354,6 +431,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         method: 'PUT',
         body: {
           server_ip: ip,
+          wildcard_subdomains: editDomainWildcard,
         },
       });
       if (data?.domain) {
@@ -364,6 +442,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
       flash('Domain bilgileri güncellendi');
       setEditingDomain(null);
       setEditDomainIp('');
+      setEditDomainWildcard(false);
       await Promise.all([loadDomains(), loadStats()]);
     } catch (e) {
       flash(e.message, 'error');
@@ -374,22 +453,131 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
   const buildDomainDocs = useCallback((domain, ipOverride = '') => {
     if (!domain) return [];
+
+    const ttl = 3600;
+    const domainName = String(domain.domain || '').trim();
     const ip = sanitizeIpInput((ipOverride || domain.server_ip || '').trim());
-    const effectiveIp = ip || '-';
-    const mailHost = domain.a_host || 'mail';
-    const mailFqdn = mailHost === '@' ? domain.domain : `${mailHost}.${domain.domain}`;
+    const effectiveIp = ip || 'SUNUCU_IP';
+    const aHost = String(domain.a_host ?? 'mail').trim() || 'mail';
+    const aValue = String(domain.a_value ?? '').trim() || effectiveIp;
+    const mxHost = String(domain.mx_host ?? '@').trim() || '@';
+    const mxValue = String(domain.mx_value ?? '').trim() || `mail.${domainName}`;
+    const mxPriority = Number.isFinite(Number(domain.mx_priority)) ? Number(domain.mx_priority) : 10;
+    const spfHost = String(domain.txt_spf_host ?? '@').trim() || '@';
+    const spfValue = String(domain.txt_spf_value ?? '').trim() || `v=spf1 mx ip4:${effectiveIp} ~all`;
+    const verificationHost = String(domain.txt_verification_host ?? '@').trim() || '@';
+    const verificationValue = String(domain.txt_verification_value ?? '').trim() || `ms-temp-mail-domain=${domainName.replace(/[^a-z0-9]/gi, '-')}`;
+    const dkimHost = String(domain.dkim_host ?? 'default._domainkey').trim() || 'default._domainkey';
+    const dkimValue = String(domain.dkim_value ?? '').trim() || 'v=DKIM1; k=rsa; p=REPLACE_WITH_PUBLIC_KEY';
+    const dmarcHost = String(domain.dmarc_host ?? '_dmarc').trim() || '_dmarc';
+    const dmarcValue = String(domain.dmarc_value ?? '').trim() || `v=DMARC1; p=none; rua=mailto:postmaster@${domainName}`;
+
     return [
-      { type: 'A', host: mailHost, value: effectiveIp, extra: 'Mail host IP' },
-      { type: 'MX', host: '@', value: mailFqdn, extra: `Priority: ${domain.mx_priority || 10}` },
-      { type: 'TXT', host: '@', value: `v=spf1 mx ip4:${effectiveIp === '-' ? 'SUNUCU_IP' : effectiveIp} ~all`, extra: 'SPF' },
-      { type: 'TXT', host: '_mail', value: `mail verification token for ${domain.domain}`, extra: 'Verification' },
-      { type: 'TXT', host: 'default._domainkey', value: 'v=DKIM1; k=rsa; p=REPLACE_WITH_PUBLIC_KEY', extra: 'DKIM' },
-      { type: 'TXT', host: '_dmarc', value: `v=DMARC1; p=none; rua=mailto:postmaster@${domain.domain}`, extra: 'DMARC' },
+      {
+        key: 'a',
+        kind: 'A',
+        title: 'A (HOST)',
+        label: 'A',
+        note: 'Ana sunucu adresi',
+        tone: 'blue',
+        badge: 'badge-blue',
+        fields: [
+          { label: 'Host / Name', value: aHost },
+          { label: 'Value / Address', value: aValue },
+          { label: 'TTL', value: String(ttl) },
+        ],
+        copyText: `A | ${aHost} | ${aValue} | TTL ${ttl}`,
+      },
+      {
+        key: 'mx',
+        kind: 'MX',
+        title: 'MX (MAIL EXCHANGE)',
+        label: 'MX',
+        note: 'Posta yönlendirme kaydı',
+        tone: 'cyan',
+        badge: 'badge-cyan',
+        fields: [
+          { label: 'Host / Name', value: mxHost },
+          { label: 'Value / Address', value: mxValue },
+          { label: 'Priority', value: String(mxPriority) },
+          { label: 'TTL', value: String(ttl) },
+        ],
+        copyText: `MX | ${mxHost} | ${mxValue} | Priority ${mxPriority} | TTL ${ttl}`,
+      },
+      {
+        key: 'spf',
+        kind: 'TXT',
+        title: 'SPF (TXT)',
+        label: 'SPF',
+        note: 'Gönderim yetkilendirmesi',
+        tone: 'purple',
+        badge: 'badge-purple',
+        fields: [
+          { label: 'Host / Name', value: spfHost },
+          { label: 'Value', value: spfValue },
+          { label: 'TTL', value: String(ttl) },
+        ],
+        copyText: `TXT | ${spfHost} | ${spfValue} | TTL ${ttl}`,
+      },
+      {
+        key: 'verification',
+        kind: 'TXT',
+        title: 'Mail Verification (TXT)',
+        label: 'TXT',
+        note: 'Alan adı doğrulama kaydı',
+        tone: 'green',
+        badge: 'badge-green',
+        fields: [
+          { label: 'Host / Name', value: verificationHost },
+          { label: 'Value', value: verificationValue },
+          { label: 'TTL', value: String(ttl) },
+        ],
+        copyText: `TXT | ${verificationHost} | ${verificationValue} | TTL ${ttl}`,
+      },
+      {
+        key: 'dkim',
+        kind: 'TXT',
+        title: 'DKIM (TXT)',
+        label: 'DKIM',
+        note: 'İmza doğrulama kaydı',
+        tone: 'gold',
+        badge: 'badge-gold',
+        fields: [
+          { label: 'Host / Name', value: dkimHost },
+          { label: 'Value', value: dkimValue },
+          { label: 'TTL', value: String(ttl) },
+        ],
+        copyText: `TXT | ${dkimHost} | ${dkimValue} | TTL ${ttl}`,
+      },
+      {
+        key: 'dmarc',
+        kind: 'TXT',
+        title: 'DMARC (TXT)',
+        label: 'DMARC',
+        note: 'Politika ve raporlama kaydı',
+        tone: 'red',
+        badge: 'badge-red',
+        fields: [
+          { label: 'Host / Name', value: dmarcHost },
+          { label: 'Value', value: dmarcValue },
+          { label: 'TTL', value: String(ttl) },
+        ],
+        copyText: `TXT | ${dmarcHost} | ${dmarcValue} | TTL ${ttl}`,
+      },
     ];
   }, []);
 
-  const getDocsTone = useCallback((type, host) => {
-    if (type === 'A') {
+  const getDocsTone = useCallback((row) => {
+    if (!row) {
+      return {
+        shell: 'border-brand-border/25 bg-brand-surface2/30',
+        badge: 'badge-blue',
+        title: 'text-txt-primary',
+        copy: 'btn-secondary',
+      };
+    }
+
+    if (row.tone === 'blue') {
       return {
         shell: 'border-accent-blue/25 bg-gradient-to-r from-accent-blue/18 via-brand-surface2/35 to-brand-surface2/20',
         badge: 'badge-blue',
@@ -397,7 +585,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         copy: 'btn-secondary border-accent-blue/25 text-accent-blue hover:bg-accent-blue/12',
       };
     }
-    if (type === 'MX') {
+    if (row.tone === 'cyan') {
       return {
         shell: 'border-cyan-400/25 bg-gradient-to-r from-cyan-400/14 via-brand-surface2/35 to-brand-surface2/20',
         badge: 'badge-cyan',
@@ -405,23 +593,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         copy: 'btn-secondary border-cyan-400/25 text-cyan-200 hover:bg-cyan-400/12',
       };
     }
-    if (host === '_dmarc') {
-      return {
-        shell: 'border-pink-400/25 bg-gradient-to-r from-pink-400/14 via-brand-surface2/35 to-brand-surface2/20',
-        badge: 'badge-red',
-        title: 'text-pink-300',
-        copy: 'btn-secondary border-pink-400/25 text-pink-200 hover:bg-pink-400/12',
-      };
-    }
-    if (host === 'default._domainkey') {
-      return {
-        shell: 'border-amber-400/25 bg-gradient-to-r from-amber-400/14 via-brand-surface2/35 to-brand-surface2/20',
-        badge: 'badge-gold',
-        title: 'text-amber-200',
-        copy: 'btn-secondary border-amber-400/25 text-amber-100 hover:bg-amber-400/12',
-      };
-    }
-    if (host === '_mail') {
+    if (row.tone === 'purple') {
       return {
         shell: 'border-accent-purple/25 bg-gradient-to-r from-accent-purple/14 via-brand-surface2/35 to-brand-surface2/20',
         badge: 'badge-purple',
@@ -429,21 +601,75 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         copy: 'btn-secondary border-accent-purple/25 text-accent-purple hover:bg-accent-purple/12',
       };
     }
+    if (row.tone === 'green') {
+      return {
+        shell: 'border-accent-green/25 bg-gradient-to-r from-accent-green/14 via-brand-surface2/35 to-brand-surface2/20',
+        badge: 'badge-green',
+        title: 'text-accent-green',
+        copy: 'btn-secondary border-accent-green/25 text-accent-green hover:bg-accent-green/12',
+      };
+    }
+    if (row.tone === 'gold') {
+      return {
+        shell: 'border-accent-gold/25 bg-gradient-to-r from-accent-gold/14 via-brand-surface2/35 to-brand-surface2/20',
+        badge: 'badge-gold',
+        title: 'text-accent-gold',
+        copy: 'btn-secondary border-accent-gold/25 text-accent-gold hover:bg-accent-gold/12',
+      };
+    }
+    if (row.tone === 'red') {
+      return {
+        shell: 'border-accent-red/25 bg-gradient-to-r from-accent-red/14 via-brand-surface2/35 to-brand-surface2/20',
+        badge: 'badge-red',
+        title: 'text-accent-red',
+        copy: 'btn-secondary border-accent-red/25 text-accent-red hover:bg-accent-red/12',
+      };
+    }
+
     return {
-      shell: 'border-accent-green/25 bg-gradient-to-r from-accent-green/14 via-brand-surface2/35 to-brand-surface2/20',
-      badge: 'badge-green',
-      title: 'text-accent-green',
-      copy: 'btn-secondary border-accent-green/25 text-accent-green hover:bg-accent-green/12',
+      shell: 'border-brand-border/25 bg-brand-surface2/30',
+      badge: 'badge-blue',
+      title: 'text-txt-primary',
+      copy: 'btn-secondary',
     };
   }, []);
 
-  const copyDomainDocs = async (domain) => {
-    const lines = buildDomainDocs(domain, docsIp)
-      .map((row) => `${row.type} | ${row.host} | ${row.value}${row.extra ? ` | ${row.extra}` : ''}`)
-      .join('\n');
-    await navigator.clipboard.writeText(lines);
-    flash('Domain kayıt dokümanı kopyalandı');
-  };
+  const copyText = useCallback(async (text, successMessage) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      flash(successMessage || 'Kopyalandı', 'success');
+    } catch (e) {
+      flash('Kopyalama başarısız', 'error');
+    }
+  }, [flash]);
+
+  const copyDnsRecord = useCallback(async (row) => {
+    if (!row) return;
+    await copyText(row.copyText, `${row.title} kopyalandı`);
+  }, [copyText]);
+
+  const copyDomainDocs = useCallback(async (domain) => {
+    const lines = buildDomainDocs(domain, docsIp).map((row) => row.copyText).join('\n');
+    await copyText(lines, 'Tüm DNS değerleri kopyalandı');
+  }, [buildDomainDocs, copyText, docsIp]);
+
+  const refreshDocsDomain = useCallback(async () => {
+    if (!docsDomain) return;
+    setDocsRefreshing(true);
+    try {
+      const nextDomains = await loadDomains();
+      const refreshed = nextDomains.find((item) => item.id === docsDomain.id);
+      if (refreshed) {
+        setDocsDomain(refreshed);
+        setDocsIp(refreshed.server_ip || '');
+      }
+      flash('DNS kayıtları yenilendi');
+    } catch (e) {
+      flash(e.message, 'error');
+    } finally {
+      setDocsRefreshing(false);
+    }
+  }, [docsDomain, flash, loadDomains]);
 
   const cleanupAll = async () => {
     if (!confirm('Tüm geçici adresler ve mailler için temizlik çalıştırılsın mı?')) return;
@@ -566,6 +792,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   }, [showDomainForm]);
 
   useEffect(() => {
+    domains.forEach((domain) => {
+      if (domain.wildcard_subdomains !== 1) return;
+      if (domainSubdomains[domain.id] || loadingSubdomains[domain.id]) return;
+      loadSubdomains(domain.id);
+    });
+  }, [domainSubdomains, domains, loadSubdomains, loadingSubdomains]);
+
+  useEffect(() => {
     setAddressPage(1);
   }, [addressQuery, addressDomainFilter, addressStatusFilter, addressSort]);
 
@@ -575,6 +809,13 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const inactiveUsers = useMemo(() => users.filter((u) => u.is_active !== 1).length, [users]);
   const expiredAddresses = useMemo(() => addrs.filter((a) => getAddressStatus(a).key === 'expired').length, [addrs]);
   const activeAddressCount = useMemo(() => addrs.filter((a) => getAddressStatus(a).key === 'active').length, [addrs]);
+  const docsRecords = useMemo(() => (docsDomain ? buildDomainDocs(docsDomain, docsIp) : []), [buildDomainDocs, docsDomain, docsIp]);
+  const addressCountByMailboxDomain = useMemo(() => addrs.reduce((acc, addr) => {
+    const rawAddress = String(addr.address || '').toLowerCase();
+    const mailboxDomain = rawAddress.includes('@') ? rawAddress.split('@')[1] : String(addr.domain || '').toLowerCase();
+    if (mailboxDomain) acc[mailboxDomain] = (acc[mailboxDomain] || 0) + 1;
+    return acc;
+  }, {}), [addrs]);
 
   const trafficData = useMemo(() => {
     const buckets = Array.from({ length: 24 }, (_, index) => ({
@@ -1283,49 +1524,206 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             </AdminToolbar>
 
             {showDomainForm ? (
-              <form onSubmit={addDomain} className="panel-soft p-4 mb-5 flex flex-col md:flex-row gap-3">
-                <input ref={addDomainInputRef} value={newDom} onChange={(e) => setNewDom(e.target.value)} placeholder="ornek.com" className="input flex-1" />
-                <button type="submit" disabled={loading || !newDom.trim()} className="btn-primary">Kaydet</button>
+              <form onSubmit={addDomain} className="panel-soft p-4 mb-5 space-y-3">
+                <div className="flex flex-col md:flex-row gap-3">
+                  <input ref={addDomainInputRef} value={newDom} onChange={(e) => setNewDom(e.target.value)} placeholder="ornek.com" className="input flex-1" />
+                  <button type="submit" disabled={loading || !newDom.trim()} className="btn-primary">Kaydet</button>
+                </div>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`relative w-10 h-5 rounded-full transition-colors ${newDomWildcard ? 'bg-accent-cyan' : 'bg-brand-surface2/70'}`}>
+                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${newDomWildcard ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={newDomWildcard}
+                    onChange={(e) => setNewDomWildcard(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-txt-primary">Wildcard Subdomain Desteği</p>
+                    <p className="text-[11px] text-txt-muted">Aktif edilirse *.domain.com şeklinde alt domainler oluşturulabilir</p>
+                  </div>
+                </label>
               </form>
             ) : null}
 
             {domains.length > 0 ? (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                {domains.map((domain) => (
-                  <div key={domain.id} className="panel-soft p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-lg font-semibold text-txt-primary">{domain.domain}</p>
-                        <p className="text-sm text-txt-muted mt-2">{domain.address_count} aktif adres kaydı</p>
+              <div className="space-y-4">
+                {domains.map((domain) => {
+                  const rootDomainKey = String(domain.domain || '').toLowerCase();
+                  const subdomains = domainSubdomains[domain.id] || [];
+                  const activeSubdomainCount = subdomains.filter((item) => item.is_active === 1).length;
+                  const rootAddressCount = addressCountByMailboxDomain[rootDomainKey] || domain.address_count || 0;
+
+                  return (
+                    <div key={domain.id} className="card p-6 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.08),transparent_30%),linear-gradient(180deg,rgba(10,19,41,0.96),rgba(10,19,41,0.78))]">
+                      <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <p className="text-[1.7rem] font-semibold tracking-tight text-txt-primary break-all">{domain.domain}</p>
+                            {domain.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}
+                            {domain.wildcard_subdomains === 1 ? <span className="badge-cyan">Wildcard Aktif</span> : <span className="badge-gold">Wildcard Kapalı</span>}
+                          </div>
+                          <p className="text-sm text-txt-muted mt-2">Sistemdeki root domainleri yönetin ve alt domainleri tek panelden düzenleyin.</p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button onClick={() => openDomainEditor(domain)} className="btn-secondary text-xs px-3 py-2">
+                            <Pencil size={13} /> Düzenle
+                          </button>
+                          <button onClick={() => { setDocsDomain(domain); setDocsIp(domain.server_ip || ''); }} className="btn-secondary text-xs px-3 py-2">
+                            <FileText size={13} /> Domain Docs
+                          </button>
+                          <button onClick={() => toggleDom(domain.id, domain.is_active === 1, domain.wildcard_subdomains)} className="btn-secondary text-xs px-3 py-2">
+                            {domain.is_active === 1 ? 'Pasifleştir' : 'Aktifleştir'}
+                          </button>
+                          <button onClick={() => setExpandedDomains((prev) => ({ ...prev, [domain.id]: !prev[domain.id] }))} className="btn-secondary text-xs px-3 py-2">
+                            <ChevronDown size={13} className={`transition-transform ${expandedDomains[domain.id] ? 'rotate-180' : ''}`} />
+                            {expandedDomains[domain.id] ? 'Daralt' : 'Genişlet'}
+                          </button>
+                          <button onClick={() => delDom(domain.id, domain.domain)} className="btn-danger text-xs px-3 py-2">Sil</button>
+                        </div>
                       </div>
-                      {domain.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
-                      <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-txt-muted">Server IP</p>
-                        <p className="text-sm font-semibold text-txt-primary mt-2">{domain.server_ip || '-'}</p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mt-6">
+                        <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
+                          <div className="flex items-center gap-2 text-txt-secondary">
+                            <Server size={15} className="text-accent-blue" />
+                            <span className="text-sm">Sunucu IP</span>
+                          </div>
+                          <p className="text-lg font-semibold text-txt-primary mt-3">{domain.server_ip || '-'}</p>
+                        </div>
+                        <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
+                          <div className="flex items-center gap-2 text-txt-secondary">
+                            <Mail size={15} className="text-accent-blue" />
+                            <span className="text-sm">MX Kaydı</span>
+                          </div>
+                          <p className="text-lg font-semibold text-txt-primary mt-3 break-all">{domain.mx_value || '-'}</p>
+                        </div>
+                        <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
+                          <div className="flex items-center gap-2 text-txt-secondary">
+                            <CalendarRange size={15} className="text-accent-blue" />
+                            <span className="text-sm">Oluşturulma Tarihi</span>
+                          </div>
+                          <p className="text-lg font-semibold text-txt-primary mt-3">{formatAdminDate(domain.created_at)}</p>
+                        </div>
+                        <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
+                          <div className="flex items-center gap-2 text-txt-secondary">
+                            <Activity size={15} className="text-accent-blue" />
+                            <span className="text-sm">Wildcard Desteği</span>
+                          </div>
+                          <p className="text-lg font-semibold text-txt-primary mt-3">{domain.wildcard_subdomains === 1 ? 'Aktif edildi' : 'Pasif'}</p>
+                        </div>
+                        <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
+                          <div className="flex items-center gap-2 text-txt-secondary">
+                            <Users size={15} className="text-accent-blue" />
+                            <span className="text-sm">Toplam Aktif Adres</span>
+                          </div>
+                          <p className="text-lg font-semibold text-accent-green mt-3">{rootAddressCount} adres</p>
+                        </div>
                       </div>
-                      <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-txt-muted">MX</p>
-                        <p className="text-sm font-semibold text-txt-primary mt-2 break-all">{domain.mx_value || '-'}</p>
-                      </div>
+
+                      {expandedDomains[domain.id] ? (
+                        <div className="mt-6 rounded-[28px] border border-brand-border/20 bg-brand-surface2/28 px-5 py-5">
+                          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                            <div>
+                              <div className="flex items-center gap-3">
+                                <h4 className="text-[1.05rem] font-semibold text-txt-primary">Alt Domainler</h4>
+                                <span className="badge-cyan">{activeSubdomainCount} aktif</span>
+                              </div>
+                              <p className="text-sm text-txt-muted mt-2">Bu root domain altında alt domainler oluşturabilir ve yönetebilirsiniz.</p>
+                            </div>
+
+                            {domain.wildcard_subdomains === 1 ? (
+                              <div className="flex flex-col sm:flex-row gap-3 xl:min-w-[520px]">
+                                <div className="flex-1 flex rounded-[22px] border border-brand-border/20 overflow-hidden bg-brand-surface2/55">
+                                  <input
+                                    value={subdomainDrafts[domain.id] || ''}
+                                    onChange={(e) => setSubdomainDrafts((prev) => ({ ...prev, [domain.id]: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        addSubdomain(domain.id, domain.domain);
+                                      }
+                                    }}
+                                    placeholder="Yeni subdomain ekle (örn: mail, gmail, temp)"
+                                    className="flex-1 bg-transparent px-4 py-3 text-sm text-txt-primary placeholder-txt-muted outline-none"
+                                  />
+                                  <div className="hidden sm:flex items-center px-4 text-sm text-txt-secondary border-l border-brand-border/20">
+                                    .{domain.domain}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => addSubdomain(domain.id, domain.domain)}
+                                  disabled={loading || addingSubdomainTo === domain.id || !String(subdomainDrafts[domain.id] || '').trim()}
+                                  className="btn-primary px-6"
+                                >
+                                  {addingSubdomainTo === domain.id ? <LoaderCircle size={15} className="animate-spin" /> : <Plus size={15} />}
+                                  Ekle
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="rounded-2xl border border-accent-gold/20 bg-accent-gold/10 px-4 py-3 text-sm text-accent-gold">
+                                Subdomain oluşturmak için önce wildcard desteğini açın.
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-3 mt-5">
+                            {subdomains.length > 0 ? (
+                              subdomains.map((subdomain) => {
+                                const fullDomain = `${subdomain.subdomain}.${domain.domain}`.toLowerCase();
+                                const subdomainAddressCount = addressCountByMailboxDomain[fullDomain] || 0;
+                                return (
+                                  <div key={subdomain.id} className="rounded-[24px] border border-brand-border/20 bg-[#101d39]/72 px-5 py-4">
+                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                      <div className="min-w-0 flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-[18px] panel-soft flex items-center justify-center shrink-0">
+                                          <Globe size={22} className="text-accent-blue" />
+                                        </div>
+                                        <div className="min-w-0">
+                                          <div className="flex flex-wrap items-center gap-3">
+                                            <p className="text-[1.05rem] font-semibold text-txt-primary break-all">{subdomain.subdomain}.{domain.domain}</p>
+                                            {subdomain.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}
+                                          </div>
+                                          <p className="text-sm text-txt-secondary mt-2 break-all">Ornek: demo@{subdomain.subdomain}.{domain.domain}</p>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <span className="badge-green text-sm px-3 py-1.5">{subdomainAddressCount} aktif adres</span>
+                                        <button onClick={() => copyText(`${subdomain.subdomain}.${domain.domain}`, 'Subdomain kopyalandı')} className="btn-secondary text-xs px-3 py-2">
+                                          <Copy size={13} /> Kopyala
+                                        </button>
+                                        <button onClick={() => deleteSubdomain(domain.id, subdomain.id, `${subdomain.subdomain}.${domain.domain}`)} className="btn-danger text-xs px-3 py-2">
+                                          <Trash2 size={13} /> Sil
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="rounded-[24px] border border-dashed border-brand-border/25 bg-brand-surface2/22 px-5 py-7 text-center">
+                                {loadingSubdomains[domain.id] ? (
+                                  <div className="inline-flex items-center gap-2 text-sm text-txt-secondary">
+                                    <LoaderCircle size={15} className="animate-spin" />
+                                    Subdomainler yukleniyor...
+                                  </div>
+                                ) : (
+                                  <>
+                                    <p className="text-sm font-medium text-txt-secondary">Henüz subdomain eklenmedi</p>
+                                    <p className="text-xs text-txt-muted mt-1">Yukarıdaki alanı kullanarak bu root domain için ilk subdomaini oluşturabilirsiniz.</p>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
-                    <div className="flex items-center justify-between mt-5 text-sm">
-                      <span className="text-txt-secondary">Oluşturulma</span>
-                      <span className="text-txt-primary">{formatAdminDate(domain.created_at)}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-5">
-                      <button onClick={() => openDomainEditor(domain)} className="btn-secondary text-xs px-3 py-2">
-                        <Pencil size={13} /> Düzenle
-                      </button>
-                      <button onClick={() => { setDocsDomain(domain); setDocsIp(domain.server_ip || ''); }} className="btn-secondary text-xs px-3 py-2">
-                        <FileText size={13} /> Domain Docs
-                      </button>
-                      <button onClick={() => toggleDom(domain.id, domain.is_active === 1)} className="btn-secondary text-xs px-3 py-2">{domain.is_active === 1 ? 'Pasifleştir' : 'Aktifleştir'}</button>
-                      <button onClick={() => delDom(domain.id, domain.domain)} className="btn-danger text-xs px-3 py-2">Sil</button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <AdminEmptyState title="Domain yok" subtitle="Yeni bir domain ekleyerek başlayın." />
@@ -1601,87 +1999,284 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       <Modal
         show={Boolean(docsDomain)}
-        onClose={() => setDocsDomain(null)}
-        title={docsDomain ? `${docsDomain.domain} Domain Docs` : 'Domain Docs'}
-        subtitle="Sadece IP girin, MX ve TXT değerleri otomatik üretilecek."
-        size="2xl"
-        footer={<button onClick={() => setDocsDomain(null)} className="btn-secondary">Kapat</button>}
+        onClose={() => {
+          setDocsDomain(null);
+          setDocsIp('');
+        }}
+        size="3xl"
       >
         {docsDomain ? (
-          <div className="space-y-4">
-            <div className="rounded-[28px] border border-accent-blue/20 bg-[radial-gradient(circle_at_top_left,rgba(59,130,255,0.18),transparent_30%),linear-gradient(135deg,rgba(11,21,45,0.95),rgba(9,19,38,0.88))] p-5 shadow-[0_20px_60px_rgba(59,130,255,0.08)]">
-              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-[11px] uppercase tracking-[0.26em] text-accent-blue/80">DNS Hızlı Kurulum</p>
-                  <h4 className="text-xl font-semibold text-txt-primary">{docsDomain.domain}</h4>
-                  <p className="text-sm text-txt-muted">A, MX, SPF, DKIM ve DMARC kayıtları otomatik oluşur.</p>
+          <div className="space-y-5">
+            <div className="relative pr-14">
+              <button
+                onClick={() => {
+                  setDocsDomain(null);
+                  setDocsIp('');
+                }}
+                aria-label="Kapat"
+                className="absolute right-0 top-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-brand-border/60 bg-brand-surface2/80 text-txt-muted transition hover:border-brand-border2 hover:text-txt-primary hover:bg-brand-surface2"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-2xl panel-soft flex items-center justify-center shadow-glow-cyan shrink-0">
+                  <Globe size={20} className="text-accent-blue" />
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="badge-blue">A</span>
-                  <span className="badge-cyan">MX</span>
-                  <span className="badge-purple">SPF</span>
-                  <span className="badge-gold">DKIM</span>
-                  <span className="badge-red">DMARC</span>
+                <div className="min-w-0">
+                  <h4 className="text-2xl sm:text-[2rem] font-semibold tracking-tight text-txt-primary">DNS Kayıt Kurulumu</h4>
+                  <p className="text-sm text-txt-muted mt-1">Aşağıdaki DNS kayıtlarını alan adınız için ekleyin.</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-brand-border/20 bg-brand-surface2/25 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-txt-secondary">Sunucu IP</p>
-                  <p className="text-xs text-txt-muted mt-1">A kaydı ve SPF değeri bu IP üzerinden üretilir.</p>
+            <div className="rounded-[30px] border border-accent-blue/18 bg-[radial-gradient(circle_at_top_left,rgba(59,130,255,0.16),transparent_32%),linear-gradient(135deg,rgba(11,21,45,0.96),rgba(9,18,38,0.9))] p-5 sm:p-6 shadow-[0_24px_70px_rgba(8,16,35,0.55)]">
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+                <div className="space-y-2 min-w-0">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-accent-blue/80">Alan Adı</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-2xl sm:text-[2rem] font-semibold text-txt-primary break-all">{docsDomain.domain}</h4>
+                    <button
+                      onClick={() => copyText(docsDomain.domain, 'Alan adı kopyalandı')}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-brand-border/55 bg-brand-surface2/70 text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40 hover:bg-brand-surface2/90"
+                      aria-label="Alan adını kopyala"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                  <p className="max-w-2xl text-sm text-txt-muted">Seçilen alan adınız için gerekli DNS kayıtlarını aşağıda görebilirsiniz.</p>
                 </div>
-                <span className="badge-blue">Manuel IP</span>
+
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-txt-muted">Kayıt Durumu</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="badge-blue">A</span>
+                    <span className="badge-cyan">MX</span>
+                    <span className="badge-purple">SPF</span>
+                    <span className="badge-gold">DKIM</span>
+                    <span className="badge-red">DMARC</span>
+                  </div>
+                </div>
               </div>
-              <div className="mt-4 flex flex-col md:flex-row gap-3">
+            </div>
+
+            <div className="rounded-[28px] border border-brand-border/20 bg-brand-surface2/25 p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-txt-primary">Sunucu IP</p>
+                  <p className="text-xs text-txt-muted mt-1">Tüm e-posta trafiği bu IP adresi üzerinden yönlendirilecektir.</p>
+                </div>
+                <button
+                  onClick={() => copyText(docsIp || docsDomain.server_ip || '', 'Sunucu IP kopyalandı')}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-brand-border/55 bg-brand-surface2/70 px-3 py-2 text-xs font-semibold text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
+                >
+                  <Copy size={14} /> Kopyala
+                </button>
+              </div>
+              <div className="mt-4">
                 <input
                   value={docsIp}
                   onChange={(e) => setDocsIp(sanitizeIpInput(e.target.value))}
                   placeholder="159.146.103.84"
                   inputMode="decimal"
                   pattern="[0-9.]*"
-                  className="input md:flex-1 bg-brand-surface/70 border-accent-blue/20 text-txt-primary placeholder:text-txt-muted font-mono text-base"
+                  className="input bg-brand-surface/70 border-accent-blue/20 text-txt-primary placeholder:text-txt-muted font-mono text-base"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              {buildDomainDocs(docsDomain, docsIp).map((row, index) => (
-                (() => {
-                  const tone = getDocsTone(row.type, row.host);
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <FileText size={16} className="text-accent-blue" />
+                <h5 className="text-sm font-semibold text-txt-primary">DNS Kayıtları</h5>
+              </div>
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                {docsRecords.map((row) => {
+                  const tone = getDocsTone(row);
                   return (
-                    <div key={`${row.type}-${index}`} className={`rounded-[26px] border p-4 sm:p-5 ${tone.shell}`}>
-                      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                        <div className="flex items-start gap-4 min-w-0">
-                          <span className={`${tone.badge} shrink-0 mt-0.5`}>{row.type}</span>
+                    <div key={row.key} className={`rounded-[26px] border p-4 sm:p-5 ${tone.shell}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <span className={`${tone.badge} shrink-0 mt-0.5`}>{row.label}</span>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className={`text-base font-semibold ${tone.title}`}>{row.host}</p>
-                              <span className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">{row.extra || 'Kayıt'}</span>
+                              <p className={`text-base font-semibold ${tone.title}`}>{row.title}</p>
+                              <span className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">{row.note}</span>
                             </div>
-                            <p className="mt-2 text-[11px] uppercase tracking-[0.22em] text-txt-muted">Değer</p>
-                            <p className="text-base sm:text-lg text-txt-primary font-mono break-all mt-1 leading-relaxed">{row.value}</p>
                           </div>
                         </div>
+                        <span className="badge-green">Ekleyin</span>
+                      </div>
+
+                      <div className={`mt-4 grid gap-3 ${row.fields.length > 3 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
+                        {row.fields.map((field) => (
+                          <div key={`${row.key}-${field.label}`} className="rounded-2xl border border-brand-border/20 bg-brand-surface/40 px-3 py-3">
+                            <p className="text-[10px] uppercase tracking-[0.22em] text-txt-muted">{field.label}</p>
+                            <p className="mt-2 break-all text-sm sm:text-[15px] font-mono font-medium leading-relaxed text-txt-primary">{field.value}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 flex justify-end">
+                        <button onClick={() => copyDnsRecord(row)} className={tone.copy}>
+                          <Copy size={12} /> Kopyala
+                        </button>
                       </div>
                     </div>
                   );
-                })()
-              ))}
+                })}
+              </div>
             </div>
+
+            {/* Wildcard Subdomain DNS Kayıtları */}
+            {docsDomain.wildcard_subdomains === 1 && (
+              <div className="rounded-[28px] border border-accent-purple/25 bg-[radial-gradient(circle_at_top_left,rgba(122,99,255,0.15),transparent_30%),linear-gradient(135deg,rgba(11,21,45,0.96),rgba(9,18,38,0.9))] p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Globe size={18} className="text-accent-purple" />
+                      <p className="text-sm font-semibold text-accent-purple">Wildcard Subdomain DNS Kayıtları</p>
+                    </div>
+                    <p className="text-xs text-txt-muted mt-1">Subdomain desteği için aşağıdaki DNS kayıtlarını ekleyin. Bu kayıtlar ile *.domain.com şeklinde tüm alt domainler otomatik çalışır.</p>
+                  </div>
+                </div>
+
+                {/* DNS Tablo */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-brand-border/30">
+                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">Type</th>
+                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">Host</th>
+                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">Value</th>
+                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">TTL</th>
+                        <th className="text-right py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">İşlem</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-brand-border/15 hover:bg-brand-surface2/30 transition-colors">
+                        <td className="py-3 px-3">
+                          <span className="badge-blue text-[10px]">A Record</span>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-txt-primary">mail</td>
+                        <td className="py-3 px-3 font-mono text-accent-cyan">{docsIp || docsDomain.server_ip || 'SUNUCU_IP'}</td>
+                        <td className="py-3 px-3 text-txt-muted text-xs">Automatic</td>
+                        <td className="py-3 px-3 text-right">
+                          <button
+                            onClick={() => copyText(`A | mail | ${docsIp || docsDomain.server_ip || 'SUNUCU_IP'} | Automatic`, 'A Record kopyalandı')}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-brand-border/50 bg-brand-surface2/70 px-2.5 py-1.5 text-[11px] text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
+                          >
+                            <Copy size={11} /> Kopyala
+                          </button>
+                        </td>
+                      </tr>
+                      <tr className="border-b border-brand-border/15 hover:bg-brand-surface2/30 transition-colors">
+                        <td className="py-3 px-3">
+                          <span className="badge-purple text-[10px]">TXT Record</span>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-txt-primary">*</td>
+                        <td className="py-3 px-3 font-mono text-accent-cyan break-all">v=spf1 ip4:{docsIp || docsDomain.server_ip || 'SUNUCU_IP'} ~all</td>
+                        <td className="py-3 px-3 text-txt-muted text-xs">Automatic</td>
+                        <td className="py-3 px-3 text-right">
+                          <button
+                            onClick={() => copyText(`TXT | * | v=spf1 ip4:${docsIp || docsDomain.server_ip || 'SUNUCU_IP'} ~all | Automatic`, 'TXT Record kopyalandı')}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-brand-border/50 bg-brand-surface2/70 px-2.5 py-1.5 text-[11px] text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
+                          >
+                            <Copy size={11} /> Kopyala
+                          </button>
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-brand-surface2/30 transition-colors">
+                        <td className="py-3 px-3">
+                          <span className="badge-cyan text-[10px]">MX Record</span>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-txt-primary">*</td>
+                        <td className="py-3 px-3 font-mono text-accent-cyan">mail.{docsDomain.domain}.</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-txt-muted text-xs">Automatic</span>
+                            <span className="badge-gold text-[9px]">Priority: 10</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <button
+                            onClick={() => copyText(`MX | * | mail.${docsDomain.domain}. | Priority 10 | Automatic`, 'MX Record kopyalandı')}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-brand-border/50 bg-brand-surface2/70 px-2.5 py-1.5 text-[11px] text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
+                          >
+                            <Copy size={11} /> Kopyala
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-4 p-3 rounded-xl bg-accent-purple/10 border border-accent-purple/20">
+                  <p className="text-xs text-accent-purple leading-relaxed">
+                    <strong>Not:</strong> Bu kayıtlar ile <span className="font-mono">*. {docsDomain.domain}</span> şeklindeki tüm subdomain'ler otomatik olarak çalışacaktır.
+                    Kullanıcılar istedikleri subdomain'i seçerek mail adresi oluşturabilir.
+                  </p>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={() => {
+                      const ip = docsIp || docsDomain.server_ip || 'SUNUCU_IP';
+                      const lines = [
+                        `A | mail | ${ip} | Automatic`,
+                        `TXT | * | v=spf1 ip4:${ip} ~all | Automatic`,
+                        `MX | * | mail.${docsDomain.domain}. | Priority 10 | Automatic`,
+                      ].join('\n');
+                      copyText(lines, 'Wildcard Subdomain DNS kayıtları kopyalandı');
+                    }}
+                    className="btn-primary text-xs px-4 py-2"
+                  >
+                    <Copy size={12} /> Tümünü Kopyala
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="rounded-2xl border border-accent-blue/20 bg-accent-blue/10 p-4 text-sm text-txt-secondary">
-                <p className="text-xs uppercase tracking-[0.22em] text-accent-blue">Nasıl kullanılır</p>
-                <p className="mt-2 leading-relaxed">IP girin, kayıtlarınızı DNS paneline birebir ekleyin.</p>
+                <div className="flex items-center gap-2 text-accent-blue">
+                  <Globe size={16} />
+                  <p className="text-xs uppercase tracking-[0.22em]">Nasıl Kullanılır?</p>
+                </div>
+                <p className="mt-2 leading-relaxed">Alan adınızın DNS paneline gidin ve yukarıdaki kayıtları eksiksiz şekilde ekleyin.</p>
               </div>
               <div className="rounded-2xl border border-accent-cyan/20 bg-cyan-400/10 p-4 text-sm text-txt-secondary">
-                <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">MX</p>
-                <p className="mt-2 leading-relaxed">Host `@`, değer `mail.{docsDomain.domain}`, öncelik `10`.</p>
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <CalendarRange size={16} />
+                  <p className="text-xs uppercase tracking-[0.22em]">Yayılma Süresi</p>
+                </div>
+                <p className="mt-2 leading-relaxed">DNS değişiklikleri genellikle 5-60 dakika içinde yayılır.</p>
               </div>
-              <div className="rounded-2xl border border-accent-purple/20 bg-accent-purple/10 p-4 text-sm text-txt-secondary">
-                <p className="text-xs uppercase tracking-[0.22em] text-accent-purple">TXT</p>
-                <p className="mt-2 leading-relaxed">SPF, verification, DKIM ve DMARC kayıtlarını ayrı ekleyin.</p>
+              <div className="rounded-2xl border border-accent-green/20 bg-accent-green/10 p-4 text-sm text-txt-secondary">
+                <div className="flex items-center gap-2 text-accent-green">
+                  <CheckCircle2 size={16} />
+                  <p className="text-xs uppercase tracking-[0.22em]">Doğrulama</p>
+                </div>
+                <p className="mt-2 leading-relaxed">Kayıtlar eklendikten sonra doğrulama işlemini yenileyebilirsiniz.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 border-t border-brand-border/20 pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                onClick={() => {
+                  setDocsDomain(null);
+                  setDocsIp('');
+                }}
+                className="btn-secondary w-full sm:w-auto"
+              >
+                Kapat
+              </button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <button onClick={refreshDocsDomain} disabled={docsRefreshing} className="btn-secondary w-full sm:w-auto">
+                  <RefreshCw size={14} className={docsRefreshing ? 'animate-spin' : ''} /> Doğrulamayı Yenile
+                </button>
+                <button onClick={() => copyDomainDocs(docsDomain)} className="btn-primary w-full sm:w-auto">
+                  <Copy size={14} /> Tüm Değerleri Kopyala
+                </button>
               </div>
             </div>
           </div>
@@ -1693,6 +2288,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         onClose={() => {
           setEditingDomain(null);
           setEditDomainIp('');
+          setEditDomainWildcard(false);
         }}
         title={editingDomain ? `${editingDomain.domain} Domain Düzenle` : 'Domain Düzenle'}
         subtitle="IP adresini güncelleyin. Sistem A, MX ve TXT değerlerini otomatik yeniden üretir."
@@ -1702,6 +2298,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               onClick={() => {
                 setEditingDomain(null);
                 setEditDomainIp('');
+                setEditDomainWildcard(false);
               }}
               className="btn-secondary"
             >
@@ -1737,6 +2334,23 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <Copy size={12} /> Kopyala
                 </button>
               </div>
+            </div>
+            <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 p-4">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className={`relative w-10 h-5 rounded-full transition-colors ${editDomainWildcard ? 'bg-accent-cyan' : 'bg-brand-surface2/70'}`}>
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${editDomainWildcard ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </div>
+                <input
+                  type="checkbox"
+                  checked={editDomainWildcard}
+                  onChange={(e) => setEditDomainWildcard(e.target.checked)}
+                  className="sr-only"
+                />
+                <div>
+                  <p className="text-sm font-medium text-txt-primary">Wildcard Subdomain Desteği</p>
+                  <p className="text-[11px] text-txt-muted mt-1">Aktif edilirse *.domain.com şeklinde alt domainler oluşturulabilir</p>
+                </div>
+              </label>
             </div>
             <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 p-4 text-sm text-txt-secondary space-y-2">
               <p><strong className="text-txt-primary">Not:</strong> Sadece rakam ve nokta kabul edilir.</p>

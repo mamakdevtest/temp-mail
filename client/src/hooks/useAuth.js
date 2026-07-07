@@ -27,6 +27,11 @@ export default function useAuth() {
   const [token, setToken] = useState(initialToken);
   const [pkg, setPkg] = useState(initialToken ? null : GUEST_PACKAGE);
   const [stats, setStats] = useState(initialToken ? null : GUEST_STATS);
+  const [preferences, setPreferences] = useState(initialToken ? null : {
+    theme: 'system',
+    language: 'tr',
+    notification_sound: 'chime',
+  });
   const [loading, setLoading] = useState(!!initialToken);
 
   const setGuestSession = useCallback(() => {
@@ -53,6 +58,7 @@ export default function useAuth() {
         setUser(d.user);
         setPkg(d.package);
         setStats(d.stats);
+        setPreferences(d.preferences || null);
       } else {
         // Token geçersiz
         setGuestSession();
@@ -118,7 +124,7 @@ export default function useAuth() {
     return d;
   };
 
-  const updateProfile = async ({ username }) => {
+  const updateProfile = async ({ username, display_name }) => {
     if (!token) {
       throw new Error('Bu işlem için giriş yapın');
     }
@@ -126,7 +132,7 @@ export default function useAuth() {
     const r = await fetch(`${API}/auth/me`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ username }),
+      body: JSON.stringify({ username, display_name }),
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Profil güncellenemedi');
@@ -142,11 +148,111 @@ export default function useAuth() {
     return d;
   };
 
+  const requestEmailChange = async (email) => {
+    if (!token) throw new Error('Bu işlem için giriş yapın');
+    const r = await fetch(`${API}/auth/request-email-change`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'E-posta değişikliği başlatılamadı');
+    if (d.user) setUser(d.user);
+    return d;
+  };
+
+  const confirmEmailChange = async (code) => {
+    if (!token) throw new Error('Bu işlem için giriş yapın');
+    const r = await fetch(`${API}/auth/confirm-email-change`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ code }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'E-posta doğrulanamadı');
+    if (d.token) {
+      localStorage.setItem('tm-token', d.token);
+      setToken(d.token);
+    }
+    if (d.user) setUser(d.user);
+    return d;
+  };
+
+  const updatePreferences = async (payload) => {
+    if (!token) throw new Error('Bu işlem için giriş yapın');
+    const r = await fetch(`${API}/auth/preferences`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Tercihler güncellenemedi');
+    if (d.user) setUser(d.user);
+    if (d.preferences) setPreferences(d.preferences);
+    if (d.token) {
+      localStorage.setItem('tm-token', d.token);
+      setToken(d.token);
+    }
+    return d;
+  };
+
+  const changePassword = async ({ currentPassword, newPassword }) => {
+    if (!token) throw new Error('Bu işlem için giriş yapın');
+    const r = await fetch(`${API}/auth/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Şifre değiştirilemedi');
+    if (d.token) {
+      localStorage.setItem('tm-token', d.token);
+      setToken(d.token);
+    }
+    await loadMe();
+    return d;
+  };
+
+  const uploadAvatar = async (avatarDataUrl) => {
+    if (!token) throw new Error('Bu işlem için giriş yapın');
+    const r = await fetch(`${API}/auth/profile-photo`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ avatarDataUrl }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Profil fotoğrafı yüklenemedi');
+    if (d.user) setUser(d.user);
+    return d;
+  };
+
   // Yetki kontrolü
   const isGuest = user?.role === 'guest';
   const isAdmin = user?.role === 'admin';
   const isPro = user?.role === 'pro' || isAdmin;
   const isFree = user?.role === 'free';
 
-  return { user, token, pkg, stats, loading, isGuest, isAdmin, isPro, isFree, register, login, logout, requestPro, updateProfile, loadMe };
+  return {
+    user,
+    token,
+    pkg,
+    stats,
+    preferences,
+    loading,
+    isGuest,
+    isAdmin,
+    isPro,
+    isFree,
+    register,
+    login,
+    logout,
+    requestPro,
+    updateProfile,
+    requestEmailChange,
+    confirmEmailChange,
+    changePassword,
+    updatePreferences,
+    uploadAvatar,
+    loadMe,
+  };
 }

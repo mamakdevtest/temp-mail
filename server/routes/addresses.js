@@ -34,8 +34,25 @@ function verifyPassword(password, stored) {
 router.get('/domains', (req, res) => {
   try {
     const db = getDb();
-    const domains = db.all('SELECT id, domain FROM domains WHERE is_active = 1 ORDER BY domain');
-    res.json({ domains });
+    const domains = db.all('SELECT id, domain, wildcard_subdomains FROM domains WHERE is_active = 1 ORDER BY domain');
+
+    // Her domain için subdomain'leri getir
+    const domainsWithSubdomains = domains.map((domain) => {
+      const subdomains = db.all(
+        'SELECT id, subdomain FROM subdomains WHERE domain_id = ? AND is_active = 1 ORDER BY subdomain',
+        [domain.id]
+      );
+      return {
+        ...domain,
+        subdomains: subdomains.map((s) => ({
+          id: s.id,
+          name: s.subdomain,
+          full_domain: `${s.subdomain}.${domain.domain}`,
+        })),
+      };
+    });
+
+    res.json({ domains: domainsWithSubdomains });
   } catch (err) {
     console.error('Domain listeleme hatası:', err);
     res.status(500).json({ error: 'Domainler listelenemedi' });
@@ -173,7 +190,7 @@ router.post('/check', (req, res) => {
 router.post('/', (req, res) => {
   try {
     const db = getDb();
-    const { username, domain: domainName, password } = req.body;
+    const { username, domain: domainName, subdomain, password } = req.body;
 
     if (!username || !domainName) {
       return res.status(400).json({ error: 'Kullanıcı adı ve domain gerekli' });
@@ -194,7 +211,28 @@ router.post('/', (req, res) => {
       return res.status(400).json({ error: 'Domain bulunamadı veya aktif değil' });
     }
 
-    const address = `${username.toLowerCase()}@${domain.domain}`;
+    // Subdomain kontrolü
+    let fullDomain = domain.domain;
+    if (subdomain && subdomain.trim()) {
+      const cleanSubdomain = subdomain.trim().toLowerCase().replace(/[^a-zA-Z0-9-]/g, '');
+      if (!cleanSubdomain) {
+        return res.status(400).json({ error: 'Geçersiz subdomain formatı' });
+      }
+      if (!domain.wildcard_subdomains) {
+        return res.status(400).json({ error: 'Bu domain için subdomain desteği aktif değil' });
+      }
+      // Subdomain'in veritabanında kayıtlı olduğunu kontrol et
+      const existingSubdomain = db.get(
+        'SELECT id FROM subdomains WHERE domain_id = ? AND subdomain = ? AND is_active = 1',
+        [domain.id, cleanSubdomain]
+      );
+      if (!existingSubdomain) {
+        return res.status(400).json({ error: 'Bu subdomain bulunamadı veya aktif değil' });
+      }
+      fullDomain = `${cleanSubdomain}.${domain.domain}`;
+    }
+
+    const address = `${username.toLowerCase()}@${fullDomain}`;
 
     // Mevcut adres var mı?
     const existing = db.get('SELECT * FROM addresses WHERE address = ?', [address]);
@@ -225,7 +263,7 @@ router.post('/', (req, res) => {
         return res.json({
           address,
           username: existing.username,
-          domain: domain.domain,
+          domain: fullDomain,
           is_persistent: true,
           has_password: true,
           emails,
@@ -244,7 +282,7 @@ router.post('/', (req, res) => {
       return res.json({
         address,
         username: existing.username,
-        domain: domain.domain,
+        domain: fullDomain,
         is_persistent: true,
         has_password: false,
         emails,
@@ -264,7 +302,7 @@ router.post('/', (req, res) => {
     res.json({
       address,
       username: username.toLowerCase(),
-      domain: domain.domain,
+      domain: fullDomain,
       is_persistent: true,
       has_password: !!password,
     });

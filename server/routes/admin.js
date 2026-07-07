@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { getDb } = require('../db');
 const { manualCleanup } = require('../services/cleanup');
-const { extractOtp, stripHtml } = require('./emails');
+const { extractOtp, stripHtml } = require('../utils/otpDetection');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tempmail-secret-key-change-in-production';
 
@@ -113,7 +113,7 @@ router.get('/domains', (req, res) => {
 router.post('/domains', (req, res) => {
   try {
     const db = getDb();
-    const { domain } = req.body;
+    const { domain, wildcard_subdomains } = req.body;
 
     if (!domain) {
       return res.status(400).json({ error: 'Domain adı gerekli' });
@@ -133,12 +133,13 @@ router.post('/domains', (req, res) => {
     const dnsDefaults = normalizeDomainConfig(normalizedDomain, req.body);
     const result = db.run(`
       INSERT INTO domains (
-        domain, server_ip, a_host, a_value, mx_host, mx_value, mx_priority,
+        domain, wildcard_subdomains, server_ip, a_host, a_value, mx_host, mx_value, mx_priority,
         txt_spf_host, txt_spf_value, txt_verification_host, txt_verification_value,
         dkim_host, dkim_value, dmarc_host, dmarc_value
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       normalizedDomain,
+      wildcard_subdomains ? 1 : 0,
       dnsDefaults.server_ip,
       dnsDefaults.a_host,
       dnsDefaults.a_value,
@@ -167,7 +168,7 @@ router.put('/domains/:id', (req, res) => {
   try {
     const db = getDb();
     const { id } = req.params;
-    const { is_active } = req.body;
+    const { is_active, wildcard_subdomains } = req.body;
 
     const domain = db.get('SELECT * FROM domains WHERE id = ?', [id]);
     if (!domain) {
@@ -177,12 +178,13 @@ router.put('/domains/:id', (req, res) => {
     const config = normalizeDomainConfig(domain.domain, { ...domain, ...req.body });
     db.run(`
       UPDATE domains
-      SET is_active = ?, server_ip = ?, a_host = ?, a_value = ?, mx_host = ?, mx_value = ?, mx_priority = ?,
+      SET is_active = ?, wildcard_subdomains = ?, server_ip = ?, a_host = ?, a_value = ?, mx_host = ?, mx_value = ?, mx_priority = ?,
           txt_spf_host = ?, txt_spf_value = ?, txt_verification_host = ?, txt_verification_value = ?,
           dkim_host = ?, dkim_value = ?, dmarc_host = ?, dmarc_value = ?
       WHERE id = ?
     `, [
       typeof is_active === 'undefined' ? domain.is_active : (is_active ? 1 : 0),
+      typeof wildcard_subdomains === 'undefined' ? domain.wildcard_subdomains : (wildcard_subdomains ? 1 : 0),
       config.server_ip,
       config.a_host,
       config.a_value,
@@ -224,6 +226,101 @@ router.delete('/domains/:id', (req, res) => {
   } catch (err) {
     console.error('Domain silme hatası:', err);
     res.status(500).json({ error: 'Domain silinemedi' });
+  }
+});
+
+// Subdomain endpoints
+
+router.get('/domains/:id/subdomains', (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+
+    const domain = db.get('SELECT * FROM domains WHERE id = ?', [id]);
+    if (!domain) {
+      return res.status(404).json({ error: 'Domain bulunamadı' });
+    }
+
+    const subdomains = db.all(
+      'SELECT * FROM subdomains WHERE domain_id = ? ORDER BY created_at DESC',
+      [id]
+    );
+
+    res.json({ domain: domain.domain, subdomains });
+  } catch (err) {
+    console.error('Subdomain listeleme hatası:', err);
+    res.status(500).json({ error: 'Subdomainler listelenemedi' });
+  }
+});
+
+router.post('/domains/:id/subdomains', (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const { subdomain } = req.body;
+
+    if (!subdomain || !subdomain.trim()) {
+      return res.status(400).json({ error: 'Subdomain adı gerekli' });
+    }
+
+    const cleanSubdomain = subdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (!cleanSubdomain || cleanSubdomain.length < 1 || cleanSubdomain.length > 63) {
+      return res.status(400).json({ error: 'Geçersiz subdomain formatı (1-63 karakter, sadece harf, rakam, tire)' });
+    }
+
+    const domain = db.get('SELECT * FROM domains WHERE id = ?', [id]);
+    if (!domain) {
+      return res.status(404).json({ error: 'Domain bulunamadı' });
+    }
+
+    if (!domain.wildcard_subdomains) {
+      return res.status(400).json({ error: 'Bu domain için subdomain desteği aktif değil' });
+    }
+
+    const existing = db.get(
+      'SELECT id FROM subdomains WHERE domain_id = ? AND subdomain = ?',
+      [id, cleanSubdomain]
+    );
+    if (existing) {
+      return res.status(409).json({ error: 'Bu subdomain zaten ekli' });
+    }
+
+    const result = db.run(
+      'INSERT INTO subdomains (domain_id, subdomain) VALUES (?, ?)',
+      [id, cleanSubdomain]
+    );
+
+    const newSubdomain = db.get('SELECT * FROM subdomains WHERE id = ?', [result.lastInsertRowid]);
+
+    res.json({
+      subdomain: newSubdomain,
+      full_domain: `${cleanSubdomain}.${domain.domain}`,
+    });
+  } catch (err) {
+    console.error('Subdomain ekleme hatası:', err);
+    res.status(500).json({ error: 'Subdomain eklenemedi' });
+  }
+});
+
+router.delete('/domains/:domainId/subdomains/:subdomainId', (req, res) => {
+  try {
+    const db = getDb();
+    const { domainId, subdomainId } = req.params;
+
+    const subdomain = db.get(
+      'SELECT * FROM subdomains WHERE id = ? AND domain_id = ?',
+      [subdomainId, domainId]
+    );
+    if (!subdomain) {
+      return res.status(404).json({ error: 'Subdomain bulunamadı' });
+    }
+
+    db.run('DELETE FROM subdomains WHERE id = ?', [subdomainId]);
+
+    res.json({ message: 'Subdomain silindi', subdomain: subdomain.subdomain });
+  } catch (err) {
+    console.error('Subdomain silme hatası:', err);
+    res.status(500).json({ error: 'Subdomain silinemedi' });
   }
 });
 

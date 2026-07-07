@@ -90,6 +90,7 @@
   .badge-cyan { @apply badge bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/20; }
   .badge-green { @apply badge bg-accent-green/15 text-accent-green border border-accent-green/20; }
   .badge-purple { @apply badge bg-accent-purple/15 text-accent-purple border border-accent-purple/20; }
+  .badge-gold { @apply badge bg-accent-gold/15 text-accent-gold border border-accent-gold/20; }
   .badge-red { @apply badge bg-accent-red/15 text-accent-red border border-accent-red/20; }
 
   .section-title {

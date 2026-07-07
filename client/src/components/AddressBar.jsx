@@ -1,27 +1,54 @@
 import { useState, useEffect, useRef } from 'react';
-import { Copy, RefreshCw, Lock, ChevronDown, Clock, Shield, Shuffle, CheckCircle2, Sparkles, Globe2 } from 'lucide-react';
+import { Copy, RefreshCw, Lock, ChevronDown, Clock, Shield, Shuffle, CheckCircle2, Sparkles, Globe2, ChevronRight } from 'lucide-react';
 
 export default function AddressBar({ currentAddress, loading, error, domains, history, onGenerate, onSubmit, onCopy, onSetPassword, isPro }) {
   const [username, setUsername] = useState('');
-  const [domain, setDomain] = useState('');
+  const [selectedFullDomain, setSelectedFullDomain] = useState('');
   const [pw, setPw] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showDomainMenu, setShowDomainMenu] = useState(false);
+  const [expandedDomains, setExpandedDomains] = useState({});
   const historyRef = useRef(null);
   const domainRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Seçili domain bilgisini bul
+  const findDomainInfo = (fullDomain) => {
+    if (!fullDomain) return null;
+    for (const d of domains) {
+      if (fullDomain === d.domain) {
+        return { mainDomain: d.domain, subdomain: null, domainId: d.id };
+      }
+      if (d.subdomains) {
+        for (const sub of d.subdomains) {
+          if (fullDomain === sub.full_domain) {
+            return { mainDomain: d.domain, subdomain: sub.name, domainId: d.id, subdomainId: sub.id };
+          }
+        }
+      }
+    }
+    return null;
+  };
+
+  const domainInfo = findDomainInfo(selectedFullDomain);
+  const displayDomain = selectedFullDomain || (domains.length > 0 ? domains[0].domain : '');
 
   useEffect(() => {
     if (currentAddress?.address) {
       const [u, d] = currentAddress.address.split('@');
       setUsername(u);
-      if (d) setDomain(d);
+      if (d) {
+        setSelectedFullDomain(d);
+      }
     }
   }, [currentAddress]);
 
   useEffect(() => {
-    if (domains.length > 0 && !domain) setDomain(domains[0].domain);
-  }, [domains, domain]);
+    if (domains.length > 0 && !selectedFullDomain) {
+      setSelectedFullDomain(domains[0].domain);
+    }
+  }, [domains, selectedFullDomain]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -32,21 +59,44 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const effectiveDomain = domain || (domains.length > 0 ? domains[0].domain : '');
-  const isModified = currentAddress && (username !== currentAddress.address.split('@')[0] || effectiveDomain !== currentAddress.address.split('@')[1]);
+  useEffect(() => {
+    if (showDomainMenu && dropdownRef.current) {
+      dropdownRef.current.style.top = '100%';
+      dropdownRef.current.style.bottom = 'auto';
+      dropdownRef.current.style.marginTop = '12px';
+      dropdownRef.current.style.marginBottom = '0';
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      if (rect.bottom > viewportHeight - 20) {
+        dropdownRef.current.style.top = 'auto';
+        dropdownRef.current.style.bottom = '100%';
+        dropdownRef.current.style.marginBottom = '12px';
+        dropdownRef.current.style.marginTop = '0';
+      }
+    }
+  }, [showDomainMenu]);
+
+  const currentAddrDomain = currentAddress?.address?.split('@')[1] || '';
+  const isModified = currentAddress && (
+    username !== currentAddress.address.split('@')[0] ||
+    selectedFullDomain !== currentAddrDomain
+  );
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!username || !effectiveDomain) return;
-    onSubmit(username, effectiveDomain, pw || null);
+    if (e) e.preventDefault();
+    if (!username || !selectedFullDomain) return;
+    const info = findDomainInfo(selectedFullDomain);
+    if (!info) return;
+    onSubmit(username, info.mainDomain, pw || null, info.subdomain);
     setShowHistory(false);
   };
 
   const handleRandom = () => onGenerate(null);
+
   const selectHistory = (entry) => {
     const [u, d] = entry.address.split('@');
     setUsername(u);
-    if (d) setDomain(d);
+    if (d) setSelectedFullDomain(d);
     setPw('');
     setShowHistory(false);
     onSubmit(u, d, null);
@@ -68,6 +118,28 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
     return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
   };
 
+  const selectDomain = (fullDomain) => {
+    setSelectedFullDomain(fullDomain);
+    setShowDomainMenu(false);
+  };
+
+  const toggleExpand = (domainId) => {
+    setExpandedDomains(prev => ({
+      ...prev,
+      [domainId]: !prev[domainId],
+    }));
+  };
+
+  // Subdomain'i parent domain olarak seçen ana domaini otomatik展开 et
+  useEffect(() => {
+    if (selectedFullDomain && domainInfo?.subdomain) {
+      setExpandedDomains(prev => ({
+        ...prev,
+        [domainInfo.domainId]: true,
+      }));
+    }
+  }, [selectedFullDomain, domainInfo]);
+
   return (
     <div className="card px-5 py-6 sm:px-7 sm:py-8 bg-[radial-gradient(circle_at_0%_0%,rgba(122,99,255,0.22),transparent_32%),radial-gradient(circle_at_100%_100%,rgba(52,215,255,0.12),transparent_30%)]">
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_260px] gap-8 items-start">
@@ -81,18 +153,18 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
             <div className="panel-soft rounded-[26px] p-2 border-brand-border/70 shadow-panel">
               <div className="grid grid-cols-[1fr_72px] gap-2 items-center">
                 <form onSubmit={handleSubmit} className="min-w-0 rounded-[22px] bg-brand-bg/70 border border-brand-border/40 px-4 py-4 sm:px-6 sm:py-5">
-                  <div className="flex items-center justify-center gap-2 sm:gap-3 flex-nowrap overflow-hidden">
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 flex-nowrap overflow-visible">
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9._-]/g, ''))}
                       placeholder="kullaniciadi"
-                      className="min-w-0 flex-[1_1_220px] bg-transparent text-right text-xl sm:text-[2.15rem] font-bold tracking-tight text-white outline-none placeholder:text-txt-disabled truncate"
+                      className="min-w-0 flex-[1_1_180px] bg-transparent text-right text-xl sm:text-[2.15rem] font-bold tracking-tight text-white outline-none placeholder:text-txt-disabled truncate"
                       spellCheck={false}
                       autoComplete="off"
                     />
                     <span className="shrink-0 text-xl sm:text-[2.15rem] font-bold text-accent-red">@</span>
-                    <div className="relative min-w-0 flex-[1_1_280px]" ref={domainRef}>
+                    <div className="relative min-w-0 flex-[1_1_320px]" ref={domainRef}>
                       <button
                         type="button"
                         onClick={() => setShowDomainMenu((v) => !v)}
@@ -100,35 +172,95 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
                       >
                         <Globe2 size={16} className="shrink-0 text-accent-cyan" />
                         <span className="min-w-0 flex-1 truncate text-xl sm:text-[2.15rem] font-bold tracking-tight text-accent-cyan">
-                          {effectiveDomain || 'domain'}
+                          {displayDomain || 'domain'}
                         </span>
                         <ChevronDown size={16} className={`shrink-0 text-txt-muted transition-transform ${showDomainMenu ? 'rotate-180' : ''}`} />
                       </button>
 
                       {showDomainMenu && (
-                        <div className="absolute left-0 right-0 top-full mt-3 z-[70] card p-2 animate-slide-down shadow-panel">
+                        <div
+                          ref={dropdownRef}
+                          className="absolute left-0 right-0 top-full mt-3 z-[70] card p-2 animate-slide-down shadow-panel"
+                        >
                           <div className="px-3 py-2 border-b border-brand-border/20">
-                            <p className="text-[11px] uppercase tracking-[0.24em] text-txt-muted">Aktif Domainler</p>
+                            <p className="text-[11px] uppercase tracking-[0.24em] text-txt-muted">Domain Seçin</p>
                           </div>
-                          <div className="max-h-[240px] overflow-y-auto space-y-1 py-2">
+                          <div className="max-h-[320px] overflow-y-auto py-2">
                             {domains.length === 0 ? (
                               <div className="px-3 py-3 text-sm text-txt-muted">Henüz domain yok</div>
-                            ) : domains.map((item) => (
-                              <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => { setDomain(item.domain); setShowDomainMenu(false); }}
-                                className={`w-full rounded-2xl px-3 py-3 text-left transition-colors ${effectiveDomain === item.domain ? 'bg-accent-blue/10 border border-accent-blue/20' : 'hover:bg-brand-surface2/70 border border-transparent'}`}
-                              >
-                                <div className="flex items-center justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-semibold text-accent-cyan truncate">{item.domain}</p>
-                                    <p className="text-[11px] text-txt-muted mt-1">Yeni adresler için kullanılabilir</p>
+                            ) : domains.map((item) => {
+                              const hasSubdomains = item.subdomains && item.subdomains.length > 0;
+                              const isExpanded = expandedDomains[item.id];
+                              const isMainSelected = selectedFullDomain === item.domain;
+
+                              return (
+                                <div key={item.id}>
+                                  {/* Ana Domain */}
+                                  <div className="flex items-center">
+                                    {hasSubdomains && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleExpand(item.id);
+                                        }}
+                                        className="p-1 rounded-lg hover:bg-brand-surface2/70 transition-colors mr-1"
+                                      >
+                                        <ChevronRight
+                                          size={14}
+                                          className={`text-txt-muted transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                        />
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => selectDomain(item.domain)}
+                                      className={`flex-1 rounded-xl px-3 py-2.5 text-left transition-colors ${isMainSelected ? 'bg-accent-blue/10 border border-accent-blue/20' : 'hover:bg-brand-surface2/70 border border-transparent'}`}
+                                    >
+                                      <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0">
+                                          <p className="text-sm font-semibold text-accent-cyan truncate">{item.domain}</p>
+                                          <p className="text-[11px] text-txt-muted mt-0.5">Ana Domain</p>
+                                        </div>
+                                        {isMainSelected ? <span className="badge-blue text-[9px]">Seçili</span> : null}
+                                      </div>
+                                    </button>
                                   </div>
-                                  {effectiveDomain === item.domain ? <span className="badge-blue">Seçili</span> : null}
+
+                                  {/* Subdomain'ler */}
+                                  {hasSubdomains && isExpanded && (
+                                    <div className="ml-6 border-l-2 border-brand-border/30 pl-2 mt-1 mb-2 space-y-1">
+                                      {item.subdomains.map((sub) => {
+                                        const isSubSelected = selectedFullDomain === sub.full_domain;
+                                        return (
+                                          <button
+                                            key={sub.id}
+                                            type="button"
+                                            onClick={() => selectDomain(sub.full_domain)}
+                                            className={`w-full rounded-xl px-3 py-2 text-left transition-colors ${isSubSelected ? 'bg-accent-purple/10 border border-accent-purple/20' : 'hover:bg-brand-surface2/70 border border-transparent'}`}
+                                          >
+                                            <div className="flex items-center justify-between gap-3">
+                                              <div className="min-w-0">
+                                                <p className="text-sm font-medium text-txt-primary truncate">{sub.full_domain}</p>
+                                                <p className="text-[10px] text-txt-muted mt-0.5">{sub.name}.{item.domain}</p>
+                                              </div>
+                                              {isSubSelected ? <span className="badge-purple text-[9px]">Seçili</span> : null}
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+
+                                  {/* Subdomain desteği var ama subdomain yok */}
+                                  {item.wildcard_subdomains === 1 && (!item.subdomains || item.subdomains.length === 0) && (
+                                    <div className="ml-6 pl-2 mt-1 mb-2">
+                                      <p className="text-[10px] text-txt-muted italic">Henüz subdomain eklenmemiş</p>
+                                    </div>
+                                  )}
                                 </div>
-                              </button>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -145,7 +277,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
 
           <div className="flex flex-wrap items-center justify-center gap-3">
             {isModified ? (
-              <button onClick={handleSubmit} disabled={loading || !username || !effectiveDomain} className="btn-primary min-w-[160px]">
+              <button onClick={handleSubmit} disabled={loading || !username || !selectedFullDomain} className="btn-primary min-w-[160px]">
                 {loading ? 'Hazırlanıyor...' : 'Bu Adresi Aç'}
               </button>
             ) : (

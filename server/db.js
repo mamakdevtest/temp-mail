@@ -44,6 +44,17 @@ async function initDatabase() {
       username TEXT UNIQUE NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      display_name TEXT,
+      avatar_url TEXT,
+      language TEXT DEFAULT 'tr',
+      theme TEXT DEFAULT 'system',
+      default_domain_id INTEGER,
+      username_change_count INTEGER DEFAULT 0,
+      email_change_count INTEGER DEFAULT 0,
+      pending_email TEXT,
+      pending_email_code_hash TEXT,
+      pending_email_expires_at DATETIME,
+      email_change_cooldown_until DATETIME,
       role TEXT DEFAULT 'free' CHECK(role IN ('admin','pro','free')),
       is_active INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -86,10 +97,71 @@ async function initDatabase() {
   `);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS user_preferences (
+      user_id INTEGER PRIMARY KEY,
+      theme TEXT DEFAULT 'system',
+      language TEXT DEFAULT 'tr',
+      default_domain_id INTEGER,
+      mail_retention_days INTEGER DEFAULT 7,
+      notify_new_mail INTEGER DEFAULT 1,
+      notify_otp INTEGER DEFAULT 1,
+      notify_expiring INTEGER DEFAULT 1,
+      notify_security INTEGER DEFAULT 1,
+      notification_sound TEXT DEFAULT 'chime',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT UNIQUE NOT NULL,
+      user_id INTEGER NOT NULL,
+      ip TEXT,
+      user_agent TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      revoked_at DATETIME,
+      is_suspicious INTEGER DEFAULT 0,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS login_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      login TEXT,
+      ip TEXT,
+      user_agent TEXT,
+      device TEXT,
+      browser TEXT,
+      success INTEGER DEFAULT 0,
+      reason TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS favorite_domains (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      domain_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, domain_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS domains (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       domain TEXT UNIQUE NOT NULL,
       is_active INTEGER DEFAULT 1,
+      wildcard_subdomains INTEGER DEFAULT 0,
       server_ip TEXT DEFAULT '',
       a_host TEXT DEFAULT 'mail',
       a_value TEXT DEFAULT '',
@@ -109,10 +181,28 @@ async function initDatabase() {
   `);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS subdomains (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      domain_id INTEGER NOT NULL,
+      subdomain TEXT NOT NULL,
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(domain_id, subdomain),
+      FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS addresses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       address TEXT UNIQUE NOT NULL,
       username TEXT NOT NULL,
+      nickname TEXT,
+      note TEXT,
+      is_favorite INTEGER DEFAULT 0,
+      is_locked INTEGER DEFAULT 0,
+      locked_until DATETIME,
+      custom_retention_days INTEGER,
       domain_id INTEGER NOT NULL,
       user_id INTEGER,
       password_hash TEXT,
@@ -154,9 +244,26 @@ async function initDatabase() {
   // Migration: Eski DB'de yeni kolonlar yoksa ekle
   const migrations = [
     'ALTER TABLE addresses ADD COLUMN password_hash TEXT',
+    'ALTER TABLE addresses ADD COLUMN nickname TEXT',
+    'ALTER TABLE addresses ADD COLUMN note TEXT',
+    'ALTER TABLE addresses ADD COLUMN is_favorite INTEGER DEFAULT 0',
+    'ALTER TABLE addresses ADD COLUMN is_locked INTEGER DEFAULT 0',
+    'ALTER TABLE addresses ADD COLUMN locked_until DATETIME',
+    'ALTER TABLE addresses ADD COLUMN custom_retention_days INTEGER',
     'ALTER TABLE addresses ADD COLUMN is_persistent INTEGER DEFAULT 0',
     'ALTER TABLE addresses ADD COLUMN last_accessed DATETIME',
     'ALTER TABLE addresses ADD COLUMN user_id INTEGER',
+    "ALTER TABLE users ADD COLUMN display_name TEXT",
+    "ALTER TABLE users ADD COLUMN avatar_url TEXT",
+    "ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'tr'",
+    "ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'system'",
+    "ALTER TABLE users ADD COLUMN default_domain_id INTEGER",
+    "ALTER TABLE users ADD COLUMN username_change_count INTEGER DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN email_change_count INTEGER DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN pending_email TEXT",
+    "ALTER TABLE users ADD COLUMN pending_email_code_hash TEXT",
+    "ALTER TABLE users ADD COLUMN pending_email_expires_at DATETIME",
+    "ALTER TABLE users ADD COLUMN email_change_cooldown_until DATETIME",
     "ALTER TABLE domains ADD COLUMN server_ip TEXT DEFAULT ''",
     "ALTER TABLE domains ADD COLUMN a_host TEXT DEFAULT 'mail'",
     "ALTER TABLE domains ADD COLUMN a_value TEXT DEFAULT ''",
@@ -171,6 +278,7 @@ async function initDatabase() {
     "ALTER TABLE domains ADD COLUMN dkim_value TEXT DEFAULT ''",
     "ALTER TABLE domains ADD COLUMN dmarc_host TEXT DEFAULT '_dmarc'",
     "ALTER TABLE domains ADD COLUMN dmarc_value TEXT DEFAULT ''",
+    "ALTER TABLE domains ADD COLUMN wildcard_subdomains INTEGER DEFAULT 0",
   ];
 
   for (const sql of migrations) {
@@ -186,6 +294,10 @@ async function initDatabase() {
   // Mevcut adreslerin süresini uzak geleceğe taşı (süresiz yap)
   try {
     db.run("UPDATE addresses SET expires_at = '9999-12-31T23:59:59.000Z' WHERE expires_at < '9999-12-31'");
+  } catch (e) { /* İlk kurulumda tablo boş olabilir */ }
+
+  try {
+    db.run("UPDATE users SET display_name = username WHERE display_name IS NULL OR display_name = ''");
   } catch (e) { /* İlk kurulumda tablo boş olabilir */ }
 
   // ===== Varsayılan paketleri oluştur =====

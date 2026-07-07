@@ -2,6 +2,7 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const router = express.Router();
 const { getDb } = require('../db');
+const { extractOtp, stripHtml } = require('../utils/otpDetection');
 
 /**
  * SMTP relay transporter oluştur (giden mailler için)
@@ -20,56 +21,6 @@ function createTransporter() {
       pass: process.env.SMTP_RELAY_PASS,
     },
   });
-}
-
-/**
- * Metin içeriğinden OTP/doğrulama kodunu çıkarmaya çalışır
- * Bağlam duyarlı (context-aware) algoritma kullanır
- *
- * @param {string} text - Aranacak metin
- * @returns {string|null} - Bulunan OTP kodu veya null
- */
-function extractOtp(text) {
-  if (!text) return null;
-  const normalized = String(text).replace(/\u00a0/g, ' ');
-
-  // 1. Öncelik: OTP/verification anahtar kelimesi yakınındaki kodları ara
-  const contextPattern = /(?:code|otp|one-time|security code|verification|passcode|token|kod|doğrulama|verify|confirm|2fa|auth code|verification code|confirmation code)[\s\S]{0,40}?\b([a-z0-9]{4,10})\b/i;
-  const contextMatch = normalized.match(contextPattern);
-  if (contextMatch && contextMatch[1]) {
-    return contextMatch[1];
-  }
-
-  // 2. Ters yön: kod anahtar kelimeden önce gelebilir
-  const reversePattern = /\b([a-z0-9]{4,10})\b[\s\S]{0,24}?(?:code|otp|one-time|security code|verification|passcode|token|kod|doğrulama|verify|confirm|2fa|auth code|verification code|confirmation code)/i;
-  const reverseMatch = normalized.match(reversePattern);
-  if (reverseMatch && reverseMatch[1]) {
-    return reverseMatch[1];
-  }
-
-  // 3. Fallback: yıl olmayan 4-8 haneli sayıları ara
-  const allNumbers = [...normalized.matchAll(/\b(\d{4,8})\b/g)].map((m) => m[1]);
-  if (allNumbers.length === 0) return null;
-
-  // Yıl benzeri sayıları filtrele (2000-2099 arası)
-  const filtered = allNumbers.filter((n) => {
-    const num = parseInt(n, 10);
-    return !(n.length === 4 && num >= 2000 && num <= 2099);
-  });
-
-  // Eğer filtrelenmiş sonuç varsa en uzununu al, yoksa ilk bulunanı
-  const candidates = filtered.length > 0 ? filtered : allNumbers;
-  return candidates.sort((a, b) => b.length - a.length)[0];
-}
-
-/**
- * HTML etiketlerini temizler
- * @param {string} html
- * @returns {string}
- */
-function stripHtml(html) {
-  if (!html) return '';
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 /**

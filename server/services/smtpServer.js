@@ -1,6 +1,7 @@
 const { SMTPServer } = require('smtp-server');
 const { simpleParser } = require('mailparser');
 const { getDb } = require('../db');
+const { extractOtp, stripHtml } = require('../utils/otpDetection');
 
 /**
  * SMTP sunucusunu başlatır
@@ -159,36 +160,4 @@ async function processIncomingMail(rawMail, session, io) {
   }
 }
 
-/**
- * Metin içeriğinden OTP/doğrulama kodunu çıkarmaya çalışır
- * Bağlam duyarlı (context-aware) algoritma
- */
-function extractOtp(text) {
-  if (!text) return null;
-
-  // 1. OTP anahtar kelimesi yakınındaki kodları ara
-  const ctx = text.match(/(?:code|otp|verification|passcode|token|kod|doğrulama|verify|confirm)[\s\S]{0,30}?\b(\d{4,8})\b/i);
-  if (ctx?.[1]) return ctx[1];
-
-  // 2. Ters yön
-  const rev = text.match(/\b(\d{4,8})\b[\s\S]{0,20}?(?:code|otp|verification|passcode|token|kod|doğrulama)/i);
-  if (rev?.[1]) return rev[1];
-
-  // 3. Fallback: yıl olmayan sayılar
-  const all = [...text.matchAll(/\b(\d{4,8})\b/g)].map((m) => m[1]);
-  if (!all.length) return null;
-  const filtered = all.filter((n) => !(n.length === 4 && parseInt(n) >= 2000 && parseInt(n) <= 2099));
-  return (filtered.length ? filtered : all).sort((a, b) => b.length - a.length)[0];
-}
-
-/**
- * HTML etiketlerini temizler (basit)
- * @param {string} html
- * @returns {string}
- */
-function stripHtml(html) {
-  if (!html) return '';
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-module.exports = { startSmtpServer, extractOtp };
+module.exports = { startSmtpServer, extractOtp, stripHtml };

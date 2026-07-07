@@ -14,6 +14,7 @@ const SMTP_PORT = parseInt(process.env.SMTP_PORT || '25', 10);
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Socket.io instance'ı (global - SMTP servisi de kullanacak)
 let io = null;
@@ -46,6 +47,25 @@ async function main() {
   // Sağlık kontrolü
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  app.use('/api', (req, res) => {
+    res.status(404).json({
+      error: 'API endpoint bulunamadı',
+      path: req.originalUrl,
+      method: req.method,
+    });
+  });
+
+  app.use((err, req, res, next) => {
+    if (err?.type === 'entity.parse.failed') {
+      return res.status(400).json({ error: 'Geçersiz JSON body gönderildi' });
+    }
+    if (req.originalUrl?.startsWith('/api/')) {
+      console.error('API hatası:', err);
+      return res.status(err?.status || 500).json({ error: err?.message || 'Sunucu hatası oluştu' });
+    }
+    return next(err);
   });
 
   // 3. Production'da React frontend dosyalarını sun (API rotalarından SONRA)

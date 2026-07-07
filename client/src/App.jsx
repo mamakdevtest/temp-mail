@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, User, Crown, Shield, Sparkles, Pencil } from 'lucide-react';
+import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, User, Crown, Shield, Sparkles } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 import AuthPage from './components/AuthPage';
 import AddressBar from './components/AddressBar';
@@ -81,8 +81,6 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
-  const [renameModal, setRenameModal] = useState(false);
-  const [renameValue, setRenameValue] = useState('');
 
   const userMenuRef = useRef(null);
   const sockRef = useRef(null);
@@ -112,10 +110,6 @@ export default function App() {
   useEffect(() => {
     if (!auth.isGuest) setShowAuth(false);
   }, [auth.isGuest]);
-
-  useEffect(() => {
-    setRenameValue(auth.user?.username || '');
-  }, [auth.user?.username]);
 
   useEffect(() => {
     localStorage.setItem('tm-notification-sound', notificationSound);
@@ -161,18 +155,6 @@ export default function App() {
     }
     setProReqShow(true);
   }, [auth.isGuest, auth.isPro, openAuth]);
-
-  const handleRename = useCallback(async () => {
-    const nextName = renameValue.trim();
-    if (!nextName) return;
-    try {
-      const result = await auth.updateProfile({ username: nextName });
-      toast(result.message || 'İsim güncellendi', 'success');
-      setRenameModal(false);
-    } catch (e) {
-      toast(e.message, 'error');
-    }
-  }, [auth, renameValue, toast]);
 
   const handlePreviewNotificationSound = useCallback((soundId) => {
     initBeep();
@@ -279,13 +261,14 @@ export default function App() {
     }
   }, [toast]);
 
-  const openAddr = useCallback(async (username, domain, password) => {
+  const openAddr = useCallback(async (username, domain, password, subdomain = null) => {
     setLoading(true);
     setError(null);
     setSelected(null);
     try {
       const body = { username, domain };
       if (password) body.password = password;
+      if (subdomain) body.subdomain = subdomain;
       const r = await fetch(`${API}/addresses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -532,7 +515,7 @@ export default function App() {
                     {(auth.user?.username || 'U')[0].toUpperCase()}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <p className="text-sm font-semibold text-txt-primary leading-none">{auth.user?.username}</p>
+                    <p className="text-sm font-semibold text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</p>
                     <p className="text-[11px] text-txt-secondary mt-1 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-accent-green" />
                       {auth.isAdmin ? 'Admin Kullanıcı' : auth.isPro ? 'Pro Kullanıcı' : 'Free Kullanıcı'}
@@ -543,7 +526,7 @@ export default function App() {
                 {showUserMenu && (
                   <div className="absolute right-0 top-full mt-3 w-60 card p-2 z-50 animate-slide-down">
                     <div className="px-3 py-3 border-b border-brand-border/30">
-                      <p className="text-sm font-semibold text-txt-primary">{auth.user?.username}</p>
+                      <p className="text-sm font-semibold text-txt-primary">{auth.user?.display_name || auth.user?.username}</p>
                       <p className="text-xs text-txt-muted mt-1">{auth.user?.email}</p>
                     </div>
                     {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); setPage('admin'); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> Admin Paneli</button>}
@@ -624,24 +607,6 @@ export default function App() {
         </div>
       </Modal>
 
-      <Modal
-        show={renameModal}
-        onClose={() => setRenameModal(false)}
-        title="İsmi Güncelle"
-        subtitle="Hesap bölümünde görünen kullanıcı adını değiştirin"
-        footer={<><button onClick={() => setRenameModal(false)} className="btn-secondary">İptal</button><button onClick={handleRename} disabled={!renameValue.trim()} className="btn-primary"><Pencil size={12} /> Kaydet</button></>}
-      >
-        <input
-          type="text"
-          value={renameValue}
-          onChange={(e) => setRenameValue(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-          placeholder="kullaniciadi"
-          className="input"
-          autoFocus
-        />
-      </Modal>
-
       {showAuth && (
         <div className="fixed inset-0 z-[200] overflow-y-auto bg-brand-bg/92 backdrop-blur-xl">
           <AuthPage
@@ -666,7 +631,27 @@ export default function App() {
                 <EmailView email={selected} onClose={() => setSelected(null)} api={API} onReply={handleReply} onCopyOtp={copyOtp} />
               </div>
               <div className="xl:col-span-3 2xl:col-span-3 min-h-[530px]">
-                <AccountPanel user={auth.user} pkg={auth.pkg} stats={auth.stats} activeDomain={activeDomain} emailCount={emails.length} isGuest={auth.isGuest} isPro={auth.isPro} isAdmin={auth.isAdmin} onRequestPro={handleRequestPro} onLogin={() => openAuth('login')} onRegister={() => openAuth('register')} onLogout={auth.logout} onAdmin={() => auth.isAdmin && setPage('admin')} onRename={() => setRenameModal(true)} />
+                <AccountPanel
+                  auth={auth}
+                  user={auth.user}
+                  pkg={auth.pkg}
+                  stats={auth.stats}
+                  activeDomain={activeDomain}
+                  emailCount={emails.length}
+                  isGuest={auth.isGuest}
+                  isPro={auth.isPro}
+                  isAdmin={auth.isAdmin}
+                  domains={domains}
+                  notificationSound={notificationSound}
+                  notificationSounds={NOTIFICATION_SOUNDS}
+                  onNotificationSoundChange={setNotificationSound}
+                  onPreviewNotificationSound={handlePreviewNotificationSound}
+                  onRequestPro={handleRequestPro}
+                  onLogin={() => openAuth('login')}
+                  onRegister={() => openAuth('register')}
+                  onLogout={auth.logout}
+                  onAdmin={() => auth.isAdmin && setPage('admin')}
+                />
               </div>
             </div>
           </div>
@@ -677,10 +662,18 @@ export default function App() {
             </div>
             <p className="text-xl font-semibold text-txt-primary">Aktif Domainler</p>
             <p className="text-sm text-txt-muted mt-2">Şu anda kullanılabilir alan adları aşağıda listeleniyor.</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
               {domains.length > 0 ? domains.map((d) => (
-                <div key={d.id} className="px-5 py-3 rounded-2xl panel-soft text-sm font-mono text-accent-cyan">{d.domain}</div>
-              )) : <div className="text-sm text-txt-muted">Henüz aktif domain yok.</div>}
+                <div key={d.id} className="panel-soft p-4 rounded-2xl text-left">
+                  <p className="text-sm font-mono font-bold text-accent-cyan truncate">{d.domain}</p>
+                  {d.wildcard_subdomains === 1 && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="badge-cyan text-[9px]">Subdomain Destekli</span>
+                      <span className="text-[10px] text-txt-muted">*. {d.domain}</span>
+                    </div>
+                  )}
+                </div>
+              )) : <div className="text-sm text-txt-muted col-span-full">Henüz aktif domain yok.</div>}
             </div>
           </div>
         ) : auth.isAdmin ? (

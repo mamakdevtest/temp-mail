@@ -17,11 +17,14 @@ export default function Modal({ show, onClose, title, subtitle, children, footer
     lg: 'max-w-xl',
     xl: 'max-w-3xl',
     '2xl': 'max-w-5xl',
+    '3xl': 'max-w-6xl',
+    full: 'max-w-[96vw]',
   }[size] || (wide ? 'max-w-xl' : 'max-w-md');
+  const viewportClass = size === 'full' ? 'items-center p-3 sm:p-4' : 'items-start p-4 sm:p-6';
   return (
-    <div className="fixed inset-0 bg-brand-bg/82 backdrop-blur-xl z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-6" onClick={onClose}>
+    <div className={`fixed inset-0 bg-brand-bg/82 backdrop-blur-xl z-50 flex justify-center overflow-y-auto ${viewportClass}`} onClick={onClose}>
       <div
-        className={`bg-brand-surface/95 border border-brand-border/55 rounded-[28px] shadow-panel w-full ${sizeClass} animate-slide-up overflow-hidden max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col`}
+        className={`bg-brand-surface/95 border border-brand-border/55 rounded-[28px] shadow-panel w-full ${sizeClass} animate-slide-up overflow-hidden ${size === 'full' ? 'min-h-[92vh] max-h-[92vh]' : 'max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]'} flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
