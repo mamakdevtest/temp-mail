@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Mail, User, Lock, ArrowRight, Shield, Crown, Eye, EyeOff, X } from 'lucide-react';
+import { useLocale } from '../i18n';
 
 export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue, defaultMode = 'login' }) {
+  const { t } = useLocale();
   const [mode, setMode] = useState(defaultMode); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -38,13 +40,13 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
   };
 
   const userTypes = [
-    { icon: User, title: 'Hesapsız', text: 'Giriş yapmadan başla', tone: 'text-accent-green', bg: 'bg-accent-green/10' },
-    { icon: Shield, title: 'Free', text: 'Ücretsiz hesap aç', tone: 'text-accent-blue', bg: 'bg-accent-blue/10' },
-    { icon: Crown, title: 'Pro', text: 'Yükseltilmiş hesap', tone: 'text-accent-purple', bg: 'bg-accent-purple/10' },
+    { icon: User, title: t('auth.guestMode'), text: t('auth.guestModeDesc'), tone: 'text-accent-green', bg: 'bg-accent-green/10' },
+    { icon: Shield, title: t('auth.freePlan'), text: t('auth.freePlanDesc'), tone: 'text-accent-blue', bg: 'bg-accent-blue/10' },
+    { icon: Crown, title: t('auth.proPlan'), text: t('auth.proPlanDesc'), tone: 'text-accent-purple', bg: 'bg-accent-purple/10' },
   ];
 
   return (
-    <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4 relative">
+    <div className="auth-screen min-h-screen bg-brand-bg flex items-center justify-center p-4 relative">
       {onClose && (
         <button
           type="button"
@@ -63,8 +65,8 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
             <Mail size={24} className="text-white" />
           </div>
           <h1 className="text-xl font-bold"><span className="text-txt-primary">Temp</span><span className="text-accent-cyan">Mail</span></h1>
-          <p className="text-xs text-txt-muted mt-1">Geçici e-posta, daha az spam.</p>
-          <p className="text-[10px] text-txt-disabled mt-1">Hesapsız kalabilir, ücretsiz hesap açabilir veya Pro'ya yükseltebilirsin.</p>
+          <p className="text-xs text-txt-muted mt-1">{t('auth.title')}</p>
+          <p className="text-[10px] text-txt-disabled mt-1">{t('auth.subtitle')}</p>
         </div>
 
         {/* Card */}
@@ -72,16 +74,16 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
           {/* Tab */}
           <div className="flex gap-1 mb-6 p-1 bg-brand-surface2 rounded-xl">
             <button onClick={() => { setMode('login'); setError(''); }} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${mode === 'login' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
-              Giriş Yap
+              {t('auth.login')}
             </button>
             <button onClick={() => { setMode('register'); setError(''); }} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${mode === 'register' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
-              Kayıt Ol
+              {t('auth.register')}
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="section-title mb-1.5 block">Kullanıcı Adı</label>
+              <label className="section-title mb-1.5 block">{t('auth.username')}</label>
               <div className="relative">
                 <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
                 <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="kullaniciadi" className="input pl-9" autoFocus required />
@@ -90,7 +92,7 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
 
             {mode === 'register' && (
               <div>
-                <label className="section-title mb-1.5 block">Email</label>
+                <label className="section-title mb-1.5 block">{t('auth.email')}</label>
                 <div className="relative">
                   <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
                   <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@email.com" className="input pl-9" required />
@@ -99,7 +101,7 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
             )}
 
             <div>
-              <label className="section-title mb-1.5 block">Şifre</label>
+              <label className="section-title mb-1.5 block">{t('auth.password')}</label>
               <div className="relative">
                 <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
                 <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" className="input pl-9 pr-9" required minLength={6} />
@@ -112,13 +114,13 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
             {error && <p className="text-accent-red text-xs bg-accent-red/5 px-3 py-2 rounded-xl">{error}</p>}
 
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-2.5 text-sm">
-              {loading ? '⏳ İşleniyor...' : mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+              {loading ? '⏳ İşleniyor...' : mode === 'login' ? t('auth.login') : t('auth.register')}
               {!loading && <ArrowRight size={14} />}
             </button>
 
             {onGuestContinue && (
               <button type="button" onClick={onGuestContinue} className="btn-secondary w-full justify-center py-2.5 text-sm">
-                Hesapsız devam et
+                {t('auth.guestContinue')}
               </button>
             )}
           </form>

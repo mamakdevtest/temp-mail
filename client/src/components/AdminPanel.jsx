@@ -1921,7 +1921,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 <span className="text-txt-secondary">Admin kimlik doğrulama</span>
                 <span className="text-txt-primary">JWT + parola fallback</span>
               </div>
-              <button onClick={refreshAll} className="btn-secondary mt-2">
+              <button type="button" onClick={refreshAll} className="btn-secondary mt-2">
                 <RefreshCw size={14} /> Tüm Veriyi Yenile
               </button>
             </div>
@@ -1947,6 +1947,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                     <ChevronDown size={14} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-txt-muted" />
                   </div>
                   <button
+                    type="button"
                     onClick={() => onPreviewNotificationSound?.(notificationSound)}
                     className="btn-primary shrink-0"
                   >
@@ -1989,7 +1990,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 <span className="text-txt-secondary">Mail Hacmi</span>
                 <span className="text-txt-primary">{stats?.total_emails || 0}</span>
               </div>
-              <button onClick={logout} className="btn-danger mt-2">
+              <button type="button" onClick={logout} className="btn-danger mt-2">
                 <Trash2 size={14} /> Admin Oturumunu Kapat
               </button>
             </div>

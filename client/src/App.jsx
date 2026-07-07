@@ -1,4 +1,4 @@
-import { lazy, Suspense, startTransition, useState, useEffect, useCallback, useRef } from 'react';
+import { lazy, Suspense, startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, User, Crown, Shield, Sparkles } from 'lucide-react';
 import useAuth from './hooks/useAuth';
@@ -8,6 +8,7 @@ import EmailView from './components/EmailView';
 import AccountPanel from './components/AccountPanel';
 import Modal from './components/Modal';
 import { playNotificationSound, NOTIFICATION_SOUNDS } from './utils/notificationSound';
+import { LocaleProvider, createTranslator, normalizeLanguage } from './i18n';
 
 const AuthPage = lazy(() => import('./components/AuthPage'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -52,6 +53,9 @@ function useBeep(soundId) {
 
 export default function App() {
   const auth = useAuth();
+  const theme = auth.preferences?.theme || auth.user?.theme || 'system';
+  const language = normalizeLanguage(auth.preferences?.language || auth.user?.language || 'tr');
+  const t = useMemo(() => createTranslator(language), [language]);
   const [notificationSound, setNotificationSound] = useState(() => {
     const saved = localStorage.getItem('tm-notification-sound');
     return NOTIFICATION_SOUNDS.some((sound) => sound.id === saved) ? saved : DEFAULT_NOTIFICATION_SOUND;
@@ -84,11 +88,22 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login');
 
   const userMenuRef = useRef(null);
+  const accountPanelRef = useRef(null);
   const sockRef = useRef(null);
   const notifTimer = useRef(null);
   const pollTimerRef = useRef(null);
   const pollDelayRef = useRef(5000);
   const restoredRef = useRef(false);
+
+  useEffect(() => {
+    const resolvedTheme = theme === 'system'
+      ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : theme;
+
+    document.documentElement.dataset.theme = resolvedTheme;
+    document.documentElement.lang = language;
+    document.documentElement.style.colorScheme = resolvedTheme;
+  }, [theme, language]);
 
   useEffect(() => {
     const h = () => initBeep();
@@ -170,6 +185,11 @@ export default function App() {
     previewBeep(soundId);
   }, [initBeep, previewBeep]);
 
+  const openAccountSettings = useCallback(() => {
+    accountPanelRef.current?.openSettings?.();
+    setShowUserMenu(false);
+  }, []);
+
   useEffect(() => {
     if (!auth.user) return;
     try {
@@ -182,7 +202,7 @@ export default function App() {
       s.on('disconnect', () => setSockOn(false));
       s.on('new-email', (d) => {
         setEmails((p) => (p.some((e) => e.id === d.id) ? p : [d, ...p]));
-        toast(`Yeni mail: ${d.sender}`, 'info');
+        toast(t('app.newMailToast', { sender: d.sender }), 'info');
         playBeep();
       });
       return () => { try { s.disconnect(); } catch (e) { /* */ } };
@@ -261,13 +281,13 @@ export default function App() {
       if (!r.ok) throw new Error(d.error || 'Adres oluşturulamadı');
       setAddr(d);
       setEmails([]);
-      toast(d.has_password ? 'Şifreli adres oluşturuldu' : 'Yeni adres hazır', 'success');
+      toast(d.has_password ? t('app.addressCreatedPassworded') : t('app.addressCreatedReady'), 'success');
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   const openAddr = useCallback(async (username, domain, password, subdomain = null) => {
     setLoading(true);
@@ -293,13 +313,13 @@ export default function App() {
       if (!r.ok) throw new Error(d.error || 'İşlem başarısız');
       setAddr(d);
       setEmails(d.emails || []);
-      toast(d.returned ? 'Adres açıldı' : 'Yeni adres hazır', 'success');
+      toast(d.returned ? t('app.addressOpened') : t('app.addressCreatedReady'), 'success');
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   const pwSubmit = useCallback(async () => {
     if (!pwInput) return;
@@ -320,13 +340,13 @@ export default function App() {
       setAddr(d);
       setEmails(d.emails || []);
       setPwModal({ show: false, username: '', domain: '' });
-      toast('Adres erişimi açıldı', 'success');
+      toast(t('app.accessOpened'), 'success');
     } catch (e) {
       setPwErr(e.message);
     } finally {
       setLoading(false);
     }
-  }, [pwInput, pwModal, toast]);
+  }, [pwInput, pwModal, toast, t]);
 
   const doSetPw = useCallback(async () => {
     if (!spwVal || !addr) return;
@@ -346,22 +366,22 @@ export default function App() {
       });
       setSpwShow(false);
       setSpwVal('');
-      toast('Şifre ayarlandı', 'success');
+      toast(t('app.passwordSaved'), 'success');
     } catch (e) {
       toast(e.message, 'error');
     }
-  }, [spwVal, addr, toast]);
+  }, [spwVal, addr, toast, t]);
 
   const doRequestPro = useCallback(async () => {
     try {
       await auth.requestPro(proReqMsg);
       setProReqShow(false);
       setProReqMsg('');
-      toast('Pro isteği gönderildi', 'success');
+      toast(t('app.proRequested'), 'success');
     } catch (e) {
       toast(e.message, 'error');
     }
-  }, [auth, proReqMsg, toast]);
+  }, [auth, proReqMsg, toast, t]);
 
   const loadEmails = useCallback(async () => {
     if (!addr) return;
@@ -402,12 +422,12 @@ export default function App() {
       if (r.ok) {
         setEmails((p) => p.filter((x) => x.id !== id));
         if (selected?.id === id) setSelected(null);
-        toast('Silindi', 'success');
+        toast(t('app.deleted'), 'success');
       }
     } catch (err) {
       toast(err.message, 'error');
     }
-  }, [selected, toast]);
+  }, [selected, toast, t]);
 
   const sendMail = useCallback(async () => {
     if (!compose.to || !compose.subject || !compose.body || !addr) return;
@@ -421,28 +441,28 @@ export default function App() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       setCompose({ open: false, to: '', subject: '', body: '' });
-      toast('Gönderildi', 'success');
+      toast(t('app.sent'), 'success');
     } catch (e) {
       toast(e.message, 'error');
     } finally {
       setSending(false);
     }
-  }, [compose, addr, toast]);
+  }, [compose, addr, toast, t]);
 
   const copyAddr = () => {
     if (!addr) return;
     navigator.clipboard.writeText(addr.address).then(
-      () => toast('Kopyalandı', 'success'),
-      () => toast('Kopyalama başarısız oldu', 'error')
+      () => toast(t('app.copySuccess'), 'success'),
+      () => toast(t('app.copyFail'), 'error')
     );
   };
 
   const copyOtp = useCallback((o) => {
     navigator.clipboard.writeText(o).then(
-      () => toast(`OTP: ${o}`, 'success'),
-      () => toast('OTP kopyalanamadı', 'error')
+      () => toast(t('app.otpCopied', { otp: o }), 'success'),
+      () => toast(t('app.otpCopyFail'), 'error')
     );
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     if (auth.user) {
@@ -480,7 +500,7 @@ export default function App() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-blue to-accent-cyan flex items-center justify-center mx-auto mb-3 animate-pulse-soft">
             <Mail size={20} className="text-white" />
           </div>
-          <p className="text-xs text-txt-muted">Yükleniyor...</p>
+          <p className="text-xs text-txt-muted">{t('app.loading')}</p>
         </div>
       </div>
     );
@@ -489,14 +509,15 @@ export default function App() {
   const activeDomain = addr?.address?.split('@')[1] || (domains[0]?.domain || '');
 
   return (
-    <div className="min-h-screen bg-brand-bg relative overflow-hidden">
+    <LocaleProvider language={language}>
+    <div className="app-shell min-h-screen bg-brand-bg relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-accent-purple/10 blur-[120px]" />
         <div className="absolute top-32 right-0 h-80 w-80 rounded-full bg-accent-cyan/8 blur-[140px]" />
         <div className="absolute bottom-20 left-0 h-72 w-72 rounded-full bg-accent-blue/8 blur-[140px]" />
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-brand-border/40 bg-brand-bg/75 backdrop-blur-2xl">
+      <header className="app-header sticky top-0 z-50 border-b border-brand-border/40 bg-brand-bg/75 backdrop-blur-2xl">
         <div className="max-w-[1680px] mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-11 h-11 rounded-2xl panel-soft flex items-center justify-center shadow-glow-cyan">
@@ -504,27 +525,31 @@ export default function App() {
             </div>
             <div>
               <p className="text-[15px] font-bold tracking-tight text-txt-primary">MS Temp Mail</p>
-              <p className="text-[11px] text-txt-muted">Mamak Studio temporary mail workspace</p>
+              <p className="text-[11px] text-txt-muted">{t('app.brandSubtitle')}</p>
             </div>
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <button onClick={() => startTransition(() => setPage('inbox'))} className={`nav-pill ${page === 'inbox' ? 'nav-pill-active' : ''}`}><InboxIcon size={16} /> Inbox <span className="w-1.5 h-1.5 rounded-full bg-accent-blue" /></button>
-            <button onClick={() => startTransition(() => setPage('domains'))} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> Domains</button>
-            {auth.isAdmin && <button onClick={() => startTransition(() => setPage('admin'))} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> Admin</button>}
+            <button onClick={() => startTransition(() => setPage('inbox'))} className={`nav-pill ${page === 'inbox' ? 'nav-pill-active' : ''}`}><InboxIcon size={16} /> {t('app.inbox')} <span className="w-1.5 h-1.5 rounded-full bg-accent-blue" /></button>
+            <button onClick={() => startTransition(() => setPage('domains'))} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> {t('app.domains')}</button>
+            {auth.isAdmin && <button onClick={() => startTransition(() => setPage('admin'))} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> {t('app.admin')}</button>}
           </div>
 
           <div className="flex items-center gap-3">
             {auth.isGuest ? (
               <>
-                <button onClick={() => openAuth('login')} className="btn-secondary px-4 py-2.5 text-xs">Giriş Yap</button>
-                <button onClick={() => openAuth('register')} className="btn-primary px-4 py-2.5 text-xs">Kayıt Ol</button>
+                <button onClick={() => openAuth('login')} className="btn-secondary px-4 py-2.5 text-xs">{t('app.signIn')}</button>
+                <button onClick={() => openAuth('register')} className="btn-primary px-4 py-2.5 text-xs">{t('app.signUp')}</button>
               </>
             ) : (
               <div className="relative flex items-center gap-4 pl-4 border-l border-brand-border/45" ref={userMenuRef}>
                 <button onClick={() => setShowUserMenu((v) => !v)} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 hover:bg-brand-surface2/60 transition-colors">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple flex items-center justify-center text-white font-semibold shadow-glow-blue">
-                    {(auth.user?.username || 'U')[0].toUpperCase()}
+                  <div className="w-11 h-11 rounded-full overflow-hidden border border-brand-border/30 bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple flex items-center justify-center text-white font-semibold shadow-glow-blue">
+                    {auth.user?.avatar_url ? (
+                      <img src={auth.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      (auth.user?.username || 'U')[0].toUpperCase()
+                    )}
                   </div>
                   <div className="hidden sm:block text-left">
                     <p className="text-sm font-semibold text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</p>
@@ -541,9 +566,12 @@ export default function App() {
                       <p className="text-sm font-semibold text-txt-primary">{auth.user?.display_name || auth.user?.username}</p>
                       <p className="text-xs text-txt-muted mt-1">{auth.user?.email}</p>
                     </div>
-                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); startTransition(() => setPage('admin')); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> Admin Paneli</button>}
-                    {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-purple hover:bg-accent-purple/5 transition-colors"><Crown size={14} /> Pro'ya Geç</button>}
-                    <button onClick={() => auth.logout()} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-red hover:bg-accent-red/5 transition-colors"><X size={14} /> Çıkış Yap</button>
+                    <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors">
+                      <Settings size={14} /> {t('app.accountSettings')}
+                    </button>
+                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); startTransition(() => setPage('admin')); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> {t('app.adminPanel')}</button>}
+                    {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-purple hover:bg-accent-purple/5 transition-colors"><Crown size={14} /> {t('app.proUpgrade')}</button>}
+                    <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-red hover:bg-accent-red/5 transition-colors"><X size={14} /> {t('app.logout')}</button>
                   </div>
                 )}
               </div>
@@ -561,49 +589,49 @@ export default function App() {
       <Modal
         show={pwModal.show}
         onClose={() => { setPwModal({ show: false, username: '', domain: '' }); setLoading(false); }}
-        title="Şifre Gerekli"
-        subtitle={`${pwModal.username}@${pwModal.domain} şifre korumalı`}
-        footer={<><button onClick={() => { setPwModal({ show: false, username: '', domain: '' }); setLoading(false); }} className="btn-secondary">İptal</button><button onClick={pwSubmit} disabled={!pwInput || loading} className="btn-primary"><KeyRound size={12} /> Giriş</button></>}
+        title={t('app.passwordRequiredTitle')}
+        subtitle={t('app.passwordRequiredSubtitle', { address: `${pwModal.username}@${pwModal.domain}` })}
+        footer={<><button onClick={() => { setPwModal({ show: false, username: '', domain: '' }); setLoading(false); }} className="btn-secondary">{t('app.cancel')}</button><button onClick={pwSubmit} disabled={!pwInput || loading} className="btn-primary"><KeyRound size={12} /> {t('app.signIn')}</button></>}
       >
-        <input type="password" value={pwInput} onChange={(e) => { setPwInput(e.target.value); setPwErr(''); }} onKeyDown={(e) => e.key === 'Enter' && pwSubmit()} placeholder="Şifre" className="input" autoFocus />
+        <input type="password" value={pwInput} onChange={(e) => { setPwInput(e.target.value); setPwErr(''); }} onKeyDown={(e) => e.key === 'Enter' && pwSubmit()} placeholder={t('app.passwordPlaceholder')} className="input" autoFocus />
         {pwErr && <p className="text-accent-red text-xs mt-2">{pwErr}</p>}
       </Modal>
 
       <Modal
         show={spwShow}
         onClose={() => { setSpwShow(false); setSpwVal(''); }}
-        title="Şifre Belirle"
-        subtitle="Sonraki erişimlerde şifre istenecek"
-        footer={<><button onClick={() => { setSpwShow(false); setSpwVal(''); }} className="btn-secondary">İptal</button><button onClick={doSetPw} disabled={!spwVal} className="btn-primary"><Lock size={12} /> Kaydet</button></>}
+        title={t('app.setPasswordTitle')}
+        subtitle={t('app.setPasswordSubtitle')}
+        footer={<><button onClick={() => { setSpwShow(false); setSpwVal(''); }} className="btn-secondary">{t('app.cancel')}</button><button onClick={doSetPw} disabled={!spwVal} className="btn-primary"><Lock size={12} /> {t('app.save')}</button></>}
       >
-        <input type="password" value={spwVal} onChange={(e) => setSpwVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSetPw()} placeholder="Şifre" className="input" autoFocus />
+        <input type="password" value={spwVal} onChange={(e) => setSpwVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSetPw()} placeholder={t('app.passwordPlaceholder')} className="input" autoFocus />
       </Modal>
 
       <Modal
         show={compose.open}
         onClose={() => setCompose({ ...compose, open: false })}
-        title="Yeni Mail"
+        title={t('app.composeTitle')}
         wide
-        footer={<><button onClick={() => setCompose({ ...compose, open: false })} className="btn-secondary">İptal</button><button onClick={sendMail} disabled={sending} className="btn-primary">{sending ? '⏳' : <Send size={12} />} Gönder</button></>}
+        footer={<><button onClick={() => setCompose({ ...compose, open: false })} className="btn-secondary">{t('app.cancel')}</button><button onClick={sendMail} disabled={sending} className="btn-primary">{sending ? '⏳' : <Send size={12} />} {t('app.send')}</button></>}
       >
         <div className="space-y-3">
-          <div><label className="section-title mb-1.5 block">Gönderen</label><input value={addr?.address || ''} disabled className="input opacity-50 text-xs" /></div>
-          <div><label className="section-title mb-1.5 block">Alıcı</label><input value={compose.to} onChange={(e) => setCompose({ ...compose, to: e.target.value })} placeholder="alici@ornek.com" className="input" autoFocus /></div>
-          <div><label className="section-title mb-1.5 block">Konu</label><input value={compose.subject} onChange={(e) => setCompose({ ...compose, subject: e.target.value })} placeholder="Konu" className="input" /></div>
-          <div><label className="section-title mb-1.5 block">İçerik</label><textarea value={compose.body} onChange={(e) => setCompose({ ...compose, body: e.target.value })} rows={4} className="input resize-y" /></div>
+          <div><label className="section-title mb-1.5 block">{t('app.composeFrom')}</label><input value={addr?.address || ''} disabled className="input opacity-50 text-xs" /></div>
+          <div><label className="section-title mb-1.5 block">{t('app.composeTo')}</label><input value={compose.to} onChange={(e) => setCompose({ ...compose, to: e.target.value })} placeholder={t('app.recipientPlaceholder')} className="input" autoFocus /></div>
+          <div><label className="section-title mb-1.5 block">{t('app.composeSubject')}</label><input value={compose.subject} onChange={(e) => setCompose({ ...compose, subject: e.target.value })} placeholder={t('app.subjectPlaceholder')} className="input" /></div>
+          <div><label className="section-title mb-1.5 block">{t('app.composeBody')}</label><textarea value={compose.body} onChange={(e) => setCompose({ ...compose, body: e.target.value })} rows={4} className="input resize-y" /></div>
         </div>
       </Modal>
 
       <Modal
         show={proReqShow}
         onClose={() => { setProReqShow(false); setProReqMsg(''); }}
-        title="Pro'ya Yükselt"
-        subtitle="Admin onayı ile Pro kullanıcı olun"
-        footer={<><button onClick={() => setProReqShow(false)} className="btn-secondary">İptal</button><button onClick={doRequestPro} className="btn-primary"><Crown size={12} /> İstek Gönder</button></>}
+        title={t('app.proRequestTitle')}
+        subtitle={t('app.proRequestSubtitle')}
+        footer={<><button onClick={() => setProReqShow(false)} className="btn-secondary">{t('app.cancel')}</button><button onClick={doRequestPro} className="btn-primary"><Crown size={12} /> {t('app.send')}</button></>}
       >
         <div className="space-y-3">
           <div className="p-4 rounded-2xl bg-accent-purple/8 border border-accent-purple/15">
-            <p className="text-xs font-semibold text-accent-purple mb-2">Pro Paket Özellikleri</p>
+            <p className="text-xs font-semibold text-accent-purple mb-2">{t('app.proFeaturesTitle')}</p>
             <ul className="text-[11px] text-txt-muted space-y-1">
               <li>• Sınırsız adres oluşturma</li>
               <li>• 5000 mail saklama</li>
@@ -613,15 +641,15 @@ export default function App() {
             </ul>
           </div>
           <div>
-            <label className="section-title mb-1.5 block">Mesaj (opsiyonel)</label>
-            <textarea value={proReqMsg} onChange={(e) => setProReqMsg(e.target.value)} placeholder="Neden Pro olmak istiyorsunuz?" rows={3} className="input resize-y" />
+            <label className="section-title mb-1.5 block">{t('app.proMessage')}</label>
+            <textarea value={proReqMsg} onChange={(e) => setProReqMsg(e.target.value)} placeholder={t('app.proMessagePlaceholder')} rows={3} className="input resize-y" />
           </div>
         </div>
       </Modal>
 
       {showAuth && (
         <div className="fixed inset-0 z-[200] overflow-y-auto bg-brand-bg/92 backdrop-blur-xl">
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-txt-muted">Yükleniyor...</div>}>
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-txt-muted">{t('app.loading')}</div>}>
             <AuthPage
               defaultMode={authMode}
               onLogin={auth.login}
@@ -636,7 +664,19 @@ export default function App() {
       <main className="relative z-10 max-w-[1680px] mx-auto px-5 sm:px-8 py-6 sm:py-8">
         {page === 'inbox' ? (
           <div className="space-y-6">
-            <AddressBar currentAddress={addr} loading={loading} error={error} domains={domains} history={history} onGenerate={genRandom} onSubmit={openAddr} onCopy={copyAddr} onSetPassword={handleSetPassword} isPro={auth.isPro} />
+            <AddressBar
+              currentAddress={addr}
+              loading={loading}
+              error={error}
+              domains={domains}
+              history={history}
+              preferredDomainId={auth.preferences?.default_domain_id || auth.user?.default_domain_id || null}
+              onGenerate={genRandom}
+              onSubmit={openAddr}
+              onCopy={copyAddr}
+              onSetPassword={handleSetPassword}
+              isPro={auth.isPro}
+            />
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
               <div className="xl:col-span-4 2xl:col-span-4 min-h-[530px]">
                 <Inbox emails={emails} selectedId={selected?.id} onSelect={loadDetail} onDelete={delEmail} hasAddr={!!addr} onRefresh={refresh} refreshing={refreshing} live={sockOn} />
@@ -646,12 +686,14 @@ export default function App() {
               </div>
               <div className="xl:col-span-3 2xl:col-span-3 min-h-[530px]">
                 <AccountPanel
+                  ref={accountPanelRef}
                   auth={auth}
                   user={auth.user}
                   pkg={auth.pkg}
                   stats={auth.stats}
                   activeDomain={activeDomain}
                   emailCount={emails.length}
+                  history={history}
                   isGuest={auth.isGuest}
                   isPro={auth.isPro}
                   isAdmin={auth.isAdmin}
@@ -716,5 +758,6 @@ export default function App() {
         </p>
       </footer>
     </div>
+    </LocaleProvider>
   );
 }

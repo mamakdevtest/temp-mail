@@ -1,15 +1,15 @@
 export function AdminPanelCard({ title, icon: Icon, action, children, className = '' }) {
   return (
-    <section className={`card p-5 ${className}`}>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3 min-w-0">
+    <section className={`card p-4 ${className}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 mb-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           {Icon ? (
-            <div className="w-10 h-10 rounded-2xl panel-soft flex items-center justify-center shrink-0">
-              <Icon size={17} className="text-accent-blue" />
+            <div className="w-8 h-8 rounded-xl panel-soft flex items-center justify-center shrink-0">
+              <Icon size={15} className="text-accent-blue" />
             </div>
           ) : null}
           <div className="min-w-0">
-            <h3 className="text-sm sm:text-base font-semibold text-txt-primary truncate">{title}</h3>
+            <h3 className="text-sm font-semibold text-txt-primary truncate">{title}</h3>
           </div>
         </div>
         {action ? <div className="w-full sm:w-auto">{action}</div> : null}
@@ -39,17 +39,17 @@ export function AdminStatCard({ title, value, subtitle, icon: Icon, tone = 'blue
   };
 
   return (
-    <div className="card p-5 relative overflow-hidden">
+    <div className="card p-4 relative overflow-hidden">
       <div className={`absolute inset-x-6 bottom-0 h-[2px] rounded-full bg-gradient-to-r ${lineMap[tone] || lineMap.blue}`} />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm text-txt-secondary">{title}</p>
-          <p className="text-3xl sm:text-4xl font-semibold tracking-tight text-txt-primary mt-2">{value}</p>
-          <p className="text-xs text-txt-muted mt-2">{subtitle}</p>
+          <p className="text-xs text-txt-secondary">{title}</p>
+          <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-txt-primary mt-1.5">{value}</p>
+          <p className="text-xs text-txt-muted mt-1.5">{subtitle}</p>
         </div>
         {Icon ? (
-          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-3xl bg-gradient-to-br ${toneMap[tone] || toneMap.blue} flex items-center justify-center shrink-0`}>
-            <Icon size={22} />
+          <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br ${toneMap[tone] || toneMap.blue} flex items-center justify-center shrink-0`}>
+            <Icon size={19} />
           </div>
         ) : null}
       </div>
@@ -59,7 +59,7 @@ export function AdminStatCard({ title, value, subtitle, icon: Icon, tone = 'blue
 
 export function AdminEmptyState({ title, subtitle, action }) {
   return (
-    <div className="py-14 text-center">
+    <div className="py-8 text-center">
       <p className="text-sm font-medium text-txt-secondary">{title}</p>
       <p className="text-xs text-txt-muted mt-1">{subtitle}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
@@ -69,9 +69,9 @@ export function AdminEmptyState({ title, subtitle, action }) {
 
 export function AdminInfoRow({ label, value, valueClassName = '' }) {
   return (
-    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4 py-3 border-b border-brand-border/10 last:border-0">
-      <span className="text-sm text-txt-secondary">{label}</span>
-      <span className={`text-sm text-txt-primary sm:text-right break-words ${valueClassName}`}>{value}</span>
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4 py-2 border-b border-brand-border/10 last:border-0">
+      <span className="text-xs sm:text-sm text-txt-secondary">{label}</span>
+      <span className={`text-xs sm:text-sm text-txt-primary sm:text-right break-words ${valueClassName}`}>{value}</span>
     </div>
   );
 }

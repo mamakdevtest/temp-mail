@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import {
   User,
   Crown,
@@ -7,6 +7,7 @@ import {
   Shield,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Zap,
   Mail,
   Pencil,
@@ -36,6 +37,7 @@ import {
 import { AdminPanelCard, AdminStatCard, AdminEmptyState, AdminInfoRow } from './admin/AdminPrimitives';
 import { formatAdminDate, formatRetention } from './admin/adminUtils';
 import AccountEditorModal from './AccountEditorModal';
+import { useLocale } from '../i18n';
 
 function buildAddressDrafts(addresses = []) {
   return addresses.reduce((acc, addr) => {
@@ -64,7 +66,7 @@ function OptionBadge({ active, children, tone = 'blue', onClick }) {
   );
 }
 
-export default function AccountPanel({
+const AccountPanel = forwardRef(function AccountPanel({
   auth,
   api = '/api',
   token,
@@ -73,6 +75,7 @@ export default function AccountPanel({
   stats,
   activeDomain,
   emailCount = 0,
+  history = [],
   isGuest,
   isPro,
   isAdmin,
@@ -86,7 +89,8 @@ export default function AccountPanel({
   onAdmin,
   onLogin,
   onRegister,
-}) {
+}, ref) {
+  const { t } = useLocale();
   const authToken = auth?.token || token || null;
   const currentUser = auth?.user || user;
   const currentPkg = auth?.pkg || pkg;
@@ -105,6 +109,7 @@ export default function AccountPanel({
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [showPasswordedHistory, setShowPasswordedHistory] = useState(false);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
 
   const [profileDraft, setProfileDraft] = useState({
@@ -265,7 +270,8 @@ export default function AccountPanel({
     return Number.isFinite(parsed.getTime()) ? parsed.getTime() > Date.now() : true;
   }, [currentUser?.email_change_cooldown_until]);
 
-  const openProfileEditor = () => {
+  const openProfileEditor = (nextTab = 'genel') => {
+    setTab(nextTab);
     setProfileDraft({
       username: currentUser?.username || '',
       display_name: currentUser?.display_name || currentUser?.username || '',
@@ -277,6 +283,10 @@ export default function AccountPanel({
     setEmailPending(currentUser?.pending_email || '');
     setShowProfileEditor(true);
   };
+
+  useImperativeHandle(ref, () => ({
+    openSettings: () => openProfileEditor('genel'),
+  }));
 
   const closeProfileEditor = () => {
     setShowProfileEditor(false);
@@ -548,20 +558,20 @@ export default function AccountPanel({
             <User size={15} className="text-accent-blue" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-txt-primary">Hesap</p>
-            <p className="text-[11px] text-txt-muted">Profil ve plan detayları</p>
+            <p className="text-[13px] font-semibold text-txt-primary">{t('account.title')}</p>
+            <p className="text-[11px] text-txt-muted">{t('account.subtitle')}</p>
           </div>
         </div>
-        <div className="panel-soft p-4 rounded-[24px] border-brand-border/55">
-          <p className="text-xl font-semibold text-txt-primary">Misafir Kullanıcı</p>
-          <p className="text-sm text-txt-muted mt-2 leading-relaxed">
-            Giriş yapmadan kullanabilirsiniz. Hesap açtığınızda profil, güvenlik ve tercih merkezine erişirsiniz.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-            <button onClick={onLogin} className="btn-secondary">Giriş Yap</button>
-            <button onClick={onRegister} className="btn-primary">Hesap Aç</button>
+          <div className="panel-soft p-4 rounded-[24px] border-brand-border/55">
+            <p className="text-xl font-semibold text-txt-primary">{t('account.guestTitle')}</p>
+            <p className="text-sm text-txt-muted mt-2 leading-relaxed">
+              {t('account.guestDescription')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            <button onClick={onLogin} className="btn-secondary">{t('app.signIn')}</button>
+            <button onClick={onRegister} className="btn-primary">{t('app.signUp')}</button>
+            </div>
           </div>
-        </div>
       </div>
     );
   }
@@ -570,25 +580,29 @@ export default function AccountPanel({
   const usagePercent = Math.min(Math.round(((currentStats?.address_count || 0) / (currentPkg?.max_addresses || 3)) * 100), 100);
   const avatarInitial = (profileDraft.display_name || profileDraft.username || currentUser?.username || 'M')[0].toUpperCase();
   const activeDomainLabel = activeDomain || domains[0]?.domain || '-';
+  const recentHistory = Array.isArray(history) ? history.slice(0, 3) : [];
+  const passwordedHistory = Array.isArray(history) ? history.filter((item) => item.has_password) : [];
 
   return (
-    <div className="card p-5 sm:p-6 h-full min-h-[530px] flex flex-col">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-2xl panel-soft flex items-center justify-center">
-          <User size={15} className="text-accent-blue" />
+    <div className="account-summary-panel card p-4 sm:p-5 h-full min-h-[530px] flex flex-col gap-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold text-txt-primary">{t('account.title')}</p>
+          <p className="text-[11px] text-txt-muted">{t('account.subtitle')}</p>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold text-txt-primary">Hesap</p>
-          <p className="text-[11px] text-txt-muted">Profil, güvenlik, tercihler ve kullanım</p>
+        <div className="flex items-center gap-2 shrink-0">
+          <button type="button" onClick={() => openProfileEditor('genel')} className="btn-secondary text-xs px-3 py-2">
+            <Pencil size={12} /> {t('account.settings')}
+          </button>
+          <button type="button" onClick={onLogout} className="btn-danger text-xs px-3 py-2">
+            <LogOut size={12} />
+          </button>
         </div>
-        <button onClick={onLogout} className="btn-secondary text-xs px-3 py-2">
-          <LogOut size={12} /> Çıkış
-        </button>
       </div>
 
-      <div className="panel-soft p-4 sm:p-5 rounded-[24px] border-brand-border/55 mb-4 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-[26px] overflow-hidden flex items-center justify-center text-white text-2xl font-semibold shadow-glow-blue bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple shrink-0">
+      <div className="panel-soft p-4 rounded-2xl border-brand-border/55 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="keep-white-ink w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center text-white text-xl font-semibold shadow-glow-blue bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple shrink-0">
             {profilePhotoPreview && !avatarLoadError ? (
               <img src={profilePhotoPreview} alt="avatar" className="w-full h-full object-cover" onError={() => setAvatarLoadError(true)} />
             ) : (
@@ -596,79 +610,116 @@ export default function AccountPanel({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Hesap Alanı</p>
-            <p className="text-lg sm:text-2xl font-semibold tracking-tight text-txt-primary leading-tight break-words mt-1">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-txt-muted">{t('account.accountArea')}</p>
+            <p className="text-lg font-semibold tracking-tight text-txt-primary leading-tight break-words mt-1">
               {profileDraft.display_name || currentUser?.display_name || currentUser?.username}
             </p>
-            <p className="text-sm text-accent-green mt-2 flex items-center gap-2 flex-wrap">
-              <span className="w-2 h-2 rounded-full bg-accent-green" />
-              {isAdmin ? 'Admin Kullanıcı' : isPro ? 'Pro Kullanıcı' : 'Free Kullanıcı'}
-            </p>
+            <p className="text-sm text-txt-muted mt-1 break-all">@{currentUser?.username}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className={isAdmin ? 'badge-gold' : isPro ? 'badge-blue' : 'badge-green'}>
+                {planName}
+              </span>
+              <span className="badge-green">{t('account.active')}</span>
+            </div>
           </div>
-          <div className="hidden md:block md:text-right md:shrink-0">
-            <p className="text-xs text-txt-muted">Plan</p>
-            <p className="text-lg font-semibold text-txt-primary">{planName}</p>
-            <p className="text-[11px] text-txt-muted mt-1">{usagePercent}% kullanım</p>
+          <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3">
+            <div
+              className="relative h-24 w-24 rounded-full"
+              style={{
+                background: `conic-gradient(rgb(var(--accent-cyan)) 0 ${usagePercent}%, rgb(var(--brand-border) / 0.24) ${usagePercent}% 100%)`,
+              }}
+            >
+              <div className="absolute inset-3 rounded-full border border-brand-border/20 bg-brand-surface flex flex-col items-center justify-center text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                <p className="text-[18px] font-semibold tracking-tight text-txt-primary">{usagePercent}%</p>
+                <p className="text-[9px] uppercase tracking-[0.22em] text-txt-muted">{t('account.usage')}</p>
+              </div>
+            </div>
+            <p className="mt-2 text-[10px] text-txt-muted text-center">{currentStats?.address_count || 0}/{currentPkg?.max_addresses || 3}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <AdminInfoRow label="Adres" value={currentStats?.address_count || 0} />
-          <AdminInfoRow label="Mail" value={currentStats?.email_count || 0} />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.address')}</p>
+            <p className="text-xl font-semibold text-txt-primary mt-1">{currentStats?.address_count || 0}</p>
+          </div>
+          <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.mail')}</p>
+            <p className="text-xl font-semibold text-txt-primary mt-1">{currentStats?.email_count || 0}</p>
+          </div>
+          <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.plan')}</p>
+            <p className="text-sm font-semibold text-txt-primary mt-1">{planName}</p>
+          </div>
+          <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.domain')}</p>
+            <p className="text-sm font-semibold text-txt-primary mt-1 truncate">{activeDomainLabel}</p>
+          </div>
         </div>
 
         <div className="h-2 rounded-full bg-brand-surface2 overflow-hidden">
           <div className="h-full rounded-full bg-gradient-to-r from-accent-blue to-accent-cyan" style={{ width: `${usagePercent}%` }} />
         </div>
+      </div>
 
-        <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.22em] text-txt-muted">Aktif Alan Adı</p>
-              <p className="text-sm font-semibold text-txt-primary mt-1 truncate">{activeDomainLabel}</p>
-            </div>
-            <span className="badge-green">Aktif</span>
+      <div className="panel-soft p-4 rounded-2xl border-brand-border/55 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">{t('account.recentUsed')}</p>
+            <p className="text-[11px] text-txt-muted mt-1">{t('account.recentUsedHint')}</p>
           </div>
+          {recentHistory.length > 0 ? <span className="badge-blue text-[9px]">{recentHistory.length}</span> : null}
         </div>
-
         <div className="space-y-2">
-          <button onClick={openProfileEditor} className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-4 py-3 text-left text-txt-primary hover:bg-brand-surface2/45 transition-colors">
-            <div className="flex items-center gap-3 min-w-0">
-              <Pencil size={14} className="text-accent-blue shrink-0" />
+          {recentHistory.length > 0 ? recentHistory.map((item) => (
+            <div key={item.address} className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-3 py-2.5 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium">Hesap Ayarları</p>
-                <p className="text-[11px] text-txt-muted break-words sm:truncate">Profil, güvenlik ve tercihleri düzenle</p>
+                <p className="text-sm font-medium text-txt-primary truncate">{item.address}</p>
+                <p className="text-[10px] text-txt-muted mt-0.5">{item.has_password ? t('addressBar.passwordedBadge') : t('account.open')} • {new Date(item.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
               </div>
+              <span className="w-2.5 h-2.5 rounded-full bg-accent-green shrink-0" />
             </div>
-            <ChevronRight size={14} className="text-txt-muted self-end sm:self-auto" />
-          </button>
-
-          <button onClick={() => (onRequestPro ? onRequestPro() : null)} className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-4 py-3 text-left text-txt-primary hover:bg-brand-surface2/45 transition-colors">
-            <div className="flex items-center gap-3 min-w-0">
-              <Crown size={14} className="text-accent-purple shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">Planı Yönet</p>
-                <p className="text-[11px] text-txt-muted break-words sm:truncate">{isPro || isAdmin ? 'Plan isteği zaten yapıldı' : 'Pro isteği gönder'}</p>
-              </div>
-            </div>
-            <ChevronRight size={14} className="text-txt-muted self-end sm:self-auto" />
-          </button>
-
-          <button onClick={onLogout} className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-accent-red/20 bg-accent-red/5 px-4 py-3 text-left text-accent-red hover:bg-accent-red/10 transition-colors">
-            <div className="flex items-center gap-3 min-w-0">
-              <LogOut size={14} className="shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">Çıkış Yap</p>
-                <p className="text-[11px] text-accent-red/80 break-words sm:truncate">Hesaptan güvenli şekilde çık</p>
-              </div>
-            </div>
-            <ChevronRight size={14} className="text-accent-red/80 self-end sm:self-auto" />
-          </button>
+          )) : (
+            <p className="text-sm text-txt-muted">{t('account.noHistory')}</p>
+          )}
         </div>
       </div>
 
-      {message && <div className="mb-3 text-sm rounded-2xl border border-accent-green/20 bg-accent-green/10 text-accent-green px-4 py-3">{message}</div>}
-      {error && <div className="mb-3 text-sm rounded-2xl border border-accent-red/20 bg-accent-red/10 text-accent-red px-4 py-3">{error}</div>}
+      <div className="panel-soft p-4 rounded-2xl border-brand-border/55">
+        <button
+          type="button"
+          onClick={() => setShowPasswordedHistory((v) => !v)}
+          aria-expanded={showPasswordedHistory}
+          className="w-full flex items-center justify-between gap-3 text-left"
+        >
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">{t('account.passwordedList')}</p>
+            <p className="text-[11px] text-txt-muted mt-1">{t('account.passwordedListHint')}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {passwordedHistory.length > 0 ? <span className="badge-purple text-[9px]">{passwordedHistory.length}</span> : null}
+            <ChevronDown size={14} className={`text-txt-muted transition-transform ${showPasswordedHistory ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        {showPasswordedHistory ? (
+          <div className="mt-3 space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            {passwordedHistory.length > 0 ? passwordedHistory.map((item) => (
+              <div key={item.address} className="rounded-2xl border border-accent-purple/15 bg-accent-purple/5 px-3 py-2.5 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-txt-primary truncate">{item.address}</p>
+                  <p className="text-[10px] text-txt-muted mt-0.5">{new Date(item.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                <Lock size={12} className="text-accent-purple shrink-0" />
+              </div>
+            )) : (
+              <p className="text-sm text-txt-muted">{t('account.noPassworded')}</p>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      {message && <div className="text-sm rounded-2xl border border-accent-green/20 bg-accent-green/10 text-accent-green px-4 py-3">{message}</div>}
+      {error && <div className="text-sm rounded-2xl border border-accent-red/20 bg-accent-red/10 text-accent-red px-4 py-3">{error}</div>}
 
       <div className="hidden">
         {tab === 'profile' && (
@@ -712,7 +763,7 @@ export default function AccountPanel({
 
                   <div className="mt-5 flex flex-wrap items-center gap-3">
                     {!isGuest ? (
-                      <button onClick={openProfileEditor} className="btn-primary">
+                      <button onClick={() => openProfileEditor('profil')} className="btn-primary">
                         <Pencil size={12} /> Düzenle / Edit
                       </button>
                     ) : null}
@@ -736,7 +787,7 @@ export default function AccountPanel({
                     <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Hızlı Durum</p>
                     <div className="mt-3 space-y-3">
                       <AdminInfoRow label="Kullanıcı adı hakkı" value={usernameLocked ? 'Kullanıldı' : '1 kez kullanılabilir'} />
-                      <AdminInfoRow label="E-posta değişim" value={emailChangeCooldownActive ? 'Bekleme aktif' : 'Hazır'} />
+                      <AdminInfoRow label={t('accountModal.emailChange')} value={emailChangeCooldownActive ? t('accountModal.cooldownActive') : t('accountModal.ready')} />
                       <AdminInfoRow label="Bekleyen e-posta" value={currentUser?.pending_email || '-'} />
                     </div>
                   </div>
@@ -774,7 +825,7 @@ export default function AccountPanel({
                       onChange={(e) => setPasswordDraft((p) => ({ ...p, confirmPassword: e.target.value }))}
                       className="input"
                     />
-                    <button onClick={savePassword} disabled={saving} className="btn-primary w-full">
+                    <button type="button" onClick={savePassword} disabled={saving} className="btn-primary w-full">
                       <Lock size={12} /> Şifreyi Güncelle
                     </button>
                   </div>
@@ -787,8 +838,8 @@ export default function AccountPanel({
                         <History size={15} className="text-accent-blue" />
                         <p className="text-sm font-semibold text-txt-primary">Aktif Oturumlar</p>
                       </div>
-                      <button onClick={loadCenter} className="btn-secondary text-xs px-3 py-2">
-                        <RefreshCw size={12} /> Yenile
+                      <button type="button" onClick={loadCenter} className="btn-secondary text-xs px-3 py-2">
+                        <RefreshCw size={12} /> {t('accountModal.refresh')}
                       </button>
                     </div>
                     {center.sessions.length > 0 ? (
@@ -871,7 +922,7 @@ export default function AccountPanel({
                   <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Tema</p>
                   <div className="grid grid-cols-3 gap-2 mt-3">
                     <OptionBadge tone="blue" active={prefDraft.theme === 'light'} onClick={() => setPrefDraft((p) => ({ ...p, theme: 'light' }))}>
-                      <Sun size={14} /> Açık
+                      <Sun size={14} /> {t('accountModal.themeLight')}
                     </OptionBadge>
                     <OptionBadge tone="purple" active={prefDraft.theme === 'dark'} onClick={() => setPrefDraft((p) => ({ ...p, theme: 'dark' }))}>
                       <Moon size={14} /> Koyu
@@ -956,15 +1007,15 @@ export default function AccountPanel({
                         <option key={sound.id} value={sound.id}>{sound.name}</option>
                       ))}
                     </select>
-                    <button onClick={() => onPreviewNotificationSound?.(prefDraft.notification_sound)} className="btn-primary w-full">
-                      <Mail size={12} /> Önizle
+                    <button type="button" onClick={() => onPreviewNotificationSound?.(prefDraft.notification_sound)} className="btn-primary w-full">
+                      <Mail size={12} /> {t('accountModal.preview')}
                     </button>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
-                  <button onClick={savePreferences} disabled={saving} className="btn-primary">
-                    <Save size={12} /> Kaydet
+                  <button type="button" onClick={savePreferences} disabled={saving} className="btn-primary">
+                    <Save size={12} /> {t('accountModal.quickSave')}
                   </button>
                 </div>
               </div>
@@ -987,7 +1038,7 @@ export default function AccountPanel({
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           {draft.is_favorite ? <span className="badge-gold">Favori</span> : null}
-                          {draft.is_locked ? <span className="badge-purple">Kilitli</span> : null}
+                          {draft.is_locked ? <span className="badge-purple">{t('accountModal.locked')}</span> : null}
                         </div>
                       </div>
 
@@ -1045,10 +1096,10 @@ export default function AccountPanel({
                           <FolderLock size={12} /> {draft.is_locked ? 'Kilidi aç' : 'Kilitle'}
                         </button>
                         <button onClick={() => renewAddress(addr)} className="btn-secondary text-xs px-3 py-2">
-                          <RotateCcw size={12} /> Yenile
+                          <RotateCcw size={12} /> {t('accountModal.refresh')}
                         </button>
                         <button onClick={() => saveAddress(addr)} className="btn-primary text-xs px-3 py-2">
-                          <Save size={12} /> Kaydet
+                          <Save size={12} /> {t('accountModal.quickSave')}
                         </button>
                         <button onClick={() => deleteAddress(addr)} className="btn-danger text-xs px-3 py-2">
                           <Trash2 size={12} /> Sil
@@ -1105,12 +1156,12 @@ export default function AccountPanel({
                       <option key={sound.id} value={sound.id}>{sound.name}</option>
                     ))}
                   </select>
-                  <button onClick={() => onPreviewNotificationSound?.(prefDraft.notification_sound)} className="btn-secondary w-full mt-3">
-                    <Mail size={12} /> Sesi Önizle
+                  <button type="button" onClick={() => onPreviewNotificationSound?.(prefDraft.notification_sound)} className="btn-secondary w-full mt-3">
+                    <Mail size={12} /> {t('accountModal.preview')}
                   </button>
                 </div>
-                <button onClick={savePreferences} disabled={saving} className="btn-primary w-full">
-                  <Save size={12} /> Bildirimleri Kaydet
+                <button type="button" onClick={savePreferences} disabled={saving} className="btn-primary w-full">
+                  <Save size={12} /> {t('accountModal.quickSave')}
                 </button>
               </div>
             </div>
@@ -1150,7 +1201,7 @@ export default function AccountPanel({
                 </div>
 
                 {!isPro && !isAdmin ? (
-                  <button onClick={onRequestPro} className="btn-primary">
+                  <button type="button" onClick={onRequestPro} className="btn-primary">
                     <Crown size={12} /> Limit Yükselt
                   </button>
                 ) : null}
@@ -1169,6 +1220,7 @@ export default function AccountPanel({
         currentPkg={currentPkg}
         currentStats={currentStats}
         currentPrefs={currentPrefs}
+        currentUserName={currentUser?.username}
         profilePhotoPreview={profilePhotoPreview}
         avatarInitial={avatarInitial}
         onUploadAvatar={uploadAvatar}
@@ -1199,7 +1251,17 @@ export default function AccountPanel({
         isAdmin={isAdmin}
         isPro={isPro}
         emailCount={emailCount}
+        emailDraft={emailDraft}
+        setEmailDraft={setEmailDraft}
+        emailCode={emailCode}
+        setEmailCode={setEmailCode}
+        emailStep={emailStep}
+        setEmailStep={setEmailStep}
+        requestEmailChange={requestEmailChange}
+        confirmEmailChange={confirmEmailChange}
       />
     </div>
   );
-}
+});
+
+export default AccountPanel;
