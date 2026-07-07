@@ -3,9 +3,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-export default function AdminPanel({ api }) {
+export default function AdminPanel({ api, token }) {
   const [pw, setPw] = useState(() => localStorage.getItem('tm-admin-pw') || '');
-  const [auth, setAuth] = useState(false);
+  const [auth, setAuth] = useState(!!token); // JWT varsa direkt auth
   const [domains, setDomains] = useState([]);
   const [newDom, setNewDom] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,8 @@ export default function AdminPanel({ api }) {
   const [mboxEmails, setMboxEmails] = useState([]);
   const [mboxSel, setMboxSel] = useState(null);
 
-  const H = { 'x-admin-password': pw };
+  // JWT token varsa onu kullan, yoksa eski şifre yöntemini
+  const H = token ? { 'Authorization': `Bearer ${token}` } : { 'x-admin-password': pw };
 
   useEffect(() => { if (serverIp) localStorage.setItem('tm-server-ip', serverIp); }, [serverIp]);
 

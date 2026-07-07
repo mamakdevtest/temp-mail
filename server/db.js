@@ -36,6 +36,55 @@ async function initDatabase() {
   db.run('PRAGMA busy_timeout = 5000;');
 
   // Tabloları oluştur
+
+  // Kullanıcılar tablosu
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT DEFAULT 'free' CHECK(role IN ('admin','pro','free')),
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_login DATETIME
+    );
+  `);
+
+  // Paketler tablosu
+  db.run(`
+    CREATE TABLE IF NOT EXISTS packages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      display_name TEXT NOT NULL,
+      max_addresses INTEGER DEFAULT 3,
+      max_emails INTEGER DEFAULT 50,
+      email_retention_days INTEGER DEFAULT 7,
+      custom_domains INTEGER DEFAULT 0,
+      webhook_support INTEGER DEFAULT 0,
+      priority_support INTEGER DEFAULT 0,
+      price_monthly REAL DEFAULT 0,
+      features TEXT DEFAULT '[]',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Pro yükseltme istekleri
+  db.run(`
+    CREATE TABLE IF NOT EXISTS package_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      requested_package TEXT NOT NULL DEFAULT 'pro',
+      message TEXT,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected')),
+      reviewed_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      reviewed_at DATETIME,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+  `);
+
   db.run(`
     CREATE TABLE IF NOT EXISTS domains (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,12 +100,14 @@ async function initDatabase() {
       address TEXT UNIQUE NOT NULL,
       username TEXT NOT NULL,
       domain_id INTEGER NOT NULL,
+      user_id INTEGER,
       password_hash TEXT,
       is_persistent INTEGER DEFAULT 0,
       expires_at DATETIME NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_accessed DATETIME,
-      FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+      FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     );
   `);
 
@@ -91,13 +142,13 @@ async function initDatabase() {
     'ALTER TABLE addresses ADD COLUMN password_hash TEXT',
     'ALTER TABLE addresses ADD COLUMN is_persistent INTEGER DEFAULT 0',
     'ALTER TABLE addresses ADD COLUMN last_accessed DATETIME',
+    'ALTER TABLE addresses ADD COLUMN user_id INTEGER',
   ];
 
   for (const sql of migrations) {
     try {
       db.run(sql);
     } catch (e) {
-      // "duplicate column name" hatası normal - kolon zaten var
       if (!e.message.includes('duplicate column')) {
         console.warn('Migration uyarısı:', e.message);
       }
@@ -107,9 +158,36 @@ async function initDatabase() {
   // Mevcut adreslerin süresini uzak geleceğe taşı (süresiz yap)
   try {
     db.run("UPDATE addresses SET expires_at = '9999-12-31T23:59:59.000Z' WHERE expires_at < '9999-12-31'");
-    console.log('🔄 Tüm adresler süresiz olarak güncellendi');
-  } catch (e) {
-    // İlk kurulumda tablo boş olabilir
+  } catch (e) { /* İlk kurulumda tablo boş olabilir */ }
+
+  // ===== Varsayılan paketleri oluştur =====
+  const bcrypt = require('bcryptjs');
+
+  // Yardımcı: sql.js ile tek satır getir
+  function rawGet(sql, params = []) {
+    const stmt = db.prepare(sql);
+    if (params.length > 0) stmt.bind(params);
+    if (stmt.step()) { const r = stmt.getAsObject(); stmt.free(); return r; }
+    stmt.free();
+    return null;
+  }
+
+  const existingPkg = rawGet("SELECT COUNT(*) as c FROM packages");
+  if (!existingPkg || existingPkg.c === 0) {
+    db.run(`INSERT INTO packages (name, display_name, max_addresses, max_emails, email_retention_days, custom_domains, webhook_support, priority_support, price_monthly, features) VALUES
+      ('free', 'Ücretsiz', 3, 50, 7, 0, 0, 0, 0, '["3 geçici adres","50 mail saklama","7 gün saklama","Temel inbox"]'),
+      ('pro', 'Pro', 999, 5000, 365, 1, 1, 1, 9.99, '["Sınırsız adres","5000 mail saklama","365 gün saklama","Özel domain","Webhook desteği","Öncelikli destek","Gelişmiş gizlilik"]')
+    `);
+    console.log('📦 Varsayılan paketler oluşturuldu (free, pro)');
+  }
+
+  // ===== Varsayılan admin kullanıcısı oluştur =====
+  const adminPw = process.env.ADMIN_PASSWORD || 'admin123';
+  const existingAdmin = rawGet("SELECT id FROM users WHERE role = 'admin'");
+  if (!existingAdmin) {
+    const hash = bcrypt.hashSync(adminPw, 10);
+    db.run("INSERT INTO users (username, email, password_hash, role) VALUES ('admin', 'admin@tempmail.local', ?, 'admin')", [hash]);
+    console.log('👤 Admin kullanıcısı oluşturuldu (admin / ' + adminPw + ')');
   }
 
   // İndeksler

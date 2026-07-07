@@ -1,19 +1,36 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { getDb } = require('../db');
 const { manualCleanup } = require('../services/cleanup');
 const { extractOtp, stripHtml } = require('./emails');
 
-// Basit şifre koruması middleware
-function adminAuth(req, res, next) {
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-  const providedPassword = req.headers['x-admin-password'] || req.query.password;
+const JWT_SECRET = process.env.JWT_SECRET || 'tempmail-secret-key-change-in-production';
 
-  if (providedPassword !== adminPassword) {
-    return res.status(401).json({ error: 'Geçersiz admin şifresi' });
+/**
+ * Admin auth middleware - hem JWT token hem eski şifre yöntemini destekler
+ */
+function adminAuth(req, res, next) {
+  // 1. JWT token kontrolü
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+      if (decoded.role === 'admin') {
+        req.user = decoded;
+        return next();
+      }
+    } catch (e) { /* token geçersiz, diğer yöntemi dene */ }
   }
 
-  next();
+  // 2. Eski şifre yöntemi (geriye uyumluluk)
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const providedPassword = req.headers['x-admin-password'] || req.query.password;
+  if (providedPassword === adminPassword) {
+    return next();
+  }
+
+  return res.status(401).json({ error: 'Admin yetkisi gerekiyor' });
 }
 
 router.use(adminAuth);
@@ -370,6 +387,124 @@ router.get('/mailbox/:address', (req, res) => {
   } catch (err) {
     console.error('Mailbox hatası:', err);
     res.status(500).json({ error: 'Mailbox alınamadı' });
+  }
+});
+
+/**
+ * GET /api/admin/users
+ * Tüm kullanıcıları listeler
+ */
+router.get('/users', (req, res) => {
+  try {
+    const db = getDb();
+    const users = db.all(`
+      SELECT u.id, u.username, u.email, u.role, u.is_active, u.created_at, u.last_login,
+        (SELECT COUNT(*) FROM addresses a WHERE a.user_id = u.id) as address_count,
+        (SELECT COUNT(*) FROM emails e JOIN addresses a ON e.address_id = a.id WHERE a.user_id = u.id) as email_count
+      FROM users u ORDER BY u.created_at DESC
+    `);
+    res.json({ users });
+  } catch (err) {
+    console.error('Kullanıcı listeleme hatası:', err);
+    res.status(500).json({ error: 'Kullanıcılar listelenemedi' });
+  }
+});
+
+/**
+ * PUT /api/admin/users/:id/role
+ * Kullanıcı rolünü değiştirir
+ * Body: { role: 'free' | 'pro' | 'admin' }
+ */
+router.put('/users/:id/role', (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!['free', 'pro', 'admin'].includes(role)) {
+      return res.status(400).json({ error: 'Geçersiz rol' });
+    }
+
+    const user = db.get('SELECT * FROM users WHERE id = ?', [id]);
+    if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+    db.run('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+    res.json({ message: `${user.username} kullanıcısının rolü ${role} olarak değiştirildi` });
+  } catch (err) {
+    console.error('Rol değiştirme hatası:', err);
+    res.status(500).json({ error: 'Rol değiştirilemedi' });
+  }
+});
+
+/**
+ * PUT /api/admin/users/:id/status
+ * Kullanıcıyı aktif/pasif yapar
+ */
+router.put('/users/:id/status', (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    db.run('UPDATE users SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, id]);
+    res.json({ message: is_active ? 'Kullanıcı aktif edildi' : 'Kullanıcı pasif edildi' });
+  } catch (err) {
+    res.status(500).json({ error: 'Durum değiştirilemedi' });
+  }
+});
+
+/**
+ * GET /api/admin/package-requests
+ * Tüm pro yükseltme isteklerini listeler
+ */
+router.get('/package-requests', (req, res) => {
+  try {
+    const db = getDb();
+    const requests = db.all(`
+      SELECT pr.*, u.username, u.email, u.role
+      FROM package_requests pr
+      JOIN users u ON pr.user_id = u.id
+      ORDER BY pr.created_at DESC
+    `);
+    res.json({ requests });
+  } catch (err) {
+    console.error('İstek listeleme hatası:', err);
+    res.status(500).json({ error: 'İstekler listelenemedi' });
+  }
+});
+
+/**
+ * PUT /api/admin/package-requests/:id
+ * Pro yükseltme isteğini onayla veya reddet
+ * Body: { status: 'approved' | 'rejected' }
+ */
+router.put('/package-requests/:id', (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Geçersiz durum' });
+    }
+
+    const request = db.get('SELECT * FROM package_requests WHERE id = ?', [id]);
+    if (!request) return res.status(404).json({ error: 'İstek bulunamadı' });
+    if (request.status !== 'pending') return res.status(400).json({ error: 'Bu istek zaten işlenmiş' });
+
+    const reviewerId = req.user?.id || null;
+
+    db.run('UPDATE package_requests SET status = ?, reviewed_by = ?, reviewed_at = datetime("now") WHERE id = ?', [status, reviewerId, id]);
+
+    if (status === 'approved') {
+      db.run('UPDATE users SET role = ? WHERE id = ?', ['pro', request.user_id]);
+    }
+
+    const user = db.get('SELECT username FROM users WHERE id = ?', [request.user_id]);
+    res.json({ message: status === 'approved' ? `${user?.username} Pro kullanıcı yapıldı` : 'İstek reddedildi' });
+  } catch (err) {
+    console.error('İstek işleme hatası:', err);
+    res.status(500).json({ error: 'İstek işlenemedi' });
   }
 });
 

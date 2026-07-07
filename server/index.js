@@ -33,10 +33,12 @@ async function main() {
   await initDatabase();
 
   // 2. API rotalarını YÜKLE (static'ten ÖNCE olmalı!)
+  const authRouter = require('./routes/auth');
   const addressesRouter = require('./routes/addresses');
   const emailsRouter = require('./routes/emails');
   const adminRouter = require('./routes/admin');
 
+  app.use('/api/auth', authRouter);
   app.use('/api/addresses', addressesRouter);
   app.use('/api/emails', emailsRouter);
   app.use('/api/admin', adminRouter);
