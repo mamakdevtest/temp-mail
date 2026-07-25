@@ -188,4 +188,23 @@ function extractOtp(text) {
   return best && best.score >= 30 ? best.token : null;
 }
 
-module.exports = { extractOtp, stripHtml };
+function extractOtpFromEmail(subject = '', bodyText = '', bodyHtml = '') {
+  const source = [subject, bodyText, stripHtml(bodyHtml)].filter(Boolean).join('\n');
+  const lines = source.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const label = /code|verif|otp|pin|confirm|auth|passcode|2fa|security|doğrulama|kod/i;
+
+  for (const preferredLength of [6, 4, 8]) {
+    for (const line of lines) {
+      if (!label.test(line)) continue;
+      const match = line.match(new RegExp(`\\b\\d{${preferredLength}}\\b`));
+      if (match) return match[0].trim();
+    }
+  }
+  for (const preferredLength of [6, 4, 8]) {
+    const match = source.match(new RegExp(`\\b\\d{${preferredLength}}\\b`));
+    if (match) return match[0].trim();
+  }
+  return null;
+}
+
+module.exports = { extractOtp, extractOtpFromEmail, stripHtml };

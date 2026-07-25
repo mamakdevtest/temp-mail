@@ -1,7 +1,8 @@
 const { SMTPServer } = require('smtp-server');
 const { simpleParser } = require('mailparser');
 const { getDb } = require('../db');
-const { extractOtp, stripHtml } = require('../utils/otpDetection');
+const { extractOtpFromEmail } = require('../utils/otpDetection');
+const { publishNewEmail } = require('./emailEvents');
 
 /**
  * SMTP sunucusunu başlatır
@@ -101,10 +102,12 @@ async function processIncomingMail(rawMail, session, io) {
     const bodyHtml = parsed.html || '';
     const hasAttachments = parsed.attachments && parsed.attachments.length > 0 ? 1 : 0;
 
+    const receivedAt = new Date().toISOString();
+    const otpCode = extractOtpFromEmail(subject, bodyText, bodyHtml) || '';
     const result = db.run(
-      `INSERT INTO emails (address_id, sender, subject, body_text, body_html, has_attachments)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [address.id, sender, subject, bodyText, bodyHtml, hasAttachments]
+      `INSERT INTO emails (address_id, sender, subject, body_text, body_html, has_attachments, otp_code, received_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [address.id, sender, subject, bodyText, bodyHtml, hasAttachments, otpCode, receivedAt]
     );
 
     const emailId = result.lastInsertRowid;
@@ -121,19 +124,19 @@ async function processIncomingMail(rawMail, session, io) {
     }
 
     // Socket.io ile istemcilere bildirim gönder
-    const otpCode = extractOtp(bodyText || stripHtml(bodyHtml));
+    const emailPayload = {
+      id: emailId,
+      sender,
+      subject,
+      received_at: receivedAt,
+      has_attachments: hasAttachments === 1,
+      otp_code: otpCode,
+    };
+    publishNewEmail(recipient, emailPayload);
 
     if (io) {
-      const emailPayload = {
-        id: emailId,
-        sender,
-        subject,
-        received_at: new Date().toISOString(),
-        has_attachments: hasAttachments === 1,
-        otp_code: otpCode,
-      };
       const room = `inbox:${recipient}`;
-      io.to(room).emit('new-email', emailPayload);
+      io.to(room).emit('new-email', { success: true, data: emailPayload });
     }
 
     // Webhook tetikle (WEBHOOK_URL tanımlıysa)
@@ -146,7 +149,7 @@ async function processIncomingMail(rawMail, session, io) {
         subject,
         otp_code: otpCode,
         has_attachments: hasAttachments === 1,
-        received_at: new Date().toISOString(),
+        received_at: receivedAt,
         email_id: emailId,
       };
       fetch(webhookUrl, {
@@ -160,4 +163,4 @@ async function processIncomingMail(rawMail, session, io) {
   }
 }
 
-module.exports = { startSmtpServer, extractOtp, stripHtml };
+module.exports = { startSmtpServer };

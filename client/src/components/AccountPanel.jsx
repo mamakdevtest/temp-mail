@@ -38,6 +38,7 @@ import { AdminPanelCard, AdminStatCard, AdminEmptyState, AdminInfoRow } from './
 import { formatAdminDate, formatRetention } from './admin/adminUtils';
 import AccountEditorModal from './AccountEditorModal';
 import { useLocale } from '../i18n';
+import { unwrapEnvelope } from '../utils/apiFetch';
 
 function buildAddressDrafts(addresses = []) {
   return addresses.reduce((acc, addr) => {
@@ -109,6 +110,7 @@ const AccountPanel = forwardRef(function AccountPanel({
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [showRecentHistory, setShowRecentHistory] = useState(false);
   const [showPasswordedHistory, setShowPasswordedHistory] = useState(false);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
 
@@ -159,7 +161,7 @@ const AccountPanel = forwardRef(function AccountPanel({
     let data = {};
     if (text) {
       try {
-        data = JSON.parse(text);
+        data = unwrapEnvelope(JSON.parse(text));
       } catch (e) {
         data = { message: text };
       }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '../utils/apiFetch';
 
 const API = '/api';
 
@@ -52,7 +53,7 @@ export default function useAuth() {
 
     setLoading(true);
     try {
-      const r = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+      const r = await apiFetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
       if (r.ok) {
         const d = await r.json();
         setUser(d.user);
@@ -75,7 +76,7 @@ export default function useAuth() {
 
   // Kayıt ol
   const register = async (username, email, password) => {
-    const r = await fetch(`${API}/auth/register`, {
+    const r = await apiFetch(`${API}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password }),
@@ -90,7 +91,7 @@ export default function useAuth() {
 
   // Giriş yap
   const login = async (loginStr, password) => {
-    const r = await fetch(`${API}/auth/login`, {
+    const r = await apiFetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ login: loginStr, password }),
@@ -114,7 +115,7 @@ export default function useAuth() {
       throw new Error('Pro isteği göndermek için önce giriş yapın veya kayıt olun');
     }
 
-    const r = await fetch(`${API}/auth/request-pro`, {
+    const r = await apiFetch(`${API}/auth/request-pro`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ message }),
@@ -129,7 +130,7 @@ export default function useAuth() {
       throw new Error('Bu işlem için giriş yapın');
     }
 
-    const r = await fetch(`${API}/auth/me`, {
+    const r = await apiFetch(`${API}/auth/me`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ username, display_name }),
@@ -150,7 +151,7 @@ export default function useAuth() {
 
   const requestEmailChange = async (email) => {
     if (!token) throw new Error('Bu işlem için giriş yapın');
-    const r = await fetch(`${API}/auth/request-email-change`, {
+    const r = await apiFetch(`${API}/auth/request-email-change`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ email }),
@@ -163,7 +164,7 @@ export default function useAuth() {
 
   const confirmEmailChange = async (code) => {
     if (!token) throw new Error('Bu işlem için giriş yapın');
-    const r = await fetch(`${API}/auth/confirm-email-change`, {
+    const r = await apiFetch(`${API}/auth/confirm-email-change`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ code }),
@@ -180,7 +181,7 @@ export default function useAuth() {
 
   const updatePreferences = async (payload) => {
     if (!token) throw new Error('Bu işlem için giriş yapın');
-    const r = await fetch(`${API}/auth/preferences`, {
+    const r = await apiFetch(`${API}/auth/preferences`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload),
@@ -198,7 +199,7 @@ export default function useAuth() {
 
   const changePassword = async ({ currentPassword, newPassword }) => {
     if (!token) throw new Error('Bu işlem için giriş yapın');
-    const r = await fetch(`${API}/auth/change-password`, {
+    const r = await apiFetch(`${API}/auth/change-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ currentPassword, newPassword }),
@@ -215,7 +216,7 @@ export default function useAuth() {
 
   const uploadAvatar = async (avatarDataUrl) => {
     if (!token) throw new Error('Bu işlem için giriş yapın');
-    const r = await fetch(`${API}/auth/profile-photo`, {
+    const r = await apiFetch(`${API}/auth/profile-photo`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ avatarDataUrl }),

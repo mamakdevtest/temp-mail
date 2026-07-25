@@ -12,6 +12,7 @@ if (!fs.existsSync(dataDir)) {
 }
 
 let db = null;
+let transactionDepth = 0;
 
 /**
  * Veritabanını başlatır (async - sql.js WebAssembly yükler)
@@ -56,6 +57,7 @@ async function initDatabase() {
       pending_email_code_hash TEXT,
       pending_email_expires_at DATETIME,
       email_change_cooldown_until DATETIME,
+      bulk_access_enabled INTEGER DEFAULT 0,
       role TEXT DEFAULT 'free' CHECK(role IN ('admin','pro','free')),
       is_active INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -211,6 +213,7 @@ async function initDatabase() {
       expires_at DATETIME NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_accessed DATETIME,
+      bulk_pool_id INTEGER,
       FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     );
@@ -226,7 +229,23 @@ async function initDatabase() {
       body_html TEXT,
       received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       has_attachments INTEGER DEFAULT 0,
+      otp_code TEXT DEFAULT '',
       FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS bulk_address_pools (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      domain_id INTEGER NOT NULL,
+      prefix TEXT NOT NULL,
+      next_index INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, domain_id, prefix),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
     );
   `);
 
@@ -266,6 +285,9 @@ async function initDatabase() {
     "ALTER TABLE users ADD COLUMN pending_email_code_hash TEXT",
     "ALTER TABLE users ADD COLUMN pending_email_expires_at DATETIME",
     "ALTER TABLE users ADD COLUMN email_change_cooldown_until DATETIME",
+    "ALTER TABLE users ADD COLUMN bulk_access_enabled INTEGER DEFAULT 0",
+    "ALTER TABLE addresses ADD COLUMN bulk_pool_id INTEGER",
+    "ALTER TABLE emails ADD COLUMN otp_code TEXT DEFAULT ''",
     "ALTER TABLE domains ADD COLUMN server_ip TEXT DEFAULT ''",
     "ALTER TABLE domains ADD COLUMN a_host TEXT DEFAULT 'mail'",
     "ALTER TABLE domains ADD COLUMN a_value TEXT DEFAULT ''",
@@ -337,6 +359,8 @@ async function initDatabase() {
   db.run('CREATE INDEX IF NOT EXISTS idx_addresses_address ON addresses(address);');
   db.run('CREATE INDEX IF NOT EXISTS idx_addresses_expires ON addresses(expires_at);');
   db.run('CREATE INDEX IF NOT EXISTS idx_emails_address_id ON emails(address_id);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_addresses_bulk_pool ON addresses(bulk_pool_id);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_bulk_pools_owner ON bulk_address_pools(user_id);');
   db.run('CREATE INDEX IF NOT EXISTS idx_attachments_email_id ON attachments(email_id);');
 
   // İlk kaydetme
@@ -401,8 +425,24 @@ function run(sql, params = []) {
   db.run(sql, params);
   const changes = db.getRowsModified();
   const lastId = get('SELECT last_insert_rowid() as id');
-  saveDatabase(); // Değişiklikten sonra diske yaz
+  if (transactionDepth === 0) saveDatabase(); // Değişiklikten sonra diske yaz
   return { changes, lastInsertRowid: lastId ? lastId.id : 0 };
+}
+
+function transaction(work) {
+  db.run('BEGIN IMMEDIATE TRANSACTION');
+  transactionDepth += 1;
+  try {
+    const result = work();
+    db.run('COMMIT');
+    return result;
+  } catch (error) {
+    try { db.run('ROLLBACK'); } catch (_) { /* transaction başlatılamamış olabilir */ }
+    throw error;
+  } finally {
+    transactionDepth -= 1;
+    if (transactionDepth === 0) saveDatabase();
+  }
 }
 
 /**
@@ -422,6 +462,7 @@ function getDb() {
     get,
     all,
     run,
+    transaction,
     exec,
     saveDatabase,
   };

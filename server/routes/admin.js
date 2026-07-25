@@ -627,9 +627,10 @@ router.get('/users', (req, res) => {
   try {
     const db = getDb();
     const users = db.all(`
-      SELECT u.id, u.username, u.email, u.role, u.package_name, u.is_active, u.created_at, u.last_login,
+      SELECT u.id, u.username, u.email, u.role, u.package_name, u.bulk_access_enabled, u.is_active, u.created_at, u.last_login,
         (SELECT COUNT(*) FROM addresses a WHERE a.user_id = u.id) as address_count,
-        (SELECT COUNT(*) FROM emails e JOIN addresses a ON e.address_id = a.id WHERE a.user_id = u.id) as email_count
+        (SELECT COUNT(*) FROM emails e JOIN addresses a ON e.address_id = a.id WHERE a.user_id = u.id) as email_count,
+        (SELECT COUNT(*) FROM bulk_address_pools p WHERE p.user_id = u.id) as bulk_pool_count
       FROM users u ORDER BY u.created_at DESC
     `);
     res.json({ users });
@@ -691,6 +692,41 @@ router.put('/users/:id/package', (req, res) => {
   } catch (err) {
     console.error('Paket değiştirme hatası:', err);
     res.status(500).json({ error: 'Paket değiştirilemedi' });
+  }
+});
+
+router.put('/users/:id/bulk-access', (req, res) => {
+  try {
+    const db = getDb();
+    const { enabled } = req.body || {};
+    const user = db.get('SELECT id, username, role, package_name FROM users WHERE id = ?', [req.params.id]);
+    if (!user) return res.status(404).json({ error: 'not_found', message: 'Kullanıcı bulunamadı' });
+    if (user.role !== 'pro' || !['pro', 'pro_plus'].includes(user.package_name)) {
+      return res.status(400).json({ error: 'invalid_request', message: 'Bulk erişim yalnız Pro veya Pro+ kullanıcılar için açılabilir' });
+    }
+    db.run('UPDATE users SET bulk_access_enabled = ? WHERE id = ?', [enabled ? 1 : 0, user.id]);
+    res.json({ message: `${user.username} için bulk erişim ${enabled ? 'açıldı' : 'kapatıldı'}`, bulk_access_enabled: !!enabled });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error', message: 'Bulk erişimi güncellenemedi' });
+  }
+});
+
+router.get('/bulk-pools', (req, res) => {
+  try {
+    const db = getDb();
+    const pools = db.all(`
+      SELECT p.id, p.prefix, p.next_index, p.created_at, p.updated_at,
+        u.id AS user_id, u.username, u.email, u.package_name, u.bulk_access_enabled,
+        d.domain, COUNT(a.id) AS address_count, MAX(a.created_at) AS last_generated_at
+      FROM bulk_address_pools p
+      JOIN users u ON u.id = p.user_id
+      JOIN domains d ON d.id = p.domain_id
+      LEFT JOIN addresses a ON a.bulk_pool_id = p.id
+      GROUP BY p.id
+      ORDER BY p.updated_at DESC, p.id DESC`);
+    res.json({ pools });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error', message: 'Bulk havuzları alınamadı' });
   }
 });
 

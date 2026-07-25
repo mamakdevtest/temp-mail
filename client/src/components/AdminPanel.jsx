@@ -48,6 +48,7 @@ import {
   Pencil,
   Server,
   LoaderCircle,
+  Boxes,
 } from 'lucide-react';
 import { AdminPanelCard, AdminStatCard, AdminEmptyState, AdminInfoRow, AdminToolbar } from './admin/AdminPrimitives';
 import Modal from './Modal';
@@ -59,6 +60,7 @@ import {
   getAddressActivityTimestamp,
   sortAddresses,
 } from './admin/adminUtils';
+import { unwrapEnvelope } from '../utils/apiFetch';
 
 const CHART_COLORS = ['#3B82FF', '#27D59B', '#F5C84C', '#7A63FF', '#34D7FF'];
 const ADDRESS_PAGE_SIZE = 10;
@@ -120,6 +122,8 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const [emailsPage, setEmailsPage] = useState(1);
   const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [bulkPools, setBulkPools] = useState([]);
+  const [bulkQuery, setBulkQuery] = useState('');
 
   const [showDomainForm, setShowDomainForm] = useState(false);
   const [newDom, setNewDom] = useState('');
@@ -184,7 +188,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     const text = await res.text();
     if (text) {
       try {
-        data = JSON.parse(text);
+        data = unwrapEnvelope(JSON.parse(text));
       } catch (e) {
         data = { message: text };
       }
@@ -244,16 +248,21 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     setRequests(data.requests || []);
   }, [apiRequest]);
 
+  const loadBulkPools = useCallback(async () => {
+    const data = await apiRequest('/admin/bulk-pools');
+    setBulkPools(data.pools || []);
+  }, [apiRequest]);
+
   const refreshAll = useCallback(async () => {
     setLoading(true);
     try {
-      await Promise.all([loadDomains(), loadStats(), loadAddrs(), loadUsers(), loadRequests()]);
+      await Promise.all([loadDomains(), loadStats(), loadAddrs(), loadUsers(), loadRequests(), loadBulkPools()]);
     } catch (e) {
       flash(e.message, 'error');
     } finally {
       setLoading(false);
     }
-  }, [flash, loadAddrs, loadDomains, loadRequests, loadStats, loadUsers]);
+  }, [flash, loadAddrs, loadBulkPools, loadDomains, loadRequests, loadStats, loadUsers]);
 
   const loadAddressDetail = useCallback(async (addressValue) => {
     const data = await apiRequest(`/admin/addresses/${encodeURIComponent(addressValue)}`);
@@ -278,7 +287,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     try {
       const res = await fetch(`${api}/emails/single/${id}`);
       if (!res.ok) throw new Error('Mail detayı alınamadı');
-      const mail = await res.json();
+      const mail = unwrapEnvelope(await res.json());
       if (scope === 'global') setSelectedGlobalMail(mail);
       else setSelectedAddressMail(mail);
     } catch (e) {
@@ -757,6 +766,16 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     }
   };
 
+  const updateUserBulkAccess = async (id, enabled) => {
+    try {
+      await apiRequest(`/admin/users/${id}/bulk-access`, { method: 'PUT', body: { enabled } });
+      flash(enabled ? 'Bulk erişimi açıldı' : 'Bulk erişimi kapatıldı');
+      await Promise.all([loadUsers(), loadBulkPools()]);
+    } catch (e) {
+      flash(e.message, 'error');
+    }
+  };
+
   const handleRequestDecision = async (id, status) => {
     try {
       await apiRequest(`/admin/package-requests/${id}`, { method: 'PUT', body: { status } });
@@ -937,6 +956,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     { id: 'domains', label: 'Domainler', icon: Globe },
     { id: 'emails', label: 'Mailler', icon: Mail },
     { id: 'users', label: 'Kullanıcılar', icon: Users },
+    { id: 'bulk', label: 'Bulk Havuzları', icon: Boxes },
     { id: 'requests', label: 'İstekler', icon: Crown },
     { id: 'settings', label: 'Ayarlar', icon: Settings2 },
   ];
@@ -1836,6 +1856,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                     <th className="py-3 font-medium">Rol</th>
                     <th className="py-3 font-medium">Adres</th>
                     <th className="py-3 font-medium">Mail</th>
+                    <th className="py-3 font-medium">Bulk</th>
                     <th className="py-3 font-medium">Son giriş</th>
                     <th className="py-3 font-medium">Durum</th>
                     <th className="py-3 font-medium">İşlem</th>
@@ -1856,6 +1877,12 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                       </td>
                       <td className="py-4 text-txt-secondary">{user.address_count}</td>
                       <td className="py-4 text-txt-secondary">{user.email_count}</td>
+                      <td className="py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className={user.bulk_access_enabled ? 'badge-green' : 'badge-cyan'}>{user.bulk_access_enabled ? 'Açık' : 'Kapalı'}</span>
+                          {user.bulk_pool_count > 0 ? <span className="text-xs text-txt-muted">{user.bulk_pool_count} havuz</span> : null}
+                        </div>
+                      </td>
                       <td className="py-4 text-txt-secondary">{formatAdminDate(user.last_login)}</td>
                       <td className="py-4">{user.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}</td>
                       <td className="py-4">
@@ -1882,6 +1909,11 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                               <option value="pro_plus">Pro+</option>
                             </select>
                           )}
+                          {user.role === 'pro' && ['pro', 'pro_plus'].includes(user.package_name) ? (
+                            <button onClick={() => updateUserBulkAccess(user.id, !user.bulk_access_enabled)} className={user.bulk_access_enabled ? 'btn-secondary text-xs px-3 py-2' : 'btn-primary text-xs px-3 py-2'}>
+                              {user.bulk_access_enabled ? 'Bulk Kapat' : 'Bulk Aç'}
+                            </button>
+                          ) : null}
                           <button onClick={() => updateUserStatus(user.id, user.is_active !== 1)} className="btn-secondary text-xs px-3 py-2">
                             {user.is_active === 1 ? 'Pasifleştir' : 'Aktifleştir'}
                           </button>
@@ -1896,6 +1928,25 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             <AdminEmptyState title="Kullanıcı bulunamadı" subtitle="Kayıt olan kullanıcılar burada listelenir." />
           )}
         </AdminPanelCard>
+      )}
+
+      {tab === 'bulk' && (
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <AdminStatCard title="Aktif Havuz" value={bulkPools.length} subtitle="Kullanıcıya bağlı prefix havuzları" icon={Boxes} tone="purple" />
+            <AdminStatCard title="Üretilen Adres" value={bulkPools.reduce((sum, pool) => sum + Number(pool.address_count || 0), 0)} subtitle="Normal paket kotasına dahildir" icon={Inbox} tone="blue" />
+            <AdminStatCard title="Yetkili Kullanıcı" value={users.filter((user) => user.bulk_access_enabled).length} subtitle="Yalnız Pro ve Pro+" icon={Users} tone="green" />
+          </div>
+          <AdminPanelCard title={`Bulk Havuzları (${bulkPools.length})`} icon={Boxes} action={<button onClick={loadBulkPools} className="btn-ghost"><RefreshCw size={14} /></button>}>
+            <div className="mb-4 relative max-w-xl">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
+              <input value={bulkQuery} onChange={(e) => setBulkQuery(e.target.value)} className="input w-full pl-10" placeholder="Kullanıcı, prefix veya domain ara" />
+            </div>
+            {bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).length > 0 ? (
+              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 font-medium">Sahip</th><th className="py-3 font-medium">Paket</th><th className="py-3 font-medium">Havuz</th><th className="py-3 font-medium">Adres</th><th className="py-3 font-medium">Son üretim</th><th className="py-3 font-medium">Yetki</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-accent-cyan">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">Açık</span> : <span className="badge-red">Kapalı</span>}</td></tr>)}</tbody></table></div>
+            ) : <AdminEmptyState title="Bulk havuzu bulunamadı" subtitle="Yetki verdiğiniz Pro/Pro+ kullanıcılar burada havuz oluşturabilir." />}
+          </AdminPanelCard>
+        </div>
       )}
 
       {tab === 'requests' && (

@@ -6,14 +6,20 @@ const path = require('path');
 const http = require('http');
 const { Server: SocketServer } = require('socket.io');
 const { initDatabase } = require('./db');
+const { apiContract, rateLimit } = require('./middleware/apiContract');
 
 const app = express();
 const API_PORT = parseInt(process.env.API_PORT || process.env.PORT || '3001', 10);
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '25', 10);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Password'],
+}));
 app.use(express.json());
+app.use('/api', apiContract);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Socket.io instance'ı (global - SMTP servisi de kullanacak)
@@ -51,7 +57,8 @@ async function main() {
 
   app.use('/api', (req, res) => {
     res.status(404).json({
-      error: 'API endpoint bulunamadı',
+      error: 'not_found',
+      message: 'API endpoint bulunamadı',
       path: req.originalUrl,
       method: req.method,
     });

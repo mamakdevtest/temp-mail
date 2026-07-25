@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { getDb } = require('../db');
 const { generateUsername } = require('../utils');
+const { rateLimit } = require('../middleware/apiContract');
 
 // Süresiz adres: 9999-12-31
 const NEVER_EXPIRES = '9999-12-31T23:59:59.000Z';
@@ -168,6 +169,82 @@ router.post('/random', (req, res) => {
   }
 });
 
+function requireBulkUser(db, req) {
+  const tokenUser = getOptionalUser(req);
+  if (!tokenUser?.id) {
+    const err = new Error('Bulk adres havuzu için giriş yapın'); err.status = 401; err.code = 'unauthorized'; throw err;
+  }
+  const user = db.get('SELECT id, role, package_name, is_active, bulk_access_enabled FROM users WHERE id = ?', [tokenUser.id]);
+  if (!user || !user.is_active) { const err = new Error('Hesap aktif değil'); err.status = 403; err.code = 'forbidden'; throw err; }
+  if (!['pro', 'pro_plus'].includes(user.package_name) || user.role !== 'pro' || !user.bulk_access_enabled) {
+    const err = new Error('Bu hesap için bulk adres erişimi açık değil'); err.status = 403; err.code = 'bulk_access_required'; throw err;
+  }
+  return { user, pkg: getUserPackage(db, user.role, user.package_name) };
+}
+
+router.get('/bulk', (req, res) => {
+  try {
+    const db = getDb();
+    const { user } = requireBulkUser(db, req);
+    const pools = db.all(`
+      SELECT p.id, p.prefix, p.next_index, p.created_at, p.updated_at, d.domain,
+        COUNT(a.id) AS address_count, MAX(a.created_at) AS last_generated_at
+      FROM bulk_address_pools p
+      JOIN domains d ON d.id = p.domain_id
+      LEFT JOIN addresses a ON a.bulk_pool_id = p.id
+      WHERE p.user_id = ?
+      GROUP BY p.id
+      ORDER BY p.updated_at DESC, p.id DESC`, [user.id]);
+    res.json({ pools });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.code || 'internal_error', message: err.message || 'Bulk havuzları alınamadı' });
+  }
+});
+
+router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
+  const db = getDb();
+  try {
+    const { user, pkg } = requireBulkUser(db, req);
+    const prefix = String(req.body?.prefix || '').trim().toLowerCase();
+    const domainName = String(req.body?.domain || '').trim().toLowerCase();
+    const count = Number.parseInt(req.body?.count, 10);
+    if (!/^[a-z0-9][a-z0-9._-]{0,39}$/.test(prefix) || !domainName || !Number.isInteger(count) || count < 1 || count > 100) {
+      return res.status(400).json({ error: 'invalid_request', message: 'prefix, aktif domain ve 1-100 arası count gerekli' });
+    }
+    const domain = db.get('SELECT id, domain FROM domains WHERE domain = ? AND is_active = 1', [domainName]);
+    if (!domain) return res.status(400).json({ error: 'invalid_domain', message: 'Domain bulunamadı veya aktif değil' });
+    const currentCount = getAddressCount(db, user.id);
+    const remaining = Math.max(0, Number(pkg.max_addresses || 0) - currentCount);
+    if (remaining < count) return res.status(403).json({ error: 'quota_exceeded', message: `Bulk işlem için ${count} adres gerekli; kullanılabilir kotanız ${remaining}` });
+
+    let pool;
+    let index;
+    const addresses = [];
+    db.transaction(() => {
+      pool = db.get('SELECT * FROM bulk_address_pools WHERE user_id = ? AND domain_id = ? AND prefix = ?', [user.id, domain.id, prefix]);
+      if (!pool) {
+        const created = db.run('INSERT INTO bulk_address_pools (user_id, domain_id, prefix, next_index) VALUES (?, ?, ?, 0)', [user.id, domain.id, prefix]);
+        pool = db.get('SELECT * FROM bulk_address_pools WHERE id = ?', [created.lastInsertRowid]);
+      }
+      index = Number(pool.next_index || 0);
+      while (addresses.length < count) {
+        const username = `${prefix}_${index}`;
+        const address = `${username}@${domain.domain}`;
+        index += 1;
+        if (db.get('SELECT id FROM addresses WHERE address = ?', [address])) continue;
+        db.run(`INSERT INTO addresses (address, username, domain_id, user_id, bulk_pool_id, is_persistent, expires_at, last_accessed)
+          VALUES (?, ?, ?, ?, ?, 1, ?, datetime('now'))`, [address, username, domain.id, user.id, pool.id, NEVER_EXPIRES]);
+        addresses.push(address);
+      }
+      db.run('UPDATE bulk_address_pools SET next_index = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [index, pool.id]);
+    });
+    res.status(201).json({ addresses, pool: { id: pool.id, prefix, domain: domain.domain, next_index: index } });
+  } catch (err) {
+    console.error('Bulk adres oluşturma hatası:', err);
+    res.status(err.status || 500).json({ error: err.code || 'internal_error', message: err.message || 'Bulk adres oluşturulamadı' });
+  }
+});
+
 /**
  * POST /api/addresses/set-password
  * Mevcut şifresiz bir adrese şifre koyar
@@ -242,7 +319,7 @@ router.post('/check', (req, res) => {
  * POST /api/addresses
  * Özel username ve domain ile adres oluşturur veya mevcut adrese erişir
  */
-router.post('/', (req, res) => {
+router.post('/', rateLimit({ max: 30, key: 'address-create' }), (req, res) => {
   try {
     const db = getDb();
     const { username, domain: domainName, subdomain, password } = req.body;

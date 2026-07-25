@@ -8,6 +8,7 @@ import EmailView from './components/EmailView';
 import AccountPanel from './components/AccountPanel';
 import Modal from './components/Modal';
 import { playNotificationSound, NOTIFICATION_SOUNDS } from './utils/notificationSound';
+import { apiFetch } from './utils/apiFetch';
 import { LocaleProvider, createTranslator, normalizeLanguage } from './i18n';
 
 const AuthPage = lazy(() => import('./components/AuthPage'));
@@ -201,7 +202,9 @@ export default function App() {
         pollDelayRef.current = 5000;
       });
       s.on('disconnect', () => setSockOn(false));
-      s.on('new-email', (d) => {
+      s.on('new-email', (payload) => {
+        const d = payload?.success ? payload.data : payload;
+        if (!d?.id) return;
         setEmails((p) => (p.some((e) => e.id === d.id) ? p : [d, ...p]));
         toast(t('app.newMailToast', { sender: d.sender }), 'info');
         playBeep();
@@ -241,7 +244,7 @@ export default function App() {
     try {
       const saved = JSON.parse(localStorage.getItem('tm-last-addr') || 'null');
       if (!saved?.address) return false;
-      const r = await fetch(`${API}/addresses/${saved.address}`);
+      const r = await apiFetch(`${API}/addresses/${saved.address}`);
       if (r.ok) {
         const d = await r.json();
         setAddr(d);
@@ -256,7 +259,7 @@ export default function App() {
 
   const loadDomains = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/addresses/domains`);
+      const r = await apiFetch(`${API}/addresses/domains`);
       if (r.ok) {
         const d = await r.json();
         if (d.domains) setDomains(d.domains);
@@ -273,7 +276,7 @@ export default function App() {
     try {
       const body = {};
       if (password) body.password = password;
-      const r = await fetch(`${API}/addresses/random`, {
+      const r = await apiFetch(`${API}/addresses/random`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(body),
@@ -298,7 +301,7 @@ export default function App() {
       const body = { username, domain };
       if (password) body.password = password;
       if (subdomain) body.subdomain = subdomain;
-      const r = await fetch(`${API}/addresses`, {
+      const r = await apiFetch(`${API}/addresses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(body),
@@ -327,7 +330,7 @@ export default function App() {
     setLoading(true);
     setPwErr('');
     try {
-      const r = await fetch(`${API}/addresses`, {
+      const r = await apiFetch(`${API}/addresses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ username: pwModal.username, domain: pwModal.domain, password: pwInput }),
@@ -352,7 +355,7 @@ export default function App() {
   const doSetPw = useCallback(async () => {
     if (!spwVal || !addr) return;
     try {
-      const r = await fetch(`${API}/addresses/set-password`, {
+      const r = await apiFetch(`${API}/addresses/set-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address: addr.address, password: spwVal }),
@@ -387,7 +390,7 @@ export default function App() {
   const loadEmails = useCallback(async () => {
     if (!addr) return;
     try {
-      const r = await fetch(`${API}/emails/${addr.address}`);
+      const r = await apiFetch(`${API}/emails/${addr.address}`);
       if (r.ok) {
         const d = await r.json();
         if (d.emails) setEmails(d.emails);
@@ -408,7 +411,7 @@ export default function App() {
 
   const loadDetail = useCallback(async (id) => {
     try {
-      const r = await fetch(`${API}/emails/single/${id}`);
+      const r = await apiFetch(`${API}/emails/single/${id}`);
       if (r.ok) setSelected(await r.json());
     } catch (e) {
       /* */
@@ -419,7 +422,7 @@ export default function App() {
     if (e) e.stopPropagation();
     if (!confirm('Silsin mi?')) return;
     try {
-      const r = await fetch(`${API}/emails/${id}`, { method: 'DELETE' });
+      const r = await apiFetch(`${API}/emails/${id}`, { method: 'DELETE' });
       if (r.ok) {
         setEmails((p) => p.filter((x) => x.id !== id));
         if (selected?.id === id) setSelected(null);
@@ -434,7 +437,7 @@ export default function App() {
     if (!compose.to || !compose.subject || !compose.body || !addr) return;
     setSending(true);
     try {
-      const r = await fetch(`${API}/emails/send`, {
+      const r = await apiFetch(`${API}/emails/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: addr.address, ...compose }),
