@@ -1,11 +1,13 @@
 const express = require('express');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { getDb } = require('../db');
 const { generateUsername } = require('../utils');
 
 // Süresiz adres: 9999-12-31
 const NEVER_EXPIRES = '9999-12-31T23:59:59.000Z';
+const JWT_SECRET = process.env.JWT_SECRET || 'tempmail-secret-key-change-in-production';
 
 /**
  * Şifreyi hash'ler (SHA-256 + salt)
@@ -24,6 +26,58 @@ function verifyPassword(password, stored) {
   const [salt, hash] = stored.split(':');
   const check = crypto.createHash('sha256').update(salt + password).digest('hex');
   return hash === check;
+}
+
+function getOptionalUser(req) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) return null;
+  try {
+    const decoded = jwt.verify(header.split(' ')[1], JWT_SECRET);
+    if (decoded.session_id) {
+      const db = getDb();
+      const session = db.get(
+        'SELECT id, revoked_at FROM user_sessions WHERE session_id = ? AND user_id = ?',
+        [decoded.session_id, decoded.id]
+      );
+      if (!session || session.revoked_at) return null;
+    }
+    return decoded;
+  } catch (e) {
+    return null;
+  }
+}
+
+function getUserPackage(db, role, packageName = null) {
+  const normalizedPackage = packageName || (role === 'admin' ? 'admin' : role === 'pro' ? 'pro' : 'free');
+  return db.get('SELECT * FROM packages WHERE name = ?', [normalizedPackage]) || {
+    name: 'free',
+    display_name: 'Ücretsiz',
+    max_addresses: 3,
+    max_emails: 50,
+  };
+}
+
+function getAddressCount(db, userId) {
+  const row = db.get('SELECT COUNT(*) as c FROM addresses WHERE user_id = ?', [userId]);
+  return row?.c || 0;
+}
+
+function assertAddressQuota(db, req) {
+  const user = getOptionalUser(req);
+  if (!user?.id) return { user: null, pkg: null };
+  const current = db.get('SELECT id, role, package_name, is_active FROM users WHERE id = ?', [user.id]);
+  if (!current || current.is_active === 0) return { user: null, pkg: null };
+  const pkg = getUserPackage(db, current.role, current.package_name);
+  const limit = Number(pkg.max_addresses || 0);
+  if (limit < 9999) {
+    const count = getAddressCount(db, current.id);
+    if (count >= limit) {
+      const err = new Error(`${pkg.display_name || 'Bu hesap'} için adres limiti doldu. Paket yükseltin.`);
+      err.status = 403;
+      throw err;
+    }
+  }
+  return { user: current, pkg };
 }
 
 /**
@@ -55,7 +109,7 @@ router.get('/domains', (req, res) => {
     res.json({ domains: domainsWithSubdomains });
   } catch (err) {
     console.error('Domain listeleme hatası:', err);
-    res.status(500).json({ error: 'Domainler listelenemedi' });
+    res.status(err.status || 500).json({ error: err.message || 'Domainler listelenemedi' });
   }
 });
 
@@ -68,6 +122,7 @@ router.post('/random', (req, res) => {
   try {
     const db = getDb();
     const { password } = req.body || {};
+    const { user } = assertAddressQuota(db, req);
 
     const domains = db.all('SELECT * FROM domains WHERE is_active = 1');
 
@@ -96,8 +151,8 @@ router.post('/random', (req, res) => {
     const passwordHash = password ? hashPassword(password) : null;
 
     db.run(
-      'INSERT INTO addresses (address, username, domain_id, password_hash, expires_at, is_persistent) VALUES (?, ?, ?, ?, ?, 1)',
-      [address, username, domain.id, passwordHash, NEVER_EXPIRES]
+      'INSERT INTO addresses (address, username, domain_id, user_id, password_hash, expires_at, is_persistent) VALUES (?, ?, ?, ?, ?, ?, 1)',
+      [address, username, domain.id, user?.id || null, passwordHash, NEVER_EXPIRES]
     );
 
     res.json({
@@ -109,7 +164,7 @@ router.post('/random', (req, res) => {
     });
   } catch (err) {
     console.error('Adres oluşturma hatası:', err);
-    res.status(500).json({ error: 'Adres oluşturulamadı' });
+    res.status(err.status || 500).json({ error: err.message || 'Adres oluşturulamadı' });
   }
 });
 
@@ -142,7 +197,7 @@ router.post('/set-password', (req, res) => {
     res.json({ message: 'Şifre ayarlandı', address: addr.address, has_password: true });
   } catch (err) {
     console.error('Şifre ayarlama hatası:', err);
-    res.status(500).json({ error: 'Şifre ayarlanamadı' });
+    res.status(err.status || 500).json({ error: err.message || 'Şifre ayarlanamadı' });
   }
 });
 
@@ -179,7 +234,7 @@ router.post('/check', (req, res) => {
     });
   } catch (err) {
     console.error('Adres kontrol hatası:', err);
-    res.status(500).json({ error: 'Adres kontrol edilemedi' });
+    res.status(err.status || 500).json({ error: err.message || 'Adres kontrol edilemedi' });
   }
 });
 
@@ -191,6 +246,8 @@ router.post('/', (req, res) => {
   try {
     const db = getDb();
     const { username, domain: domainName, subdomain, password } = req.body;
+    const authUser = getOptionalUser(req);
+    const currentUser = authUser?.id ? db.get('SELECT id, role, package_name, is_active FROM users WHERE id = ?', [authUser.id]) : null;
 
     if (!username || !domainName) {
       return res.status(400).json({ error: 'Kullanıcı adı ve domain gerekli' });
@@ -254,6 +311,17 @@ router.post('/', (req, res) => {
         }
 
         db.run('UPDATE addresses SET last_accessed = datetime("now") WHERE id = ?', [existing.id]);
+        if (currentUser?.id && !existing.user_id) {
+          const pkg = getUserPackage(db, currentUser.role, currentUser.package_name);
+          const limit = Number(pkg.max_addresses || 0);
+          if (limit < 9999) {
+            const count = getAddressCount(db, currentUser.id);
+            if (count >= limit) {
+              return res.status(403).json({ error: `${pkg.display_name || 'Bu hesap'} için adres limiti doldu. Paket yükseltin.` });
+            }
+          }
+          db.run('UPDATE addresses SET user_id = COALESCE(user_id, ?) WHERE id = ?', [currentUser.id, existing.id]);
+        }
 
         const emails = db.all(
           'SELECT id, sender, subject, received_at, has_attachments FROM emails WHERE address_id = ? ORDER BY received_at DESC',
@@ -278,6 +346,17 @@ router.post('/', (req, res) => {
       );
 
       db.run('UPDATE addresses SET last_accessed = datetime("now") WHERE id = ?', [existing.id]);
+      if (currentUser?.id && !existing.user_id) {
+        const pkg = getUserPackage(db, currentUser.role, currentUser.package_name);
+        const limit = Number(pkg.max_addresses || 0);
+        if (limit < 9999) {
+          const count = getAddressCount(db, currentUser.id);
+          if (count >= limit) {
+            return res.status(403).json({ error: `${pkg.display_name || 'Bu hesap'} için adres limiti doldu. Paket yükseltin.` });
+          }
+        }
+        db.run('UPDATE addresses SET user_id = COALESCE(user_id, ?) WHERE id = ?', [currentUser.id, existing.id]);
+      }
 
       return res.json({
         address,
@@ -291,12 +370,13 @@ router.post('/', (req, res) => {
     }
 
     // Yeni adres oluştur (süresiz)
+    const quotaInfo = assertAddressQuota(db, req);
     const passwordHash = password ? hashPassword(password) : null;
 
     db.run(
-      `INSERT INTO addresses (address, username, domain_id, password_hash, is_persistent, expires_at, last_accessed)
-       VALUES (?, ?, ?, ?, 1, ?, datetime('now'))`,
-      [address, username.toLowerCase(), domain.id, passwordHash, NEVER_EXPIRES]
+      `INSERT INTO addresses (address, username, domain_id, user_id, password_hash, is_persistent, expires_at, last_accessed)
+       VALUES (?, ?, ?, ?, ?, 1, ?, datetime('now'))`,
+      [address, username.toLowerCase(), domain.id, quotaInfo.user?.id || null, passwordHash, NEVER_EXPIRES]
     );
 
     res.json({
@@ -308,7 +388,7 @@ router.post('/', (req, res) => {
     });
   } catch (err) {
     console.error('Adres oluşturma hatası:', err);
-    res.status(500).json({ error: 'Adres oluşturulamadı' });
+    res.status(err.status || 500).json({ error: err.message || 'Adres oluşturulamadı' });
   }
 });
 
@@ -361,7 +441,7 @@ router.post('/login', (req, res) => {
     });
   } catch (err) {
     console.error('Giriş hatası:', err);
-    res.status(500).json({ error: 'Giriş yapılamadı' });
+    res.status(err.status || 500).json({ error: err.message || 'Giriş yapılamadı' });
   }
 });
 
@@ -402,7 +482,7 @@ router.get('/:address', (req, res) => {
     });
   } catch (err) {
     console.error('Adres sorgulama hatası:', err);
-    res.status(500).json({ error: 'Adres sorgulanamadı' });
+    res.status(err.status || 500).json({ error: err.message || 'Adres sorgulanamadı' });
   }
 });
 

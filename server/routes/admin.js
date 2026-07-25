@@ -627,7 +627,7 @@ router.get('/users', (req, res) => {
   try {
     const db = getDb();
     const users = db.all(`
-      SELECT u.id, u.username, u.email, u.role, u.is_active, u.created_at, u.last_login,
+      SELECT u.id, u.username, u.email, u.role, u.package_name, u.is_active, u.created_at, u.last_login,
         (SELECT COUNT(*) FROM addresses a WHERE a.user_id = u.id) as address_count,
         (SELECT COUNT(*) FROM emails e JOIN addresses a ON e.address_id = a.id WHERE a.user_id = u.id) as email_count
       FROM users u ORDER BY u.created_at DESC
@@ -654,11 +654,43 @@ router.put('/users/:id/role', (req, res) => {
       return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
     }
 
-    db.run('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+    const nextPackage = role === 'admin' ? 'admin' : role === 'pro' ? (user.package_name === 'pro_plus' ? 'pro_plus' : 'pro') : 'free';
+    db.run('UPDATE users SET role = ?, package_name = ? WHERE id = ?', [role, nextPackage, id]);
     res.json({ message: `${user.username} kullanıcısının rolü ${role} olarak değiştirildi` });
   } catch (err) {
     console.error('Rol değiştirme hatası:', err);
     res.status(500).json({ error: 'Rol değiştirilemedi' });
+  }
+});
+
+router.put('/users/:id/package', (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const { package_name } = req.body;
+
+    if (!['free', 'pro', 'pro_plus', 'admin'].includes(package_name)) {
+      return res.status(400).json({ error: 'Geçersiz paket' });
+    }
+
+    const user = db.get('SELECT * FROM users WHERE id = ?', [id]);
+    if (!user) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
+
+    if (user.role === 'admin' && package_name !== 'admin') {
+      return res.status(400).json({ error: 'Admin kullanıcılarının paketi admin kalmalıdır' });
+    }
+
+    if (package_name === 'admin' && user.role !== 'admin') {
+      return res.status(400).json({ error: 'Admin paketi için kullanıcı rolü de admin olmalıdır' });
+    }
+
+    db.run('UPDATE users SET package_name = ? WHERE id = ?', [package_name, id]);
+    res.json({ message: `${user.username} kullanıcısının paketi ${package_name} olarak değiştirildi` });
+  } catch (err) {
+    console.error('Paket değiştirme hatası:', err);
+    res.status(500).json({ error: 'Paket değiştirilemedi' });
   }
 });
 

@@ -737,6 +737,16 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     }
   };
 
+  const updateUserPackage = async (id, packageName) => {
+    try {
+      await apiRequest(`/admin/users/${id}/package`, { method: 'PUT', body: { package_name: packageName } });
+      flash('Kullanıcı paketi güncellendi');
+      await loadUsers();
+    } catch (e) {
+      flash(e.message, 'error');
+    }
+  };
+
   const updateUserStatus = async (id, isActive) => {
     try {
       await apiRequest(`/admin/users/${id}/status`, { method: 'PUT', body: { is_active: isActive } });
@@ -1839,7 +1849,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                         <p className="text-xs text-txt-muted mt-1">{user.email}</p>
                       </td>
                       <td className="py-4">
-                        {user.role === 'admin' ? <span className="badge-blue">Admin</span> : user.role === 'pro' ? <span className="badge-purple">Pro</span> : <span className="badge-cyan">Free</span>}
+                        <div className="flex flex-col gap-2">
+                          {user.role === 'admin' ? <span className="badge-blue">Admin</span> : user.role === 'pro' ? <span className="badge-purple">Pro</span> : <span className="badge-cyan">Free</span>}
+                          <span className="text-[10px] uppercase tracking-[0.18em] text-txt-muted">{user.package_name === 'pro_plus' ? 'pro+' : (user.package_name || user.role)}</span>
+                        </div>
                       </td>
                       <td className="py-4 text-txt-secondary">{user.address_count}</td>
                       <td className="py-4 text-txt-secondary">{user.email_count}</td>
@@ -1847,11 +1860,28 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                       <td className="py-4">{user.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}</td>
                       <td className="py-4">
                         <div className="flex flex-wrap gap-2">
-                          {user.role !== 'admin' ? (
-                            <button onClick={() => updateUserRole(user.id, user.role === 'free' ? 'pro' : 'free')} className="btn-secondary text-xs px-3 py-2">
-                              <UserCog size={12} /> {user.role === 'free' ? 'Pro Yap' : 'Free Yap'}
-                            </button>
-                          ) : null}
+                          <select
+                            value={user.role}
+                            onChange={(e) => updateUserRole(user.id, e.target.value)}
+                            className="input !py-2 !px-3 !text-xs !rounded-xl !w-auto min-w-[110px]"
+                          >
+                            <option value="free">Free</option>
+                            <option value="pro">Pro</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                          {user.role === 'admin' ? (
+                            <span className="badge-gold px-3 py-2 text-xs">Admin Package</span>
+                          ) : (
+                            <select
+                              value={user.package_name || (user.role === 'pro' ? 'pro' : 'free')}
+                              onChange={(e) => updateUserPackage(user.id, e.target.value)}
+                              className="input !py-2 !px-3 !text-xs !rounded-xl !w-auto min-w-[120px]"
+                            >
+                              <option value="free">Free</option>
+                              <option value="pro">Pro</option>
+                              <option value="pro_plus">Pro+</option>
+                            </select>
+                          )}
                           <button onClick={() => updateUserStatus(user.id, user.is_active !== 1)} className="btn-secondary text-xs px-3 py-2">
                             {user.is_active === 1 ? 'Pasifleştir' : 'Aktifleştir'}
                           </button>

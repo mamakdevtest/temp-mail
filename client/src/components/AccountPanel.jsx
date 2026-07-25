@@ -550,38 +550,149 @@ const AccountPanel = forwardRef(function AccountPanel({
     }
   };
 
-  if (isGuest) {
-    return (
-      <div className="card p-5 sm:p-6 h-full min-h-[530px] flex flex-col">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-8 h-8 rounded-2xl panel-soft flex items-center justify-center">
-            <User size={15} className="text-accent-blue" />
-          </div>
-          <div>
-            <p className="text-[13px] font-semibold text-txt-primary">{t('account.title')}</p>
-            <p className="text-[11px] text-txt-muted">{t('account.subtitle')}</p>
-          </div>
-        </div>
-          <div className="panel-soft p-4 rounded-[24px] border-brand-border/55">
-            <p className="text-xl font-semibold text-txt-primary">{t('account.guestTitle')}</p>
-            <p className="text-sm text-txt-muted mt-2 leading-relaxed">
-              {t('account.guestDescription')}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-            <button onClick={onLogin} className="btn-secondary">{t('app.signIn')}</button>
-            <button onClick={onRegister} className="btn-primary">{t('app.signUp')}</button>
-            </div>
-          </div>
-      </div>
-    );
-  }
-
-  const planName = isAdmin ? 'Admin' : isPro ? 'Pro' : 'Free';
+  const planName = currentPkg?.display_name || (isAdmin ? 'Admin' : isPro ? 'Pro' : 'Free');
   const usagePercent = Math.min(Math.round(((currentStats?.address_count || 0) / (currentPkg?.max_addresses || 3)) * 100), 100);
   const avatarInitial = (profileDraft.display_name || profileDraft.username || currentUser?.username || 'M')[0].toUpperCase();
   const activeDomainLabel = activeDomain || domains[0]?.domain || '-';
   const recentHistory = Array.isArray(history) ? history.slice(0, 3) : [];
   const passwordedHistory = Array.isArray(history) ? history.filter((item) => item.has_password) : [];
+
+  if (isGuest) {
+    return (
+      <div className="account-summary-panel card p-4 sm:p-5 h-full min-h-[530px] flex flex-col gap-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold text-txt-primary">{t('account.title')}</p>
+            <p className="text-[11px] text-txt-muted">{t('account.subtitle')}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button type="button" onClick={onLogin} className="btn-secondary text-xs px-3 py-2">{t('app.signIn')}</button>
+            <button type="button" onClick={onRegister} className="btn-primary text-xs px-3 py-2">{t('app.signUp')}</button>
+          </div>
+        </div>
+
+        <div className="panel-soft p-4 rounded-2xl border-brand-border/55 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="keep-white-ink w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center text-white text-xl font-semibold shadow-glow-blue bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple shrink-0">
+              <User size={20} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-txt-muted">{t('account.accountArea')}</p>
+              <p className="text-lg font-semibold tracking-tight text-txt-primary leading-tight break-words mt-1">{t('account.guestTitle')}</p>
+              <p className="text-sm text-txt-muted mt-1 leading-relaxed">{t('account.guestDescription')}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="badge-green">{t('account.ready')}</span>
+                <span className="badge-blue">{planName}</span>
+              </div>
+            </div>
+            <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3">
+              <div
+                className="relative h-24 w-24 rounded-full"
+                style={{
+                  background: `conic-gradient(rgb(var(--accent-cyan)) 0 ${usagePercent}%, rgb(var(--brand-border) / 0.24) ${usagePercent}% 100%)`,
+                }}
+              >
+                <div className="absolute inset-3 rounded-full border border-brand-border/20 bg-brand-surface flex flex-col items-center justify-center text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                  <p className="text-[18px] font-semibold tracking-tight text-txt-primary">{usagePercent}%</p>
+                  <p className="text-[9px] uppercase tracking-[0.22em] text-txt-muted">{t('account.usage')}</p>
+                </div>
+              </div>
+              <p className="mt-2 text-[10px] text-txt-muted text-center">{currentStats?.address_count || 0}/{currentPkg?.max_addresses || 3}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.address')}</p>
+              <p className="text-xl font-semibold text-txt-primary mt-1">{currentStats?.address_count || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.mail')}</p>
+              <p className="text-xl font-semibold text-txt-primary mt-1">{currentStats?.email_count || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.plan')}</p>
+              <p className="text-sm font-semibold text-txt-primary mt-1">{planName}</p>
+            </div>
+            <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.domain')}</p>
+              <p className="text-sm font-semibold text-txt-primary mt-1 truncate">{activeDomainLabel}</p>
+            </div>
+          </div>
+
+          <div className="h-2 rounded-full bg-brand-surface2 overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-accent-blue to-accent-cyan" style={{ width: `${usagePercent}%` }} />
+          </div>
+        </div>
+
+        <div className="panel-soft p-4 rounded-2xl border-brand-border/55">
+          <button
+            type="button"
+            onClick={() => setShowRecentHistory((v) => !v)}
+            aria-expanded={showRecentHistory}
+            className="w-full flex items-center justify-between gap-3 text-left"
+          >
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">{t('account.recentUsed')}</p>
+              <p className="text-[11px] text-txt-muted mt-1">{t('account.recentUsedHint')}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {recentHistory.length > 0 ? <span className="badge-blue text-[9px]">{recentHistory.length}</span> : null}
+              <ChevronDown size={14} className={`text-txt-muted transition-transform ${showRecentHistory ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+          {showRecentHistory ? (
+            <div className="mt-3 space-y-2">
+              {recentHistory.length > 0 ? recentHistory.map((item) => (
+                <div key={item.address} className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-3 py-2.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-txt-primary truncate">{item.address}</p>
+                    <p className="text-[10px] text-txt-muted mt-0.5">{item.has_password ? t('addressBar.passwordedBadge') : t('account.open')} • {new Date(item.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+                  </div>
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent-green shrink-0" />
+                </div>
+              )) : (
+                <p className="text-sm text-txt-muted">{t('account.noHistory')}</p>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="panel-soft p-4 rounded-2xl border-brand-border/55">
+          <button
+            type="button"
+            onClick={() => setShowPasswordedHistory((v) => !v)}
+            aria-expanded={showPasswordedHistory}
+            className="w-full flex items-center justify-between gap-3 text-left"
+          >
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">{t('account.passwordedList')}</p>
+              <p className="text-[11px] text-txt-muted mt-1">{t('account.passwordedListHint')}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {passwordedHistory.length > 0 ? <span className="badge-purple text-[9px]">{passwordedHistory.length}</span> : null}
+              <ChevronDown size={14} className={`text-txt-muted transition-transform ${showPasswordedHistory ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+          {showPasswordedHistory ? (
+            <div className="mt-3 space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              {passwordedHistory.length > 0 ? passwordedHistory.map((item) => (
+                <div key={item.address} className="rounded-2xl border border-accent-purple/15 bg-accent-purple/5 px-3 py-2.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-txt-primary truncate">{item.address}</p>
+                    <p className="text-[10px] text-txt-muted mt-0.5">{new Date(item.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+                  </div>
+                  <Lock size={12} className="text-accent-purple shrink-0" />
+                </div>
+              )) : (
+                <p className="text-sm text-txt-muted">{t('account.noPassworded')}</p>
+              )}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="account-summary-panel card p-4 sm:p-5 h-full min-h-[530px] flex flex-col gap-4">
@@ -662,27 +773,37 @@ const AccountPanel = forwardRef(function AccountPanel({
         </div>
       </div>
 
-      <div className="panel-soft p-4 rounded-2xl border-brand-border/55 space-y-3">
-        <div className="flex items-center justify-between gap-3">
+      <div className="panel-soft p-4 rounded-2xl border-brand-border/55">
+        <button
+          type="button"
+          onClick={() => setShowRecentHistory((v) => !v)}
+          aria-expanded={showRecentHistory}
+          className="w-full flex items-center justify-between gap-3 text-left"
+        >
           <div>
             <p className="text-[11px] uppercase tracking-[0.22em] text-txt-muted">{t('account.recentUsed')}</p>
             <p className="text-[11px] text-txt-muted mt-1">{t('account.recentUsedHint')}</p>
           </div>
-          {recentHistory.length > 0 ? <span className="badge-blue text-[9px]">{recentHistory.length}</span> : null}
-        </div>
-        <div className="space-y-2">
-          {recentHistory.length > 0 ? recentHistory.map((item) => (
-            <div key={item.address} className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-3 py-2.5 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-txt-primary truncate">{item.address}</p>
-                <p className="text-[10px] text-txt-muted mt-0.5">{item.has_password ? t('addressBar.passwordedBadge') : t('account.open')} • {new Date(item.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+          <div className="flex items-center gap-2 shrink-0">
+            {recentHistory.length > 0 ? <span className="badge-blue text-[9px]">{recentHistory.length}</span> : null}
+            <ChevronDown size={14} className={`text-txt-muted transition-transform ${showRecentHistory ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        {showRecentHistory ? (
+          <div className="mt-3 space-y-2">
+            {recentHistory.length > 0 ? recentHistory.map((item) => (
+              <div key={item.address} className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-3 py-2.5 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-txt-primary truncate">{item.address}</p>
+                  <p className="text-[10px] text-txt-muted mt-0.5">{item.has_password ? t('addressBar.passwordedBadge') : t('account.open')} • {new Date(item.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                <span className="w-2.5 h-2.5 rounded-full bg-accent-green shrink-0" />
               </div>
-              <span className="w-2.5 h-2.5 rounded-full bg-accent-green shrink-0" />
-            </div>
-          )) : (
-            <p className="text-sm text-txt-muted">{t('account.noHistory')}</p>
-          )}
-        </div>
+            )) : (
+              <p className="text-sm text-txt-muted">{t('account.noHistory')}</p>
+            )}
+          </div>
+        ) : null}
       </div>
 
       <div className="panel-soft p-4 rounded-2xl border-brand-border/55">

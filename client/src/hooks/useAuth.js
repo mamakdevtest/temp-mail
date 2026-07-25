@@ -229,8 +229,10 @@ export default function useAuth() {
   // Yetki kontrolü
   const isGuest = user?.role === 'guest';
   const isAdmin = user?.role === 'admin';
-  const isPro = user?.role === 'pro' || isAdmin;
-  const isFree = user?.role === 'free';
+  const currentPackageName = pkg?.name || (isAdmin ? 'admin' : user?.role || 'free');
+  const isProPlus = currentPackageName === 'pro_plus';
+  const isPro = isAdmin || currentPackageName === 'pro' || isProPlus;
+  const isFree = currentPackageName === 'free' && !isGuest;
 
   return {
     user,
@@ -242,6 +244,7 @@ export default function useAuth() {
     isGuest,
     isAdmin,
     isPro,
+    isProPlus,
     isFree,
     register,
     login,

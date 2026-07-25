@@ -38,8 +38,9 @@ function ensureUserPreferences(db, userId) {
   );
 }
 
-function getUserPackage(db, role) {
-  return db.get('SELECT * FROM packages WHERE name = ?', [role === 'admin' ? 'pro' : role]) || {
+function getUserPackage(db, role, packageName = null) {
+  const normalizedPackage = packageName || (role === 'admin' ? 'admin' : role === 'pro' ? 'pro' : 'free');
+  return db.get('SELECT * FROM packages WHERE name = ?', [normalizedPackage]) || {
     name: 'free',
     display_name: 'Ücretsiz',
     max_addresses: 3,
@@ -62,14 +63,14 @@ function getUserUsage(db, userId) {
 
 function getUserCenterPayload(db, userId) {
   const user = db.get(
-    'SELECT id, username, email, role, created_at, last_login, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+    'SELECT id, username, email, role, package_name, created_at, last_login, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
     [userId]
   );
   if (!user) return null;
 
   ensureUserPreferences(db, userId);
   const preferences = db.get('SELECT * FROM user_preferences WHERE user_id = ?', [userId]) || {};
-  const pkg = getUserPackage(db, user.role);
+  const pkg = getUserPackage(db, user.role, user.package_name);
   const usage = getUserUsage(db, userId);
   const favoriteDomains = db.all(`
     SELECT d.id, d.domain, d.is_active, d.server_ip
@@ -99,6 +100,7 @@ function getUserCenterPayload(db, userId) {
     user: {
       ...user,
       display_name: user.display_name || user.username,
+      package_name: user.package_name || null,
       theme: user.theme || preferences.theme || 'system',
       language: user.language || preferences.language || 'tr',
       username_change_count: Number(user.username_change_count || 0),
@@ -270,11 +272,11 @@ router.post('/register', (req, res) => {
 
     const hash = bcrypt.hashSync(password, 10);
     const result = db.run(
-      'INSERT INTO users (username, email, password_hash, display_name, role) VALUES (?, ?, ?, ?, ?)',
-      [username.toLowerCase(), email.toLowerCase(), hash, username.toLowerCase(), 'free']
+      'INSERT INTO users (username, email, password_hash, display_name, role, package_name) VALUES (?, ?, ?, ?, ?, ?)',
+      [username.toLowerCase(), email.toLowerCase(), hash, username.toLowerCase(), 'free', 'free']
     );
 
-    const user = db.get('SELECT id, username, email, role, created_at, display_name, avatar_url, language, theme, default_domain_id FROM users WHERE id = ?', [result.lastInsertRowid]);
+    const user = db.get('SELECT id, username, email, role, package_name, created_at, display_name, avatar_url, language, theme, default_domain_id FROM users WHERE id = ?', [result.lastInsertRowid]);
     ensureUserPreferences(db, user.id);
     recordLoginEvent(db, { userId: user.id, login: user.email, success: 1, reason: 'register', req });
     const session = createSession(db, user, req, 0);
@@ -289,6 +291,7 @@ router.post('/register', (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        package_name: user.package_name || null,
         display_name: user.display_name,
         avatar_url: user.avatar_url,
       },
@@ -354,6 +357,7 @@ router.post('/login', (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        package_name: user.package_name || null,
         display_name: user.display_name || user.username,
         avatar_url: user.avatar_url || '',
       },
@@ -404,7 +408,7 @@ router.put('/me', authMiddleware, (req, res) => {
     }
 
     const currentUser = db.get(
-      'SELECT id, username, email, role, created_at, display_name, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+      'SELECT id, username, email, role, package_name, created_at, display_name, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
       [req.user.id]
     );
     if (!currentUser) {
@@ -454,7 +458,7 @@ router.put('/me', authMiddleware, (req, res) => {
     }
 
     const updatedUser = db.get(
-      'SELECT id, username, email, role, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+      'SELECT id, username, email, role, package_name, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
       [req.user.id]
     );
     const token = signToken({ ...updatedUser, session_id: req.user.session_id });
@@ -560,7 +564,7 @@ router.post('/confirm-email-change', authMiddleware, (req, res) => {
     }
 
     const user = db.get(
-      `SELECT id, username, email, role, display_name, avatar_url, language, theme, default_domain_id,
+      `SELECT id, username, email, role, package_name, display_name, avatar_url, language, theme, default_domain_id,
               pending_email, pending_email_code_hash, pending_email_expires_at
        FROM users WHERE id = ?`,
       [req.user.id]
@@ -594,7 +598,7 @@ router.post('/confirm-email-change', authMiddleware, (req, res) => {
     );
 
     const updatedUser = db.get(
-      'SELECT id, username, email, role, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+      'SELECT id, username, email, role, package_name, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
       [req.user.id]
     );
     const token = signToken({ ...updatedUser, session_id: req.user.session_id });
@@ -990,10 +994,12 @@ router.post('/request-pro', authMiddleware, (req, res) => {
     const db = getDb();
     const { message } = req.body;
 
-    // Zaten pro mu?
-    const user = db.get('SELECT role FROM users WHERE id = ?', [req.user.id]);
-    if (user?.role === 'pro') return res.status(400).json({ error: 'Zaten Pro kullanıcısınız' });
-    if (user?.role === 'admin') return res.status(400).json({ error: 'Admin kullanıcıları Pro isteği gönderemez' });
+    // Zaten paket yükseltilmiş mi?
+    const user = db.get('SELECT role, package_name FROM users WHERE id = ?', [req.user.id]);
+    const currentPackage = getUserPackage(db, user?.role, user?.package_name);
+    if (currentPackage?.name && currentPackage.name !== 'free') {
+      return res.status(400).json({ error: 'Zaten yükseltilmiş bir pakettesiniz' });
+    }
 
     // Bekleyen istek var mı?
     const pending = db.get('SELECT id FROM package_requests WHERE user_id = ? AND status = "pending"', [req.user.id]);

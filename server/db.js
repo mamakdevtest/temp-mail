@@ -49,6 +49,7 @@ async function initDatabase() {
       language TEXT DEFAULT 'tr',
       theme TEXT DEFAULT 'system',
       default_domain_id INTEGER,
+      package_name TEXT DEFAULT NULL,
       username_change_count INTEGER DEFAULT 0,
       email_change_count INTEGER DEFAULT 0,
       pending_email TEXT,
@@ -258,6 +259,7 @@ async function initDatabase() {
     "ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'tr'",
     "ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'system'",
     "ALTER TABLE users ADD COLUMN default_domain_id INTEGER",
+    "ALTER TABLE users ADD COLUMN package_name TEXT",
     "ALTER TABLE users ADD COLUMN username_change_count INTEGER DEFAULT 0",
     "ALTER TABLE users ADD COLUMN email_change_count INTEGER DEFAULT 0",
     "ALTER TABLE users ADD COLUMN pending_email TEXT",
@@ -312,23 +314,24 @@ async function initDatabase() {
     return null;
   }
 
-  const existingPkg = rawGet("SELECT COUNT(*) as c FROM packages");
-  if (!existingPkg || existingPkg.c === 0) {
-    db.run(`INSERT INTO packages (name, display_name, max_addresses, max_emails, email_retention_days, custom_domains, webhook_support, priority_support, price_monthly, features) VALUES
-      ('free', 'Ücretsiz', 3, 50, 7, 0, 0, 0, 0, '["3 geçici adres","50 mail saklama","7 gün saklama","Temel inbox"]'),
-      ('pro', 'Pro', 999, 5000, 365, 1, 1, 1, 9.99, '["Sınırsız adres","5000 mail saklama","365 gün saklama","Özel domain","Webhook desteği","Öncelikli destek","Gelişmiş gizlilik"]')
-    `);
-    console.log('📦 Varsayılan paketler oluşturuldu (free, pro)');
-  }
+  db.run(`INSERT OR IGNORE INTO packages (name, display_name, max_addresses, max_emails, email_retention_days, custom_domains, webhook_support, priority_support, price_monthly, features) VALUES
+    ('free', 'Ücretsiz', 3, 50, 7, 0, 0, 0, 0, '["3 geçici adres","50 mail saklama","7 gün saklama","Temel inbox"]'),
+    ('pro', 'Pro', 25, 5000, 365, 1, 1, 1, 9.99, '["25 adres","5000 mail saklama","365 gün saklama","Özel domain","Webhook desteği","Öncelikli destek","Gelişmiş gizlilik"]'),
+    ('pro_plus', 'Pro+', 50, 10000, 365, 1, 1, 1, 19.99, '["50 adres","10000 mail saklama","365 gün saklama","Özel domain","Webhook desteği","Öncelikli destek","Gelişmiş otomasyon"]'),
+    ('admin', 'Admin', 9999, 50000, 365, 1, 1, 1, 0, '["Sınırsız adres","Gelişmiş yönetim","Tam görünürlük","Tüm araçlar"]')
+  `);
+  console.log('📦 Varsayılan paketler kontrol edildi (free, pro, pro_plus, admin)');
 
   // ===== Varsayılan admin kullanıcısı oluştur =====
   const adminPw = process.env.ADMIN_PASSWORD || 'admin123';
   const existingAdmin = rawGet("SELECT id FROM users WHERE role = 'admin'");
   if (!existingAdmin) {
     const hash = bcrypt.hashSync(adminPw, 10);
-    db.run("INSERT INTO users (username, email, password_hash, role) VALUES ('admin', 'admin@tempmail.local', ?, 'admin')", [hash]);
+    db.run("INSERT INTO users (username, email, password_hash, role, package_name) VALUES ('admin', 'admin@tempmail.local', ?, 'admin', 'admin')", [hash]);
     console.log('👤 Admin kullanıcısı oluşturuldu (admin / ' + adminPw + ')');
   }
+
+  db.run("UPDATE users SET package_name = COALESCE(package_name, CASE WHEN role = 'admin' THEN 'admin' WHEN role = 'pro' THEN 'pro' ELSE 'free' END)");
 
   // İndeksler
   db.run('CREATE INDEX IF NOT EXISTS idx_addresses_address ON addresses(address);');

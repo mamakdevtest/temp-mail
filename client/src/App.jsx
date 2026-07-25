@@ -86,6 +86,7 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const authHeaders = auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
 
   const userMenuRef = useRef(null);
   const accountPanelRef = useRef(null);
@@ -274,7 +275,7 @@ export default function App() {
       if (password) body.password = password;
       const r = await fetch(`${API}/addresses/random`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(body),
       });
       const d = await r.json();
@@ -287,7 +288,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [toast, t]);
+  }, [authHeaders, toast, t]);
 
   const openAddr = useCallback(async (username, domain, password, subdomain = null) => {
     setLoading(true);
@@ -299,7 +300,7 @@ export default function App() {
       if (subdomain) body.subdomain = subdomain;
       const r = await fetch(`${API}/addresses`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(body),
       });
       const d = await r.json();
@@ -319,7 +320,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [toast, t]);
+  }, [authHeaders, toast, t]);
 
   const pwSubmit = useCallback(async () => {
     if (!pwInput) return;
@@ -328,7 +329,7 @@ export default function App() {
     try {
       const r = await fetch(`${API}/addresses`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ username: pwModal.username, domain: pwModal.domain, password: pwInput }),
       });
       const d = await r.json();
@@ -346,7 +347,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [pwInput, pwModal, toast, t]);
+  }, [authHeaders, pwInput, pwModal, toast, t]);
 
   const doSetPw = useCallback(async () => {
     if (!spwVal || !addr) return;
@@ -555,7 +556,7 @@ export default function App() {
                     <p className="text-sm font-semibold text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</p>
                     <p className="text-[11px] text-txt-secondary mt-1 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-accent-green" />
-                      {auth.isAdmin ? 'Admin Kullanıcı' : auth.isPro ? 'Pro Kullanıcı' : 'Free Kullanıcı'}
+                      {auth.isAdmin ? 'Admin Kullanıcı' : auth.isProPlus ? 'Pro+ Kullanıcı' : auth.isPro ? 'Pro Kullanıcı' : 'Free Kullanıcı'}
                     </p>
                   </div>
                   <ChevronDown size={14} className="text-txt-muted" />
