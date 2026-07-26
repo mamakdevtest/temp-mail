@@ -1,10 +1,11 @@
 // OTP mail formats vary wildly. This detector deliberately ranks candidates
 // by nearby intent instead of returning the first 4-8 digit number it sees.
 const OTP_LABEL_RE = /(?:verification|verify|security|one[-\s]?time|one time|authentication|auth(?:orization)?|passcode|otp|2fa|mfa|pin|login|sign[\s-]?in|confirm(?:ation)?|access\s*(?:code|token)?|\bcode\b|\btoken\b|doğrulama|doğrula|tek\s*kullanımlık|güvenlik|güvenli̇k|onay(?:lama)?|giriş|kod(?:unuz|u)?|şifre)/i;
-const NEGATIVE_CONTEXT_RE = /(?:unsubscribe|order|invoice|receipt|tracking|shipment|reference|transaction|payment|amount|price|phone|tel(?:ephone)?|customer\s*(?:id|number)|ticket|account\s*(?:id|number)|postal|zip)/i;
+const NEGATIVE_CONTEXT_RE = /(?:unsubscribe|order|invoice|receipt|tracking|shipment|reference|transaction|payment|amount|price|phone|tel(?:ephone)?|customer\s*(?:id|number)|ticket|account\s*(?:id|number)|postal|zip|copyright|telif|©)/i;
 const DATE_LIKE_RE = /(?:\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b|\b\d{4}[./-]\d{1,2}[./-]\d{1,2}\b|\b\d{1,2}:\d{2}(?::\d{2})?\b)/i;
 const HEADER_RE = /^(?:from|sent|to|cc|bcc|subject|date|tarih|gönderen|gonderen|konu|reply-to)\s*[:\-]/i;
-const TOKEN_RE = /(?:^|[^a-z0-9_-])([a-z0-9]{4,10})(?![a-z0-9_-])/gi;
+// Includes common provider formats such as BXS-AJ2, ABC-123 and IRU-VO0.
+const TOKEN_RE = /(?:^|[^a-z0-9_-])([a-z0-9]+(?:-[a-z0-9]+){0,2})(?![a-z0-9_-])/gi;
 
 function decodeHtmlEntities(text) {
   const entityMap = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" };
@@ -76,7 +77,7 @@ function isIsolated(line, token) {
 
 function scoreCandidate({ token, line, lines, index, sourceWeight }) {
   const numeric = /^\d+$/.test(token);
-  const length = token.length;
+  const length = token.replace(/-/g, '').length;
   const label = nearestLabel(lines, index);
   let score = numeric ? 32 : 18;
 
@@ -115,7 +116,8 @@ function rankOtpCandidates(sources) {
     lines.forEach((line, index) => {
       for (const match of line.matchAll(TOKEN_RE)) {
         const token = match[1];
-        if (!/\d/.test(token)) continue;
+        const compact = token.replace(/-/g, '');
+        if (!/\d/.test(compact) || compact.length < 4 || compact.length > 10) continue;
         const candidate = scoreCandidate({ token, line, lines, index, sourceWeight: weight });
         candidates.push({ ...candidate, source: name, index });
       }

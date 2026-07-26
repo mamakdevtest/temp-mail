@@ -2,6 +2,8 @@
 
 Kendi domainleriniz üzerinden geçici e-posta adresleri oluşturup, gelen mailleri okuyabileceğiniz web uygulaması.
 
+> API key, otomasyon, OTP, bulk havuzları ve production işletimi için güncel belgeler: [API rehberi](docs/API.md) · [Operasyon rehberi](docs/OPERATIONS.md)
+
 ## Özellikler
 
 - 🚀 Tek tıkla rastgele geçici e-posta adresi oluşturma

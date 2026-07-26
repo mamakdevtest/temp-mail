@@ -14,6 +14,7 @@
 - Recent history dropdown no longer gets clipped by the address card layout.
 - Account section rename button now works through authenticated profile update flow.
 - Admin panel branding text was updated to `MS Temp Mail`.
+- Site ana menüsüne API, operasyon, Coolify, proje ve kullanım akışlarını panel görünümünde sunan bir `Dokümanlar` merkezi eklendi.
 
 ## Backend additions
 - `PUT /api/auth/me`

@@ -7,6 +7,7 @@ const http = require('http');
 const { Server: SocketServer } = require('socket.io');
 const { initDatabase } = require('./db');
 const { apiContract, rateLimit } = require('./middleware/apiContract');
+const { requireApiAccess } = require('./middleware/apiAccess');
 
 const app = express();
 const API_PORT = parseInt(process.env.API_PORT || process.env.PORT || '3001', 10);
@@ -16,7 +17,7 @@ const SMTP_PORT = parseInt(process.env.SMTP_PORT || '25', 10);
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Password'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Api-Key', 'X-Admin-Password'],
 }));
 app.use(express.json());
 app.use('/api', apiContract);
@@ -46,6 +47,9 @@ async function main() {
   const adminRouter = require('./routes/admin');
   const automationRouter = require('./routes/automation');
 
+  // Health plus login/register are deliberately public. Every data route needs
+  // either a tm_ API key or an authenticated browser session.
+  app.use('/api', requireApiAccess);
   app.use('/api/auth', authRouter);
   app.use('/api/addresses', addressesRouter);
   app.use('/api/emails', emailsRouter);

@@ -1,9 +1,9 @@
-const crypto = require('crypto');
 const express = require('express');
 const { getDb } = require('../db');
 const { authMiddleware } = require('./auth');
 const { writeAudit } = require('../services/audit');
 const { getApiKeyPrincipal, hasApiScope } = require('../middleware/apiKeyAuth');
+const { createApiKey, listApiKeys, VALID_SCOPES } = require('../services/apiKeys');
 
 const router = express.Router();
 router.use((req, res, next) => {
@@ -18,31 +18,26 @@ function requireAutomationScope(req, res, next) {
 }
 
 const EVENTS = new Set(['email.received', 'otp.detected', 'address.expiring', 'bulk.completed']);
-const SCOPES = new Set(['addresses:read', 'addresses:write', 'emails:read', 'emails:delete', 'bulk:write', 'webhooks:manage']);
+const SCOPES = VALID_SCOPES;
 
 function parse(value, fallback) { try { return JSON.parse(value || ''); } catch (_) { return fallback; } }
-function listKeys(db, userId) {
-  return db.all(`SELECT id, name, key_prefix, scopes, last_used_at, expires_at, revoked_at, created_at
-    FROM api_keys WHERE user_id = ? ORDER BY id DESC`, [userId]).map((key) => ({ ...key, scopes: parse(key.scopes, []) }));
-}
-
 router.get('/api-keys', requireAutomationScope, (req, res) => {
-  try { res.json({ keys: listKeys(getDb(), req.user.id) }); }
+  try { res.json({ keys: listApiKeys(getDb(), req.user.id) }); }
   catch (_) { res.status(500).json({ error: 'internal_error', message: 'API anahtarları alınamadı' }); }
 });
 
 router.post('/api-keys', requireAutomationScope, (req, res) => {
   try {
+    if (req.apiKey) return res.status(403).json({ error: 'forbidden', message: 'API anahtarıyla yeni anahtar oluşturulamaz; hesap oturumu kullanın' });
     const db = getDb();
     const name = String(req.body?.name || '').trim().slice(0, 60);
     const scopes = Array.isArray(req.body?.scopes) ? req.body.scopes.filter((scope) => SCOPES.has(scope)) : [];
     if (!name || !scopes.length) return res.status(400).json({ error: 'invalid_request', message: 'Anahtar adı ve en az bir geçerli scope gerekli' });
-    const token = `tm_${crypto.randomBytes(24).toString('base64url')}`;
-    const hash = crypto.createHash('sha256').update(token).digest('hex');
-    const prefix = token.slice(0, 10);
-    const created = db.run('INSERT INTO api_keys (user_id, name, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?)', [req.user.id, name, prefix, hash, JSON.stringify(scopes)]);
-    writeAudit(req, { action: 'automation.api_key.create', entityType: 'api_key', entityId: created.lastInsertRowid, metadata: { name, scopes } });
-    res.status(201).json({ key: { id: created.lastInsertRowid, name, prefix, scopes }, secret: token });
+    const isMaster = req.body?.key_type === 'master';
+    if (isMaster && req.user.role !== 'admin') return res.status(403).json({ error: 'forbidden', message: 'Master key yalnız admin hesabında oluşturulabilir' });
+    const key = createApiKey(db, { userId: req.user.id, name, scopes, rateLimitPerMinute: req.body?.rate_limit_per_minute, isMaster });
+    writeAudit(req, { action: `automation.api_key.create.${key.key_type}`, entityType: 'api_key', entityId: key.id, metadata: { name, scopes: key.scopes } });
+    res.status(201).json({ key: { ...key, secret: undefined }, secret: key.secret });
   } catch (_) { res.status(500).json({ error: 'internal_error', message: 'API anahtarı oluşturulamadı' }); }
 });
 
@@ -55,6 +50,20 @@ router.delete('/api-keys/:id', requireAutomationScope, (req, res) => {
     writeAudit(req, { action: 'automation.api_key.revoke', entityType: 'api_key', entityId: key.id, metadata: { name: key.name } });
     res.json({ id: key.id, revoked: true });
   } catch (_) { res.status(500).json({ error: 'internal_error', message: 'API anahtarı iptal edilemedi' }); }
+});
+
+router.put('/api-keys/:id', requireAutomationScope, (req, res) => {
+  try {
+    if (req.apiKey) return res.status(403).json({ error: 'forbidden', message: 'API anahtarıyla anahtar ayarı değiştirilemez' });
+    const db = getDb();
+    const key = db.get('SELECT id FROM api_keys WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+    if (!key) return res.status(404).json({ error: 'not_found', message: 'API anahtarı bulunamadı' });
+    const isActive = req.body?.is_active === undefined ? null : req.body.is_active ? 1 : 0;
+    const maxRate = req.user.role === 'admin' ? 10000 : 1000;
+    const rate = req.body?.rate_limit_per_minute === undefined ? null : Math.min(Math.max(Number.parseInt(req.body.rate_limit_per_minute, 10) || 120, 10), maxRate);
+    db.run('UPDATE api_keys SET is_active = COALESCE(?, is_active), rate_limit_per_minute = COALESCE(?, rate_limit_per_minute) WHERE id = ?', [isActive, rate, key.id]);
+    res.json({ id: key.id, updated: true });
+  } catch (_) { res.status(500).json({ error: 'internal_error', message: 'API anahtarı güncellenemedi' }); }
 });
 
 router.get('/webhooks', requireAutomationScope, (req, res) => {

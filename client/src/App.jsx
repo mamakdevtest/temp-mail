@@ -1,6 +1,6 @@
 import { lazy, Suspense, startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, PanelLeft } from 'lucide-react';
+import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, PanelLeft, BookOpen } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 import AddressBar from './components/AddressBar';
 import Inbox from './components/Inbox';
@@ -17,6 +17,7 @@ const BulkStudio = lazy(() => import('./components/BulkStudio'));
 const BulkInbox = lazy(() => import('./components/BulkInbox'));
 const AdminBulkStudio = lazy(() => import('./components/AdminBulkStudio'));
 const AutomationCenter = lazy(() => import('./components/AutomationCenter'));
+const DocumentationCenter = lazy(() => import('./components/DocumentationCenter'));
 
 const API = '/api';
 const DEFAULT_NOTIFICATION_SOUND = NOTIFICATION_SOUNDS.find((sound) => sound.id === 'chime')?.id || 'classic';
@@ -92,7 +93,7 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
-  const authHeaders = auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
+  const authHeaders = useMemo(() => (auth.token ? { Authorization: `Bearer ${auth.token}` } : {}), [auth.token]);
 
   const userMenuRef = useRef(null);
   const accountPanelRef = useRef(null);
@@ -270,7 +271,7 @@ export default function App() {
     try {
       const saved = JSON.parse(localStorage.getItem('tm-last-addr') || 'null');
       if (!saved?.address) return false;
-      const r = await apiFetch(`${API}/addresses/${saved.address}`);
+      const r = await apiFetch(`${API}/addresses/${saved.address}`, { headers: authHeaders });
       if (r.ok) {
         const d = await r.json();
         setAddr(d);
@@ -281,11 +282,11 @@ export default function App() {
       /* */
     }
     return false;
-  }, []);
+  }, [authHeaders]);
 
   const loadDomains = useCallback(async () => {
     try {
-      const r = await apiFetch(`${API}/addresses/domains`);
+      const r = await apiFetch(`${API}/addresses/domains`, { headers: authHeaders });
       if (r.ok) {
         const d = await r.json();
         if (d.domains) setDomains(d.domains);
@@ -293,7 +294,7 @@ export default function App() {
     } catch (e) {
       /* */
     }
-  }, []);
+  }, [authHeaders]);
 
   const genRandom = useCallback(async (password) => {
     setLoading(true);
@@ -383,7 +384,7 @@ export default function App() {
     try {
       const r = await apiFetch(`${API}/addresses/set-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ address: addr.address, password: spwVal }),
       });
       const d = await r.json();
@@ -416,10 +417,10 @@ export default function App() {
   const loadEmails = useCallback(async () => {
     if (!addr) return;
     try {
-      const r = await apiFetch(`${API}/emails/${addr.address}`);
+      const r = await apiFetch(`${API}/emails/${encodeURIComponent(addr.address)}?limit=100&order=desc`, { headers: authHeaders });
       if (r.ok) {
         const d = await r.json();
-        if (d.emails) setEmails(d.emails);
+        if (Array.isArray(d)) setEmails(d);
         pollDelayRef.current = 5000;
       } else {
         pollDelayRef.current = Math.min(pollDelayRef.current * 2, 60000);
@@ -427,7 +428,7 @@ export default function App() {
     } catch (e) {
       pollDelayRef.current = Math.min(pollDelayRef.current * 2, 60000);
     }
-  }, [addr]);
+  }, [addr, authHeaders]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -437,18 +438,18 @@ export default function App() {
 
   const loadDetail = useCallback(async (id) => {
     try {
-      const r = await apiFetch(`${API}/emails/single/${id}`);
+      const r = await apiFetch(`${API}/emails/single/${id}`, { headers: authHeaders });
       if (r.ok) setSelected(await r.json());
     } catch (e) {
       /* */
     }
-  }, []);
+  }, [authHeaders]);
 
   const delEmail = useCallback(async (id, e) => {
     if (e) e.stopPropagation();
     if (!confirm('Silsin mi?')) return;
     try {
-      const r = await apiFetch(`${API}/emails/${id}`, { method: 'DELETE' });
+      const r = await apiFetch(`${API}/emails/${id}`, { method: 'DELETE', headers: authHeaders });
       if (r.ok) {
         setEmails((p) => p.filter((x) => x.id !== id));
         if (selected?.id === id) setSelected(null);
@@ -465,7 +466,7 @@ export default function App() {
     try {
       const r = await apiFetch(`${API}/emails/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ from: addr.address, ...compose }),
       });
       const d = await r.json();
@@ -564,6 +565,7 @@ export default function App() {
             <button onClick={() => navigate('domains')} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> {t('app.domains')}</button>
             {!auth.isGuest && <button onClick={() => navigate('bulk')} className={`nav-pill ${page === 'bulk' ? 'nav-pill-active' : ''}`}><Boxes size={16} /> Bulk</button>}
             {!auth.isGuest && <button onClick={() => navigate('automation')} className={`nav-pill ${page === 'automation' ? 'nav-pill-active' : ''}`}><Workflow size={16} /> Otomasyon</button>}
+            <button onClick={() => navigate('docs')} className={`nav-pill ${page === 'docs' ? 'nav-pill-active' : ''}`}><BookOpen size={16} /> Dokümanlar</button>
             {auth.isAdmin && <button onClick={() => navigate('admin')} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> {t('app.admin')}</button>}
           </div>
 
@@ -699,6 +701,7 @@ export default function App() {
           <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>Domainler</span></button>
           {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk Studio</span></button>}
           {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>Otomasyon</span></button>}
+          <button className={page === 'docs' ? 'is-active' : ''} onClick={() => navigate('docs')}><BookOpen size={18} /><span>Dokümanlar</span></button>
           <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>Hesap</span></button>
           {auth.isAdmin && <><div className="workspace-rail-divider" /><button className={page === 'admin' ? 'is-active' : ''} onClick={() => navigate('admin')}><PanelLeft size={18} /><span>Operasyonlar</span></button><button className={page === 'admin-bulk' ? 'is-active' : ''} onClick={() => navigate('admin-bulk')}><Shield size={18} /><span>Bulk yönetimi</span></button></>}
         </aside>
@@ -777,7 +780,9 @@ export default function App() {
         ) : page === 'bulk' ? (
           <Suspense fallback={<div className="ops-loading">Bulk Studio hazırlanıyor…</div>}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} /></Suspense>
         ) : page === 'automation' ? (
-          auth.isGuest ? <div className="ops-empty"><Workflow size={30} /><h1>Otomasyon için giriş yapın</h1><p>API anahtarlarını ve webhook’ları kayıtlı hesabınızdan yönetebilirsiniz.</p></div> : <Suspense fallback={<div className="ops-loading">Otomasyon hazırlanıyor…</div>}><AutomationCenter token={auth.token} /></Suspense>
+          auth.isGuest ? <div className="ops-empty"><Workflow size={30} /><h1>Otomasyon için giriş yapın</h1><p>API anahtarlarını ve webhook’ları kayıtlı hesabınızdan yönetebilirsiniz.</p></div> : <Suspense fallback={<div className="ops-loading">Otomasyon hazırlanıyor…</div>}><AutomationCenter token={auth.token} isAdmin={auth.isAdmin} /></Suspense>
+        ) : page === 'docs' ? (
+          <Suspense fallback={<div className="ops-loading">Dokümanlar hazırlanıyor…</div>}><DocumentationCenter /></Suspense>
         ) : page === 'admin-bulk' && auth.isAdmin ? (
           <Suspense fallback={<div className="ops-loading">Bulk yönetimi hazırlanıyor…</div>}><AdminBulkStudio token={auth.token} user={auth.user} domains={domains} /></Suspense>
         ) : auth.isAdmin ? (
@@ -815,6 +820,7 @@ export default function App() {
         <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>Domain</span></button>
         {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk</span></button>}
         {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>Akış</span></button>}
+        <button className={page === 'docs' ? 'is-active' : ''} onClick={() => navigate('docs')}><BookOpen size={18} /><span>Docs</span></button>
         <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>Hesap</span></button>
       </nav>
 

@@ -6,7 +6,7 @@ const { getDb } = require('../db');
 const { generateUsername } = require('../utils');
 const { rateLimit } = require('../middleware/apiContract');
 const { writeAudit } = require('../services/audit');
-const { getApiKeyPrincipal, hasApiScope } = require('../middleware/apiKeyAuth');
+const { getApiKeyPrincipal, hasApiScope, requireApiScope } = require('../middleware/apiKeyAuth');
 
 // Süresiz adres: 9999-12-31
 const NEVER_EXPIRES = '9999-12-31T23:59:59.000Z';
@@ -32,6 +32,7 @@ function verifyPassword(password, stored) {
 }
 
 function getOptionalUser(req) {
+  if (req.user?.id) return req.user;
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return null;
   const apiPrincipal = getApiKeyPrincipal(req);
@@ -93,7 +94,7 @@ function assertAddressQuota(db, req) {
  * Aktif domainleri listeler (public - şifre gerektirmez)
  * Dropdown'da kullanıcının domain seçmesi için
  */
-router.get('/domains', (req, res) => {
+router.get('/domains', requireApiScope('addresses:read'), (req, res) => {
   try {
     const db = getDb();
     const domains = db.all('SELECT id, domain, wildcard_subdomains FROM domains WHERE is_active = 1 ORDER BY domain');
@@ -114,6 +115,9 @@ router.get('/domains', (req, res) => {
       };
     });
 
+    if (String(req.query.flat || '') === '1') {
+      return res.json(domainsWithSubdomains.flatMap((domain) => [domain.domain, ...domain.subdomains.map((subdomain) => subdomain.full_domain)]));
+    }
     res.json({ domains: domainsWithSubdomains });
   } catch (err) {
     console.error('Domain listeleme hatası:', err);
@@ -126,7 +130,7 @@ router.get('/domains', (req, res) => {
  * Rastgele bir adres oluşturur (süresiz)
  * Body: { password? } - opsiyonel şifre
  */
-router.post('/random', (req, res) => {
+router.post('/random', requireApiScope('addresses:write'), (req, res) => {
   try {
     const db = getDb();
     const { password } = req.body || {};
@@ -192,7 +196,7 @@ function requireBulkUser(db, req) {
   return { user, pkg: getUserPackage(db, user.role, user.package_name), isAdmin: false };
 }
 
-router.get('/bulk', (req, res) => {
+router.get('/bulk', requireApiScope('addresses:read'), (req, res) => {
   try {
     const db = getDb();
     const { user } = requireBulkUser(db, req);
@@ -215,7 +219,7 @@ router.get('/bulk', (req, res) => {
  * GET /api/addresses/bulk/:poolId/emails
  * Bir prefix havuzundaki tüm mailbox maillerini tek operasyon listesinde döndürür.
  */
-router.get('/bulk/:poolId/emails', rateLimit({ max: 120, key: 'bulk-email-list' }), (req, res) => {
+router.get('/bulk/:poolId/emails', requireApiScope('emails:read'), rateLimit({ max: 120, key: 'bulk-email-list' }), (req, res) => {
   try {
     const db = getDb();
     const { user, isAdmin } = requireBulkUser(db, req);
@@ -271,7 +275,7 @@ router.get('/bulk/:poolId/emails', rateLimit({ max: 120, key: 'bulk-email-list' 
   }
 });
 
-router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
+router.post('/bulk', requireApiScope('bulk:write'), rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
   const db = getDb();
   try {
     const { user: actor, pkg, isAdmin } = requireBulkUser(db, req);
@@ -339,7 +343,7 @@ router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
  * Mevcut şifresiz bir adrese şifre koyar
  * Body: { address, password }
  */
-router.post('/set-password', (req, res) => {
+router.post('/set-password', requireApiScope('addresses:write'), (req, res) => {
   try {
     const db = getDb();
     const { address, password } = req.body;
@@ -371,7 +375,7 @@ router.post('/set-password', (req, res) => {
  * POST /api/addresses/check
  * Bir adresin var olup olmadığını ve şifre korumalı olup olmadığını kontrol eder
  */
-router.post('/check', (req, res) => {
+router.post('/check', requireApiScope('addresses:read'), (req, res) => {
   try {
     const db = getDb();
     const { username, domain: domainName } = req.body;
@@ -408,7 +412,7 @@ router.post('/check', (req, res) => {
  * POST /api/addresses
  * Özel username ve domain ile adres oluşturur veya mevcut adrese erişir
  */
-router.post('/', rateLimit({ max: 30, key: 'address-create' }), (req, res) => {
+router.post('/', requireApiScope('addresses:write'), rateLimit({ max: 30, key: 'address-create' }), (req, res) => {
   try {
     const db = getDb();
     const { username, domain: domainName, subdomain, password } = req.body;
@@ -431,7 +435,7 @@ router.post('/', rateLimit({ max: 30, key: 'address-create' }), (req, res) => {
     );
 
     if (!domain) {
-      return res.status(400).json({ error: 'Domain bulunamadı veya aktif değil' });
+      return res.status(400).json({ error: 'domain_not_active', message: 'Domain bulunamadı veya aktif değil' });
     }
 
     // Subdomain kontrolü
@@ -562,7 +566,7 @@ router.post('/', rateLimit({ max: 30, key: 'address-create' }), (req, res) => {
  * POST /api/addresses/login
  * Şifre korumalı adrese giriş yapar
  */
-router.post('/login', (req, res) => {
+router.post('/login', requireApiScope('addresses:read'), (req, res) => {
   try {
     const db = getDb();
     const { address, password } = req.body;
@@ -615,7 +619,38 @@ router.post('/login', (req, res) => {
  * GET /api/addresses/:address
  * Adres bilgisini ve son mailleri getirir
  */
-router.get('/:address', (req, res) => {
+router.delete('/:address/emails', requireApiScope('emails:delete'), (req, res) => {
+  try {
+    const db = getDb();
+    const address = decodeURIComponent(req.params.address).trim().toLowerCase();
+    const mailbox = db.get('SELECT id, user_id FROM addresses WHERE address = ?', [address]);
+    if (!mailbox) return res.status(404).json({ error: 'not_found', message: 'Adres bulunamadı' });
+    const actor = getOptionalUser(req);
+    if (actor?.role !== 'admin' && mailbox.user_id !== actor?.id) return res.status(403).json({ error: 'forbidden', message: 'Bu adresi temizleme yetkiniz yok' });
+    const emailIds = db.all('SELECT id FROM emails WHERE address_id = ?', [mailbox.id]);
+    emailIds.forEach((mail) => db.run('DELETE FROM attachments WHERE email_id = ?', [mail.id]));
+    db.run('DELETE FROM emails WHERE address_id = ?', [mailbox.id]);
+    res.json({ address, deleted_emails: emailIds.length });
+  } catch (err) { res.status(500).json({ error: 'internal_error', message: 'Inbox temizlenemedi' }); }
+});
+
+router.delete('/:address', requireApiScope('addresses:write'), (req, res) => {
+  try {
+    const db = getDb();
+    const address = decodeURIComponent(req.params.address).trim().toLowerCase();
+    const mailbox = db.get('SELECT id, user_id FROM addresses WHERE address = ?', [address]);
+    if (!mailbox) return res.status(404).json({ error: 'not_found', message: 'Adres bulunamadı' });
+    const actor = getOptionalUser(req);
+    if (actor?.role !== 'admin' && mailbox.user_id !== actor?.id) return res.status(403).json({ error: 'forbidden', message: 'Bu adresi silme yetkiniz yok' });
+    const emailIds = db.all('SELECT id FROM emails WHERE address_id = ?', [mailbox.id]);
+    emailIds.forEach((mail) => db.run('DELETE FROM attachments WHERE email_id = ?', [mail.id]));
+    db.run('DELETE FROM emails WHERE address_id = ?', [mailbox.id]);
+    db.run('DELETE FROM addresses WHERE id = ?', [mailbox.id]);
+    res.json({ address, deleted: true });
+  } catch (err) { res.status(500).json({ error: 'internal_error', message: 'Adres silinemedi' }); }
+});
+
+router.get('/:address', requireApiScope('addresses:read'), (req, res) => {
   try {
     const db = getDb();
     const address = req.params.address.toLowerCase();
@@ -629,6 +664,10 @@ router.get('/:address', (req, res) => {
 
     if (!addr) {
       return res.status(404).json({ error: 'Adres bulunamadı' });
+    }
+    const actor = getOptionalUser(req);
+    if (actor?.role !== 'admin' && addr.user_id !== actor?.id) {
+      return res.status(403).json({ error: 'forbidden', message: 'Bu adres için erişim yetkiniz yok' });
     }
 
     const emails = db.all(

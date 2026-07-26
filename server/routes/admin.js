@@ -3,8 +3,9 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { getDb } = require('../db');
 const { manualCleanup } = require('../services/cleanup');
-const { extractOtp, stripHtml } = require('../utils/otpDetection');
+const { extractOtpFromEmail, stripHtml } = require('../utils/otpDetection');
 const { writeAudit } = require('../services/audit');
+const { createApiKey, listApiKeys, VALID_SCOPES } = require('../services/apiKeys');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tempmail-secret-key-change-in-production';
 
@@ -53,6 +54,7 @@ function normalizeDomainConfig(domainName, body = {}) {
 }
 
 function adminAuth(req, res, next) {
+  if (req.apiKey?.is_master_key && req.user?.role === 'admin') return next();
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
@@ -77,10 +79,45 @@ function adminAuth(req, res, next) {
 
 router.use(adminAuth);
 
+router.get('/api-keys', (req, res) => {
+  try { res.json({ keys: listApiKeys(getDb()) }); }
+  catch (_) { res.status(500).json({ error: 'internal_error', message: 'API anahtarları alınamadı' }); }
+});
+
+router.post('/api-keys', (req, res) => {
+  try {
+    const db = getDb();
+    const ownerUserId = Number.parseInt(req.body?.user_id, 10) || req.user?.id;
+    const owner = db.get('SELECT id, role, is_active FROM users WHERE id = ?', [ownerUserId]);
+    if (!owner || !owner.is_active) return res.status(400).json({ error: 'invalid_request', message: 'Anahtar sahibi aktif bir kullanıcı olmalı' });
+    const name = String(req.body?.name || '').trim().slice(0, 60);
+    const isMaster = req.body?.key_type === 'master';
+    if (!name) return res.status(400).json({ error: 'invalid_request', message: 'Anahtar adı gerekli' });
+    if (isMaster && owner.role !== 'admin') return res.status(403).json({ error: 'forbidden', message: 'Master key yalnız admin hesabına atanabilir' });
+    const scopes = Array.isArray(req.body?.scopes) ? req.body.scopes.filter((scope) => VALID_SCOPES.has(scope)) : [];
+    const created = createApiKey(db, { userId: owner.id, name, scopes, rateLimitPerMinute: req.body?.rate_limit_per_minute, isMaster });
+    writeAudit(req, { action: `admin.api_key.create.${created.key_type}`, entityType: 'api_key', entityId: created.id, metadata: { owner_user_id: owner.id, name, scopes: created.scopes } });
+    res.status(201).json({ key: { ...created, secret: undefined }, secret: created.secret });
+  } catch (_) { res.status(500).json({ error: 'internal_error', message: 'API anahtarı oluşturulamadı' }); }
+});
+
+router.put('/api-keys/:id', (req, res) => {
+  try {
+    const db = getDb();
+    const key = db.get('SELECT id, name FROM api_keys WHERE id = ?', [req.params.id]);
+    if (!key) return res.status(404).json({ error: 'not_found', message: 'API anahtarı bulunamadı' });
+    const isActive = req.body?.is_active === undefined ? null : req.body.is_active ? 1 : 0;
+    const rate = req.body?.rate_limit_per_minute === undefined ? null : Math.min(Math.max(Number.parseInt(req.body.rate_limit_per_minute, 10) || 120, 10), 10000);
+    db.run('UPDATE api_keys SET is_active = COALESCE(?, is_active), rate_limit_per_minute = COALESCE(?, rate_limit_per_minute) WHERE id = ?', [isActive, rate, key.id]);
+    writeAudit(req, { action: 'admin.api_key.update', entityType: 'api_key', entityId: key.id, metadata: { is_active: isActive, rate_limit_per_minute: rate } });
+    res.json({ id: key.id, updated: true });
+  } catch (_) { res.status(500).json({ error: 'internal_error', message: 'API anahtarı güncellenemedi' }); }
+});
+
 function enrichMailWithOtp(db, mail) {
-  const fullMail = db.get('SELECT body_text, body_html FROM emails WHERE id = ?', [mail.id]);
-  const text = fullMail?.body_text || stripHtml(fullMail?.body_html || '');
-  const otp = extractOtp(text);
+  const fullMail = db.get('SELECT subject, body_text, body_html, otp_code FROM emails WHERE id = ?', [mail.id]);
+  const otp = extractOtpFromEmail(fullMail?.subject || mail.subject, fullMail?.body_text || '', fullMail?.body_html || '') || fullMail?.otp_code || '';
+  if (otp && otp !== fullMail?.otp_code) db.run('UPDATE emails SET otp_code = ? WHERE id = ?', [otp, mail.id]);
   return { ...mail, otp_code: otp, has_attachments: mail.has_attachments === 1 };
 }
 

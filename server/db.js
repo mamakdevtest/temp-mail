@@ -383,6 +383,11 @@ async function initDatabase() {
     "ALTER TABLE domains ADD COLUMN dmarc_host TEXT DEFAULT '_dmarc'",
     "ALTER TABLE domains ADD COLUMN dmarc_value TEXT DEFAULT ''",
     "ALTER TABLE domains ADD COLUMN wildcard_subdomains INTEGER DEFAULT 0",
+    "ALTER TABLE api_keys ADD COLUMN key_type TEXT DEFAULT 'standard'",
+    "ALTER TABLE api_keys ADD COLUMN is_active INTEGER DEFAULT 1",
+    "ALTER TABLE api_keys ADD COLUMN rate_limit_per_minute INTEGER DEFAULT 120",
+    "ALTER TABLE api_keys ADD COLUMN usage_count INTEGER DEFAULT 0",
+    "ALTER TABLE api_keys ADD COLUMN last_used_ip TEXT",
   ];
 
   for (const sql of migrations) {
@@ -444,6 +449,7 @@ async function initDatabase() {
   db.run('CREATE INDEX IF NOT EXISTS idx_bulk_pools_status ON bulk_address_pools(status, updated_at);');
   db.run('CREATE INDEX IF NOT EXISTS idx_attachments_email_id ON attachments(email_id);');
   db.run('CREATE INDEX IF NOT EXISTS idx_api_keys_owner ON api_keys(user_id, revoked_at);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_api_keys_hash_active ON api_keys(key_hash, is_active, revoked_at);');
   db.run('CREATE INDEX IF NOT EXISTS idx_webhooks_owner ON webhooks(user_id, is_active);');
   db.run('CREATE INDEX IF NOT EXISTS idx_rules_owner ON automation_rules(user_id, is_active);');
   db.run('CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_hook ON webhook_deliveries(webhook_id, id DESC);');

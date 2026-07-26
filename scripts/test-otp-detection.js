@@ -5,6 +5,7 @@ const cases = [
   ['labelled numeric code', () => extractOtpFromEmail('Security code', 'Use 482913 to sign in.'), '482913'],
   ['turkish code on next line', () => extractOtp('Doğrulama kodunuz:\n735901'), '735901'],
   ['labelled alphanumeric code', () => extractOtpFromEmail('Use code AB12CD', ''), 'AB12CD'],
+  ['hyphenated provider code wins over copyright year', () => extractOtpFromEmail('SpaceXAI confirmation code: BXS-AJ2', 'BXS-AJ2\n© 2026 SpaceXAI'), 'BXS-AJ2'],
   ['html-only isolated code', () => extractOtpFromEmail('', '', '<p>Your one-time passcode:</p><strong>8492</strong>'), '8492'],
   ['date is not an OTP', () => extractOtp('Tarih: 2026-07-26\nToplantı 12:30'), null],
   ['order number is not an OTP', () => extractOtp('Order #783245 has shipped'), null],
