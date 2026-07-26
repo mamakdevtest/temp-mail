@@ -1,18 +1,1 @@
-{
-  "0": "admin.js",
-  "1": "📧 TempMail - Geçici E-posta Uygulaması",
-  "2": "db.js",
-  "3": "App.jsx",
-  "4": "🚀 Coolify ile Deployment Rehberi",
-  "5": "dependencies",
-  "6": "devDependencies",
-  "7": "AdminPanel.jsx",
-  "8": "auth.js",
-  "9": "addresses.js",
-  "10": "☁️ Coolify ile Deployment",
-  "11": "MS Temp Mail UI/UX Update Notes",
-  "12": "statusline.sh",
-  "13": "postcss.config.js",
-  "14": "tailwind.config.js",
-  "15": "vite.config.js"
-}
+{"0": "React App Shell", "1": "OTP Detection & Email Tests", "2": "API Key System Tests", "3": "Admin API Routes", "4": "Addresses API Routes", "5": "API Documentation", "6": "Client Build Tooling", "7": "Admin UI Components", "8": "Auth API Routes", "9": "Server Dependencies", "10": "Operations & Deployment Docs", "11": "Inbox UI Components", "12": "Root Package Scripts", "13": "Server Entry Point", "14": "Coolify Deployment Guide", "15": "DB Verification Script", "16": "User Avatars", "17": "Documentation Center UI", "18": "Statusline Script", "19": "HTML Entry Document", "20": "PostCSS Config", "21": "Tailwind Config", "22": "Vite Config"}
