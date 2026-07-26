@@ -1,0 +1,651 @@
+version: "2"
+type: backend
+tech_stack:
+  - Node.js
+  - Express
+  - SQLite (sql.js WebAssembly)
+  - Socket.io
+  - JWT (jsonwebtoken)
+  - bcryptjs
+  - nodemailer
+features:
+  - name: Authentication
+    description: User registration, login, profile management, sessions, password change, email change verification, preferences
+    files:
+      - server/routes/auth.js
+    endpoints:
+      - method: POST
+        path: /api/auth/register
+        description: Register new user (username, email, password)
+        auth_required: false
+        request_schema:
+          body:
+            username: string
+            email: string
+            password: string
+        response_schema:
+          "200": "{ message, token, session_id, user }"
+          "400": Validation error
+          "409": Username or email already registered
+      - method: POST
+        path: /api/auth/login
+        description: Login with username/email and password
+        auth_required: false
+        request_schema:
+          body:
+            login: string
+            password: string
+        response_schema:
+          "200": "{ message, token, session_id, user }"
+          "400": Missing fields
+          "401": User not found or wrong password
+      - method: GET
+        path: /api/auth/me
+        description: Get current user profile, package, stats, preferences, addresses
+        auth_required: true
+        response_schema:
+          "200": "{ user, package, stats, preferences, favorite_domains, addresses }"
+          "401": Missing/invalid token
+      - method: PUT
+        path: /api/auth/me
+        description: Update username or display_name (username changeable once)
+        auth_required: true
+        response_schema:
+          "200": "{ message, token, user }"
+          "403": Username already changed once
+          "409": Username taken
+      - method: POST
+        path: /api/auth/change-password
+        description: Change password, revokes other sessions
+        auth_required: true
+        request_schema:
+          body:
+            currentPassword: string
+            newPassword: string
+        response_schema:
+          "200": "{ message, token, session_id }"
+          "401": Wrong current password
+      - method: GET
+        path: /api/auth/sessions
+        description: List user sessions
+        auth_required: true
+        response_schema:
+          "200": "{ sessions }"
+      - method: DELETE
+        path: /api/auth/sessions/:id
+        description: Revoke a session
+        auth_required: true
+        response_schema:
+          "200": "{ message, id }"
+          "404": Session not found
+      - method: GET
+        path: /api/auth/login-history
+        description: List login events for current user
+        auth_required: true
+        response_schema:
+          "200": "{ history }"
+      - method: PUT
+        path: /api/auth/preferences
+        description: Update theme, language, notifications, retention
+        auth_required: true
+        response_schema:
+          "200": "{ message, user, package, stats, preferences }"
+      - method: GET
+        path: /api/auth/packages
+        description: List subscription packages (public)
+        auth_required: false
+        response_schema:
+          "200": "{ packages }"
+      - method: POST
+        path: /api/auth/request-pro
+        description: Request Pro upgrade (admin approval)
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+          "409": Request already pending
+      - method: GET
+        path: /api/auth/favorite-domains
+        description: List favorite domains
+        auth_required: true
+        response_schema:
+          "200": "{ domains }"
+      - method: POST
+        path: /api/auth/favorite-domains/:domainId
+        description: Add favorite domain
+        auth_required: true
+        response_schema:
+          "200": "{ message, domains }"
+          "404": Domain not found
+      - method: DELETE
+        path: /api/auth/favorite-domains/:domainId
+        description: Remove favorite domain
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+      - method: GET
+        path: /api/auth/addresses
+        description: List user's addresses with email counts
+        auth_required: true
+        response_schema:
+          "200": "{ addresses }"
+      - method: PUT
+        path: /api/auth/addresses/:id
+        description: Update address nickname, note, favorite, lock, retention
+        auth_required: true
+        response_schema:
+          "200": "{ message, address }"
+          "404": Address not found
+      - method: POST
+        path: /api/auth/addresses/:id/renew
+        description: Renew address expiry
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+          "404": Address not found
+      - method: DELETE
+        path: /api/auth/addresses/:id
+        description: Delete owned address
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+          "404": Address not found
+      - method: POST
+        path: /api/auth/request-email-change
+        description: Start email change verification flow
+        auth_required: true
+        response_schema:
+          "200": "{ message, email_sent, pending_email }"
+          "409": Pending verification exists
+          "429": Cooldown active
+      - method: POST
+        path: /api/auth/confirm-email-change
+        description: Confirm email change with code
+        auth_required: true
+        response_schema:
+          "200": "{ message, token, user }"
+          "401": Wrong code
+          "410": Code expired
+  - name: Address Management
+    description: Create/check/login temp mail addresses, random generation, bulk address pools, password protection
+    files:
+      - server/routes/addresses.js
+    endpoints:
+      - method: GET
+        path: /api/addresses/domains
+        description: List active domains with subdomains
+        auth_required: true
+        response_schema:
+          "200": "{ domains }"
+      - method: POST
+        path: /api/addresses/random
+        description: Generate random persistent address
+        auth_required: true
+        request_schema:
+          body:
+            password: "string (optional)"
+        response_schema:
+          "200": "{ address, username, domain, is_persistent, has_password }"
+          "400": No active domain
+      - method: POST
+        path: /api/addresses
+        description: Create or access address with custom username/domain, optional subdomain and password
+        auth_required: true
+        request_schema:
+          body:
+            username: string
+            domain: string
+            subdomain: "string (optional)"
+            password: "string (optional)"
+        response_schema:
+          "200": "{ address, username, domain, is_persistent, has_password }"
+          "400": Validation error
+          "401": Wrong password
+          "403": Password required or quota exceeded
+      - method: POST
+        path: /api/addresses/check
+        description: Check if address exists and has password
+        auth_required: true
+        request_schema:
+          body:
+            username: string
+            domain: string
+        response_schema:
+          "200": "{ exists, has_password, address }"
+      - method: POST
+        path: /api/addresses/login
+        description: Login to password-protected address
+        auth_required: true
+        request_schema:
+          body:
+            address: string
+            password: string
+        response_schema:
+          "200": "{ address, emails, has_password }"
+          "401": Wrong password
+          "404": Address not found
+      - method: POST
+        path: /api/addresses/set-password
+        description: Set password on unprotected address
+        auth_required: true
+        request_schema:
+          body:
+            address: string
+            password: string
+        response_schema:
+          "200": "{ message, address, has_password }"
+          "400": Already has password
+      - method: GET
+        path: /api/addresses/:address
+        description: Get address info and email list
+        auth_required: true
+        response_schema:
+          "200": "{ address, username, domain, emails }"
+          "403": Forbidden
+          "404": Not found
+      - method: DELETE
+        path: /api/addresses/:address
+        description: Delete address and its emails
+        auth_required: true
+        response_schema:
+          "200": "{ address, deleted }"
+          "403": Forbidden
+      - method: DELETE
+        path: /api/addresses/:address/emails
+        description: Clear inbox of address
+        auth_required: true
+        response_schema:
+          "200": "{ address, deleted_emails }"
+      - method: GET
+        path: /api/addresses/bulk
+        description: List bulk address pools (pro/admin with bulk access)
+        auth_required: true
+        response_schema:
+          "200": "{ pools }"
+          "403": Bulk access required
+      - method: POST
+        path: /api/addresses/bulk
+        description: Generate bulk addresses in a pool (prefix, domain, count 1-100)
+        auth_required: true
+        request_schema:
+          body:
+            prefix: string
+            domain: string
+            count: number
+        response_schema:
+          "201": "{ addresses, pool, quota }"
+          "400": Invalid request
+          "403": Quota exceeded
+      - method: GET
+        path: /api/addresses/bulk/:poolId/emails
+        description: List emails across all mailboxes in a bulk pool
+        auth_required: true
+        response_schema:
+          "200": "{ pool, emails, summary, pagination }"
+          "403": Forbidden
+          "404": Pool not found
+    depends_on:
+      - Authentication
+  - name: Email Operations
+    description: List, read, delete emails, OTP extraction, attachments, SSE stream, send mail via relay
+    files:
+      - server/routes/emails.js
+    endpoints:
+      - method: GET
+        path: /api/emails/:address
+        description: List emails for address with pagination/wait/long-poll, OTP detection
+        auth_required: true
+        response_schema:
+          "200": Email list array
+          "403": Forbidden
+          "404": Address not found
+      - method: GET
+        path: /api/emails/:address/stream
+        description: SSE stream of new emails for address
+        auth_required: true
+        response_schema:
+          "200": text/event-stream
+      - method: GET
+        path: /api/emails/single/:id
+        description: Get full email detail with attachments and OTP
+        auth_required: true
+        response_schema:
+          "200": Email object with attachments
+          "404": Not found
+      - method: DELETE
+        path: /api/emails/:id
+        description: Delete email and attachments
+        auth_required: true
+        response_schema:
+          "200": "{ id }"
+          "403": Forbidden
+          "404": Not found
+      - method: GET
+        path: /api/emails/:emailId/attachments/:attId
+        description: Download attachment binary
+        auth_required: true
+        response_schema:
+          "200": binary content
+          "404": Not found
+      - method: POST
+        path: /api/emails/send
+        description: Send mail via SMTP relay from a system address
+        auth_required: true
+        request_schema:
+          body:
+            from: string
+            to: string
+            subject: string
+            body: string
+        response_schema:
+          "200": "{ message, messageId }"
+          "503": Relay not configured
+      - method: GET
+        path: /api/emails/send/status
+        description: Check if SMTP relay configured
+        auth_required: true
+        response_schema:
+          "200": "{ configured, host, port }"
+    depends_on:
+      - Address Management
+  - name: Admin Panel
+    description: Domain/subdomain CRUD, user management, stats, email/address browsing, package requests, bulk pool management, API keys, audit logs, cleanup
+    files:
+      - server/routes/admin.js
+    endpoints:
+      - method: GET
+        path: /api/admin/domains
+        description: List all domains with address counts
+        auth_required: true
+        response_schema:
+          "200": "{ domains }"
+      - method: POST
+        path: /api/admin/domains
+        description: Add domain with DNS config
+        auth_required: true
+        request_schema:
+          body:
+            domain: string
+            wildcard_subdomains: boolean
+        response_schema:
+          "200": "{ domain }"
+          "409": Domain exists
+      - method: PUT
+        path: /api/admin/domains/:id
+        description: Update domain config/activation
+        auth_required: true
+        response_schema:
+          "200": "{ domain }"
+          "404": Not found
+      - method: DELETE
+        path: /api/admin/domains/:id
+        description: Delete domain
+        auth_required: true
+        response_schema:
+          "200": "{ message, domain }"
+      - method: GET
+        path: /api/admin/domains/:id/subdomains
+        description: List subdomains of domain
+        auth_required: true
+        response_schema:
+          "200": "{ domain, subdomains }"
+      - method: POST
+        path: /api/admin/domains/:id/subdomains
+        description: Add subdomain
+        auth_required: true
+        response_schema:
+          "200": "{ subdomain, full_domain }"
+          "409": Exists
+      - method: DELETE
+        path: /api/admin/domains/:domainId/subdomains/:subdomainId
+        description: Delete subdomain
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+      - method: GET
+        path: /api/admin/stats
+        description: System stats, OTP counts, top senders/domains, latest emails
+        auth_required: true
+        response_schema:
+          "200": "{ total_emails, total_addresses, recent_24h, otp_count, top_domains, latest_emails }"
+      - method: GET
+        path: /api/admin/emails
+        description: Paginated email list
+        auth_required: true
+        response_schema:
+          "200": "{ emails, total, page, total_pages }"
+      - method: DELETE
+        path: /api/admin/emails/:id
+        description: Delete any email
+        auth_required: true
+        response_schema:
+          "200": "{ message, id }"
+      - method: GET
+        path: /api/admin/addresses
+        description: List all addresses with stats
+        auth_required: true
+        response_schema:
+          "200": "{ addresses }"
+      - method: GET
+        path: /api/admin/addresses/:address
+        description: Address detail with OTP history
+        auth_required: true
+        response_schema:
+          "200": "{ address, stats, otp_history, emails }"
+      - method: DELETE
+        path: /api/admin/addresses/:address
+        description: Delete any address
+        auth_required: true
+        response_schema:
+          "200": "{ message, address }"
+      - method: POST
+        path: /api/admin/addresses/:address/cleanup
+        description: Clear address email history
+        auth_required: true
+        response_schema:
+          "200": "{ message, deleted }"
+      - method: GET
+        path: /api/admin/users
+        description: List users with usage counts
+        auth_required: true
+        response_schema:
+          "200": "{ users }"
+      - method: PUT
+        path: /api/admin/users/:id/role
+        description: Change user role (free/pro/admin)
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+          "400": Invalid role
+      - method: PUT
+        path: /api/admin/users/:id/package
+        description: Change user package
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+      - method: PUT
+        path: /api/admin/users/:id/status
+        description: Activate/deactivate user
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+      - method: PUT
+        path: /api/admin/users/:id/bulk-access
+        description: Toggle bulk access for pro users
+        auth_required: true
+        response_schema:
+          "200": "{ message, bulk_access_enabled }"
+      - method: GET
+        path: /api/admin/package-requests
+        description: List pro upgrade requests
+        auth_required: true
+        response_schema:
+          "200": "{ requests }"
+      - method: PUT
+        path: /api/admin/package-requests/:id
+        description: Approve/reject package request
+        auth_required: true
+        response_schema:
+          "200": "{ message }"
+      - method: GET
+        path: /api/admin/bulk-pools
+        description: List bulk pools with filters
+        auth_required: true
+        response_schema:
+          "200": "{ pools, pagination }"
+      - method: GET
+        path: /api/admin/bulk-pools/:id/addresses
+        description: List addresses in pool
+        auth_required: true
+        response_schema:
+          "200": "{ addresses }"
+      - method: PUT
+        path: /api/admin/bulk-pools/:id/status
+        description: Set pool status (active/paused/archived)
+        auth_required: true
+        response_schema:
+          "200": "{ id, status }"
+      - method: GET
+        path: /api/admin/api-keys
+        description: List all API keys
+        auth_required: true
+        response_schema:
+          "200": "{ keys }"
+      - method: POST
+        path: /api/admin/api-keys
+        description: Create API key
+        auth_required: true
+        response_schema:
+          "201": "{ key, secret }"
+      - method: PUT
+        path: /api/admin/api-keys/:id
+        description: Update API key
+        auth_required: true
+        response_schema:
+          "200": "{ id, updated }"
+      - method: GET
+        path: /api/admin/audit-logs
+        description: List audit log entries
+        auth_required: true
+        response_schema:
+          "200": "{ logs }"
+      - method: POST
+        path: /api/admin/cleanup
+        description: Manual cleanup of expired addresses
+        auth_required: true
+        response_schema:
+          "200": "{ message, deleted }"
+  - name: Automation
+    description: Webhooks, automation rules, user API key management
+    files:
+      - server/routes/automation.js
+    endpoints:
+      - method: GET
+        path: /api/automation/webhooks
+        description: List user webhooks
+        auth_required: true
+        response_schema:
+          "200": "{ webhooks }"
+      - method: POST
+        path: /api/automation/webhooks
+        description: Create webhook (name, HTTPS url, events)
+        auth_required: true
+        request_schema:
+          body:
+            name: string
+            url: string
+            events: string[]
+        response_schema:
+          "201": "{ webhook, secret }"
+          "400": Invalid request
+      - method: PUT
+        path: /api/automation/webhooks/:id
+        description: Enable/disable webhook
+        auth_required: true
+        response_schema:
+          "200": "{ id, is_active }"
+      - method: DELETE
+        path: /api/automation/webhooks/:id
+        description: Delete webhook
+        auth_required: true
+        response_schema:
+          "200": "{ id, deleted }"
+      - method: GET
+        path: /api/automation/webhooks/:id/deliveries
+        description: List webhook deliveries
+        auth_required: true
+        response_schema:
+          "200": "{ deliveries }"
+      - method: GET
+        path: /api/automation/rules
+        description: List automation rules
+        auth_required: true
+        response_schema:
+          "200": "{ rules }"
+      - method: POST
+        path: /api/automation/rules
+        description: Create automation rule
+        auth_required: true
+        response_schema:
+          "201": Rule object
+      - method: PUT
+        path: /api/automation/rules/:id
+        description: Enable/disable rule
+        auth_required: true
+        response_schema:
+          "200": "{ id, is_active }"
+      - method: DELETE
+        path: /api/automation/rules/:id
+        description: Delete rule
+        auth_required: true
+        response_schema:
+          "200": "{ id, deleted }"
+      - method: GET
+        path: /api/automation/api-keys
+        description: List own API keys
+        auth_required: true
+        response_schema:
+          "200": "{ keys }"
+      - method: POST
+        path: /api/automation/api-keys
+        description: Create API key with scopes
+        auth_required: true
+        response_schema:
+          "201": "{ key, secret }"
+      - method: PUT
+        path: /api/automation/api-keys/:id
+        description: Update own API key
+        auth_required: true
+        response_schema:
+          "200": "{ id, updated }"
+      - method: DELETE
+        path: /api/automation/api-keys/:id
+        description: Revoke own API key
+        auth_required: true
+        response_schema:
+          "200": "{ id, revoked }"
+    depends_on:
+      - Authentication
+  - name: Health
+    description: Service health check
+    files:
+      - server/index.js
+    endpoints:
+      - method: GET
+        path: /api/health
+        description: Health check
+        auth_required: false
+        response_schema:
+          "200": "{ status, timestamp }"
+known_limitations:
+  - issue: Default JWT secret fallback hardcoded in source
+    location: server/routes/auth.js
+    impact: Tokens forgeable if JWT_SECRET env not set
+  - issue: Default admin password fallback 'admin123'
+    location: server/routes/admin.js
+    impact: Admin access with default credentials if ADMIN_PASSWORD env not set
+  - issue: SMTP relay not configured by default
+    location: server/routes/emails.js
+    impact: /api/emails/send returns 503 without SMTP_RELAY_HOST
+  - issue: SMTP server binds port 25
+    location: server/index.js
+    impact: May fail without root/admin privileges on some systems

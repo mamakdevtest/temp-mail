@@ -1,6 +1,6 @@
 {
   ".claude/settings.json": {
-    "mtime": 1785087485.4093962,
+    "mtime": 1785095416.611214,
     "ast_hash": "5eacc69893a0764089c8351cac91d387",
     "semantic_hash": "5eacc69893a0764089c8351cac91d387"
   },
@@ -15,9 +15,9 @@
     "semantic_hash": "7bce6c609a97f4df2bec916253b174fa"
   },
   "client/package.json": {
-    "mtime": 1783376781.38818,
-    "ast_hash": "8744573b13015f02f1c5d550f4b3f0bd",
-    "semantic_hash": "8744573b13015f02f1c5d550f4b3f0bd"
+    "mtime": 1785135292.9581578,
+    "ast_hash": "efc205fa2e18ef96c6e66bb9c654b802",
+    "semantic_hash": "efc205fa2e18ef96c6e66bb9c654b802"
   },
   "client/postcss.config.js": {
     "mtime": 1783358454.7736118,
@@ -308,5 +308,20 @@
     "mtime": 1783440354.936334,
     "ast_hash": "e0b72812d531c6ef102938248450da63",
     "semantic_hash": "e0b72812d531c6ef102938248450da63"
+  },
+  "temp-mail-ui-v3.md": {
+    "mtime": 1785089952.8111506,
+    "ast_hash": "95b767143f692d4c3efa5816c63d6de7",
+    "semantic_hash": "95b767143f692d4c3efa5816c63d6de7"
+  },
+  "testsprite_tests/tmp/code_summary.yaml": {
+    "mtime": 1785099410.5685534,
+    "ast_hash": "7c7bd84cee2836686596ffbd25ca4995",
+    "semantic_hash": "7c7bd84cee2836686596ffbd25ca4995"
+  },
+  "testsprite_tests/tmp/prd_files/README.md": {
+    "mtime": 1785099222.900705,
+    "ast_hash": "049091041e1ec716a9ed35e64dcf0254",
+    "semantic_hash": "049091041e1ec716a9ed35e64dcf0254"
   }
 }
