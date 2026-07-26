@@ -3,6 +3,7 @@ const { simpleParser } = require('mailparser');
 const { getDb } = require('../db');
 const { extractOtpFromEmail } = require('../utils/otpDetection');
 const { publishNewEmail } = require('./emailEvents');
+const { dispatchUserEvent } = require('./webhooks');
 
 /**
  * SMTP sunucusunu başlatır
@@ -88,7 +89,7 @@ async function processIncomingMail(rawMail, session, io) {
   for (const recipient of recipients) {
     // Adresi bul (süresiz - tüm adresler kabul edilir)
     const address = db.get(
-      `SELECT a.id FROM addresses a
+      `SELECT a.id, a.user_id FROM addresses a
        JOIN domains d ON a.domain_id = d.id
        WHERE a.address = ? AND d.is_active = 1`,
       [recipient]
@@ -133,6 +134,12 @@ async function processIncomingMail(rawMail, session, io) {
       otp_code: otpCode,
     };
     publishNewEmail(recipient, emailPayload);
+
+    if (address.user_id) {
+      const automationPayload = { ...emailPayload, address: recipient };
+      dispatchUserEvent(address.user_id, 'email.received', automationPayload);
+      if (otpCode) dispatchUserEvent(address.user_id, 'otp.detected', automationPayload);
+    }
 
     if (io) {
       const room = `inbox:${recipient}`;

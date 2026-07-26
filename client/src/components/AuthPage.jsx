@@ -58,10 +58,10 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
         </button>
       )}
 
-      <div className="w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-blue to-accent-cyan flex items-center justify-center mx-auto mb-4 shadow-glow-blue">
+          <div className="w-16 h-16 rounded-2xl border border-accent-cyan/25 bg-gradient-to-br from-accent-blue to-accent-cyan flex items-center justify-center mx-auto mb-5 shadow-glow-blue">
             <Mail size={24} className="text-white" />
           </div>
           <h1 className="text-xl font-bold"><span className="text-txt-primary">Temp</span><span className="text-accent-cyan">Mail</span></h1>
@@ -70,13 +70,13 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
         </div>
 
         {/* Card */}
-        <div className="card p-6">
+        <div className="admin-signal-card card relative overflow-hidden p-5 sm:p-7">
           {/* Tab */}
-          <div className="flex gap-1 mb-6 p-1 bg-brand-surface2 rounded-xl">
-            <button onClick={() => { setMode('login'); setError(''); }} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${mode === 'login' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
+          <div className="flex gap-1 mb-7 p-1 rounded-xl border border-brand-border/50 bg-brand-bg/45">
+            <button onClick={() => { setMode('login'); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${mode === 'login' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
               {t('auth.login')}
             </button>
-            <button onClick={() => { setMode('register'); setError(''); }} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${mode === 'register' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
+            <button onClick={() => { setMode('register'); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${mode === 'register' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
               {t('auth.register')}
             </button>
           </div>

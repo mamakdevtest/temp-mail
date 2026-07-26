@@ -20,7 +20,7 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
 
   if (!hasAddr) {
     return (
-      <div className="card p-0 overflow-hidden h-full flex items-center justify-center min-h-[530px]">
+      <div className="card p-0 overflow-hidden h-full flex items-center justify-center min-h-[430px] xl:min-h-[590px]">
         <div className="text-center px-6">
           <div className="w-16 h-16 rounded-3xl panel-soft flex items-center justify-center mx-auto mb-5"><InboxIcon size={28} className="text-txt-disabled" /></div>
           <p className="text-lg font-semibold text-txt-secondary">Önce bir adres oluşturun</p>
@@ -31,7 +31,7 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
   }
 
   return (
-    <div className="card p-0 overflow-hidden h-full flex flex-col min-h-[530px]">
+    <div className="card p-0 overflow-hidden h-full flex flex-col min-h-[430px] xl:min-h-[590px]">
       <div className="px-5 py-5 border-b border-brand-border/30 flex-shrink-0">
         <div className="flex items-center justify-between mb-4 gap-3">
           <div className="flex items-center gap-3 min-w-0">

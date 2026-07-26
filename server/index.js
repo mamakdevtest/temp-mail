@@ -44,11 +44,13 @@ async function main() {
   const addressesRouter = require('./routes/addresses');
   const emailsRouter = require('./routes/emails');
   const adminRouter = require('./routes/admin');
+  const automationRouter = require('./routes/automation');
 
   app.use('/api/auth', authRouter);
   app.use('/api/addresses', addressesRouter);
   app.use('/api/emails', emailsRouter);
   app.use('/api/admin', adminRouter);
+  app.use('/api/automation', automationRouter);
 
   // Sağlık kontrolü
   app.get('/api/health', (req, res) => {

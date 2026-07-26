@@ -5,6 +5,8 @@ const router = express.Router();
 const { getDb } = require('../db');
 const { generateUsername } = require('../utils');
 const { rateLimit } = require('../middleware/apiContract');
+const { writeAudit } = require('../services/audit');
+const { getApiKeyPrincipal, hasApiScope } = require('../middleware/apiKeyAuth');
 
 // Süresiz adres: 9999-12-31
 const NEVER_EXPIRES = '9999-12-31T23:59:59.000Z';
@@ -32,6 +34,11 @@ function verifyPassword(password, stored) {
 function getOptionalUser(req) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return null;
+  const apiPrincipal = getApiKeyPrincipal(req);
+  if (apiPrincipal) {
+    req.apiKey = apiPrincipal;
+    return apiPrincipal;
+  }
   try {
     const decoded = jwt.verify(header.split(' ')[1], JWT_SECRET);
     if (decoded.session_id) {
@@ -176,10 +183,13 @@ function requireBulkUser(db, req) {
   }
   const user = db.get('SELECT id, role, package_name, is_active, bulk_access_enabled FROM users WHERE id = ?', [tokenUser.id]);
   if (!user || !user.is_active) { const err = new Error('Hesap aktif değil'); err.status = 403; err.code = 'forbidden'; throw err; }
+  if (user.role === 'admin') {
+    return { user, pkg: getUserPackage(db, 'admin', 'admin'), isAdmin: true };
+  }
   if (!['pro', 'pro_plus'].includes(user.package_name) || user.role !== 'pro' || !user.bulk_access_enabled) {
     const err = new Error('Bu hesap için bulk adres erişimi açık değil'); err.status = 403; err.code = 'bulk_access_required'; throw err;
   }
-  return { user, pkg: getUserPackage(db, user.role, user.package_name) };
+  return { user, pkg: getUserPackage(db, user.role, user.package_name), isAdmin: false };
 }
 
 router.get('/bulk', (req, res) => {
@@ -187,7 +197,7 @@ router.get('/bulk', (req, res) => {
     const db = getDb();
     const { user } = requireBulkUser(db, req);
     const pools = db.all(`
-      SELECT p.id, p.prefix, p.next_index, p.created_at, p.updated_at, d.domain,
+      SELECT p.id, p.prefix, p.next_index, p.status, p.created_at, p.updated_at, d.domain,
         COUNT(a.id) AS address_count, MAX(a.created_at) AS last_generated_at
       FROM bulk_address_pools p
       JOIN domains d ON d.id = p.domain_id
@@ -204,7 +214,15 @@ router.get('/bulk', (req, res) => {
 router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
   const db = getDb();
   try {
-    const { user, pkg } = requireBulkUser(db, req);
+    const { user: actor, pkg, isAdmin } = requireBulkUser(db, req);
+    if (!hasApiScope(req, 'bulk:write')) return res.status(403).json({ error: 'forbidden', message: 'Bu API anahtarında bulk:write izni yok' });
+    let user = actor;
+    const requestedOwnerId = Number.parseInt(req.body?.owner_user_id, 10);
+    if (isAdmin && Number.isInteger(requestedOwnerId) && requestedOwnerId > 0 && requestedOwnerId !== actor.id) {
+      user = db.get('SELECT id, role, package_name, is_active, bulk_access_enabled FROM users WHERE id = ?', [requestedOwnerId]);
+      if (!user) return res.status(404).json({ error: 'not_found', message: 'Havuz sahibi kullanıcı bulunamadı' });
+      if (!user.is_active) return res.status(400).json({ error: 'invalid_request', message: 'Pasif kullanıcı adına havuz oluşturulamaz' });
+    }
     const prefix = String(req.body?.prefix || '').trim().toLowerCase();
     const domainName = String(req.body?.domain || '').trim().toLowerCase();
     const count = Number.parseInt(req.body?.count, 10);
@@ -213,9 +231,10 @@ router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
     }
     const domain = db.get('SELECT id, domain FROM domains WHERE domain = ? AND is_active = 1', [domainName]);
     if (!domain) return res.status(400).json({ error: 'invalid_domain', message: 'Domain bulunamadı veya aktif değil' });
+    const targetPackage = isAdmin ? getUserPackage(db, user.role, user.package_name) : pkg;
     const currentCount = getAddressCount(db, user.id);
-    const remaining = Math.max(0, Number(pkg.max_addresses || 0) - currentCount);
-    if (remaining < count) return res.status(403).json({ error: 'quota_exceeded', message: `Bulk işlem için ${count} adres gerekli; kullanılabilir kotanız ${remaining}` });
+    const remaining = Math.max(0, Number(targetPackage.max_addresses || 0) - currentCount);
+    if (!isAdmin && remaining < count) return res.status(403).json({ error: 'quota_exceeded', message: `Bulk işlem için ${count} adres gerekli; kullanılabilir kotanız ${remaining}` });
 
     let pool;
     let index;
@@ -223,8 +242,11 @@ router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
     db.transaction(() => {
       pool = db.get('SELECT * FROM bulk_address_pools WHERE user_id = ? AND domain_id = ? AND prefix = ?', [user.id, domain.id, prefix]);
       if (!pool) {
-        const created = db.run('INSERT INTO bulk_address_pools (user_id, domain_id, prefix, next_index) VALUES (?, ?, ?, 0)', [user.id, domain.id, prefix]);
+        const created = db.run("INSERT INTO bulk_address_pools (user_id, domain_id, prefix, next_index, status) VALUES (?, ?, ?, 0, 'active')", [user.id, domain.id, prefix]);
         pool = db.get('SELECT * FROM bulk_address_pools WHERE id = ?', [created.lastInsertRowid]);
+      }
+      if (pool.status !== 'active') {
+        const err = new Error('Bu bulk havuzu aktif değil'); err.status = 409; err.code = 'invalid_request'; throw err;
       }
       index = Number(pool.next_index || 0);
       while (addresses.length < count) {
@@ -238,7 +260,14 @@ router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
       }
       db.run('UPDATE bulk_address_pools SET next_index = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [index, pool.id]);
     });
-    res.status(201).json({ addresses, pool: { id: pool.id, prefix, domain: domain.domain, next_index: index } });
+    writeAudit(req, {
+      actorUserId: actor.id,
+      action: isAdmin ? 'bulk.generate.admin_override' : 'bulk.generate',
+      entityType: 'bulk_pool',
+      entityId: pool.id,
+      metadata: { owner_user_id: user.id, prefix, domain: domain.domain, count: addresses.length, quota_override: isAdmin },
+    });
+    res.status(201).json({ addresses, pool: { id: pool.id, prefix, domain: domain.domain, status: pool.status, next_index: index }, quota: { current: currentCount, remaining, overridden: isAdmin } });
   } catch (err) {
     console.error('Bulk adres oluşturma hatası:', err);
     res.status(err.status || 500).json({ error: err.code || 'internal_error', message: err.message || 'Bulk adres oluşturulamadı' });

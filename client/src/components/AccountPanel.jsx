@@ -561,7 +561,7 @@ const AccountPanel = forwardRef(function AccountPanel({
 
   if (isGuest) {
     return (
-      <div className="account-summary-panel card p-4 sm:p-5 h-full min-h-[530px] flex flex-col gap-4">
+      <div className="account-summary-panel card p-4 sm:p-5 h-full min-h-[430px] xl:min-h-[590px] flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-txt-primary">{t('account.title')}</p>
@@ -697,7 +697,7 @@ const AccountPanel = forwardRef(function AccountPanel({
   }
 
   return (
-    <div className="account-summary-panel card p-4 sm:p-5 h-full min-h-[530px] flex flex-col gap-4">
+    <div className="account-summary-panel card p-4 sm:p-5 h-full min-h-[430px] xl:min-h-[590px] flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[13px] font-semibold text-txt-primary">{t('account.title')}</p>

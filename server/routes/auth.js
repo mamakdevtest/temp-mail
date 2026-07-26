@@ -63,7 +63,7 @@ function getUserUsage(db, userId) {
 
 function getUserCenterPayload(db, userId) {
   const user = db.get(
-    'SELECT id, username, email, role, package_name, created_at, last_login, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+    'SELECT id, username, email, role, package_name, bulk_access_enabled, created_at, last_login, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
     [userId]
   );
   if (!user) return null;
@@ -276,7 +276,7 @@ router.post('/register', (req, res) => {
       [username.toLowerCase(), email.toLowerCase(), hash, username.toLowerCase(), 'free', 'free']
     );
 
-    const user = db.get('SELECT id, username, email, role, package_name, created_at, display_name, avatar_url, language, theme, default_domain_id FROM users WHERE id = ?', [result.lastInsertRowid]);
+    const user = db.get('SELECT id, username, email, role, package_name, bulk_access_enabled, created_at, display_name, avatar_url, language, theme, default_domain_id FROM users WHERE id = ?', [result.lastInsertRowid]);
     ensureUserPreferences(db, user.id);
     recordLoginEvent(db, { userId: user.id, login: user.email, success: 1, reason: 'register', req });
     const session = createSession(db, user, req, 0);
@@ -408,7 +408,7 @@ router.put('/me', authMiddleware, (req, res) => {
     }
 
     const currentUser = db.get(
-      'SELECT id, username, email, role, package_name, created_at, display_name, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+      'SELECT id, username, email, role, package_name, bulk_access_enabled, created_at, display_name, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
       [req.user.id]
     );
     if (!currentUser) {
@@ -458,7 +458,7 @@ router.put('/me', authMiddleware, (req, res) => {
     }
 
     const updatedUser = db.get(
-      'SELECT id, username, email, role, package_name, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+      'SELECT id, username, email, role, package_name, bulk_access_enabled, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
       [req.user.id]
     );
     const token = signToken({ ...updatedUser, session_id: req.user.session_id });
@@ -564,7 +564,7 @@ router.post('/confirm-email-change', authMiddleware, (req, res) => {
     }
 
     const user = db.get(
-      `SELECT id, username, email, role, package_name, display_name, avatar_url, language, theme, default_domain_id,
+      `SELECT id, username, email, role, package_name, bulk_access_enabled, display_name, avatar_url, language, theme, default_domain_id,
               pending_email, pending_email_code_hash, pending_email_expires_at
        FROM users WHERE id = ?`,
       [req.user.id]
@@ -598,7 +598,7 @@ router.post('/confirm-email-change', authMiddleware, (req, res) => {
     );
 
     const updatedUser = db.get(
-      'SELECT id, username, email, role, package_name, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
+      'SELECT id, username, email, role, package_name, bulk_access_enabled, created_at, display_name, avatar_url, language, theme, default_domain_id, username_change_count, email_change_count, pending_email, pending_email_expires_at, email_change_cooldown_until FROM users WHERE id = ?',
       [req.user.id]
     );
     const token = signToken({ ...updatedUser, session_id: req.user.session_id });

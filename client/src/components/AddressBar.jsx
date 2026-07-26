@@ -191,12 +191,12 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
   }, [selectedFullDomain, domainInfo]);
 
   return (
-    <div className="temp-address-panel card px-5 py-6 sm:px-7 sm:py-8 bg-[radial-gradient(circle_at_0%_0%,rgba(122,99,255,0.22),transparent_32%),radial-gradient(circle_at_100%_100%,rgba(52,215,255,0.12),transparent_30%)]">
+    <div className="temp-address-panel card px-4 py-5 sm:px-7 sm:py-7 bg-[radial-gradient(circle_at_0%_0%,rgba(91,141,255,0.22),transparent_32%),radial-gradient(circle_at_100%_100%,rgba(76,210,235,0.12),transparent_30%)]">
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_260px] gap-8 items-start">
         <div className="space-y-6 min-w-0">
           <div className="text-center space-y-2">
             <p className="section-title">{t('addressBar.title')}</p>
-            <p className="text-sm text-txt-secondary">{t('addressBar.subtitle')}</p>
+            <p className="text-sm text-txt-secondary max-w-xl mx-auto leading-relaxed">{t('addressBar.subtitle')}</p>
           </div>
 
           <div className="relative z-50 max-w-[860px] mx-auto">

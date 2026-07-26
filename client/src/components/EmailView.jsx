@@ -42,11 +42,11 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
     minute: '2-digit',
   });
 
-  if (isLoading) return <div className="card p-0 overflow-hidden h-full min-h-[530px]"><EmailViewSkeleton /></div>;
+  if (isLoading) return <div className="card p-0 overflow-hidden h-full min-h-[430px] xl:min-h-[590px]"><EmailViewSkeleton /></div>;
 
   if (!email) {
     return (
-      <div className="card p-0 overflow-hidden h-full min-h-[530px] flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(59,130,255,0.08),transparent_32%)]">
+      <div className="card p-0 overflow-hidden h-full min-h-[430px] xl:min-h-[590px] flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(91,141,255,0.1),transparent_32%)]">
         <div className="text-center px-8 relative">
           <div className="relative mx-auto mb-6 w-28 h-28">
             <div className="absolute inset-0 rounded-full border border-brand-border/40 bg-brand-surface2/35" />
@@ -65,7 +65,7 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
   }
 
   return (
-    <div className="card p-0 overflow-hidden h-full min-h-[530px] flex flex-col">
+    <div className="card p-0 overflow-hidden h-full min-h-[430px] xl:min-h-[590px] flex flex-col">
       <div className="px-5 py-5 border-b border-brand-border/30 flex-shrink-0">
         <div className="flex items-center justify-between mb-4 gap-3">
           <div className="flex items-center gap-3 min-w-0">

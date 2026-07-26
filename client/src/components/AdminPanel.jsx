@@ -75,14 +75,15 @@ function sanitizeIpInput(value) {
 
 function AdminHero({ title, subtitle, icon: Icon, actions, tabs, activeTab, onTabChange }) {
   return (
-    <div className="card p-6 bg-[radial-gradient(circle_at_top_left,rgba(122,99,255,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(52,215,255,0.12),transparent_26%)]">
+    <div className="admin-signal-card card relative overflow-hidden p-5 sm:p-7 bg-[radial-gradient(circle_at_top_left,rgba(91,141,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(76,210,235,0.12),transparent_28%)]">
       <div className="flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-5">
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-[24px] panel-soft flex items-center justify-center shadow-glow-cyan shrink-0">
+          <div className="w-14 h-14 rounded-2xl border border-accent-cyan/20 bg-accent-cyan/10 flex items-center justify-center shadow-glow-cyan shrink-0">
             <Icon size={30} className="text-accent-cyan" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-[2rem] font-semibold tracking-tight text-txt-primary">{title}</h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-txt-muted">Kontrol merkezi</p>
+            <h2 className="mt-1 text-2xl sm:text-[2rem] font-semibold tracking-tight text-txt-primary">{title}</h2>
             <p className="text-sm text-txt-secondary mt-1">{subtitle}</p>
           </div>
         </div>
@@ -256,7 +257,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const refreshAll = useCallback(async () => {
     setLoading(true);
     try {
-      await Promise.all([loadDomains(), loadStats(), loadAddrs(), loadUsers(), loadRequests(), loadBulkPools()]);
+      // Yönetim kabuğu yalnız dashboard için gereken küçük veri setini açılışta alır.
+      // Büyük tablolar kendi sekmesine geçildiğinde yüklenir.
+      await Promise.all([loadDomains(), loadStats(), loadRequests()]);
     } catch (e) {
       flash(e.message, 'error');
     } finally {
@@ -813,6 +816,13 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   useEffect(() => {
     if (tab === 'emails' && auth) loadEmails(emailsPage || 1);
   }, [tab, auth]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!auth) return;
+    if (tab === 'addresses') void loadAddrs();
+    if (tab === 'users') void loadUsers();
+    if (tab === 'bulk') void loadBulkPools();
+  }, [auth, tab, loadAddrs, loadBulkPools, loadUsers]);
 
   useEffect(() => {
     if (showDomainForm) {

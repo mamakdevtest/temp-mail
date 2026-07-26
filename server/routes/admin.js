@@ -4,6 +4,7 @@ const router = express.Router();
 const { getDb } = require('../db');
 const { manualCleanup } = require('../services/cleanup');
 const { extractOtp, stripHtml } = require('../utils/otpDetection');
+const { writeAudit } = require('../services/audit');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tempmail-secret-key-change-in-production';
 
@@ -395,13 +396,13 @@ router.get('/stats', (req, res) => {
     }
 
     const latestEmails = db.all(`
-      SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments,
+      SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments, e.otp_code,
              a.address as recipient_address
       FROM emails e
       JOIN addresses a ON e.address_id = a.id
       ORDER BY e.received_at DESC
       LIMIT 50
-    `).map((mail) => enrichMailWithOtp(db, mail));
+    `).map((mail) => ({ ...mail, otp_code: mail.otp_code || '', has_attachments: !!mail.has_attachments }));
 
     res.json({
       total_emails: totalEmails?.count || 0,
@@ -428,13 +429,13 @@ router.get('/emails', (req, res) => {
 
     const total = db.get('SELECT COUNT(*) as count FROM emails');
     const emails = db.all(`
-      SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments,
+      SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments, e.otp_code,
              a.address as recipient_address
       FROM emails e
       JOIN addresses a ON e.address_id = a.id
       ORDER BY e.received_at DESC
       LIMIT ? OFFSET ?
-    `, [limit, offset]).map((mail) => enrichMailWithOtp(db, mail));
+    `, [limit, offset]).map((mail) => ({ ...mail, otp_code: mail.otp_code || '', has_attachments: !!mail.has_attachments }));
 
     res.json({
       emails,
@@ -508,11 +509,11 @@ router.get('/addresses/:address', (req, res) => {
     }
 
     const emails = db.all(`
-      SELECT id, sender, subject, received_at, has_attachments
+      SELECT id, sender, subject, received_at, has_attachments, otp_code
       FROM emails
       WHERE address_id = ?
       ORDER BY received_at DESC
-    `, [addr.id]).map((mail) => enrichMailWithOtp(db, mail));
+    `, [addr.id]).map((mail) => ({ ...mail, otp_code: mail.otp_code || '', has_attachments: !!mail.has_attachments }));
 
     const otpHistory = emails
       .filter((mail) => mail.otp_code)
@@ -714,19 +715,79 @@ router.put('/users/:id/bulk-access', (req, res) => {
 router.get('/bulk-pools', (req, res) => {
   try {
     const db = getDb();
+    const query = String(req.query.q || '').trim().toLowerCase();
+    const status = String(req.query.status || 'all');
+    const ownerId = Number.parseInt(req.query.owner_user_id, 10);
+    const rawLimit = Number.parseInt(req.query.limit || '50', 10);
+    const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? rawLimit : 50, 1), 100);
+    const cursor = Number.parseInt(req.query.cursor || '0', 10);
+    const where = ['p.id > ?'];
+    const params = [Number.isInteger(cursor) ? cursor : 0];
+    if (status !== 'all' && ['active', 'paused', 'archived'].includes(status)) { where.push('p.status = ?'); params.push(status); }
+    if (Number.isInteger(ownerId) && ownerId > 0) { where.push('p.user_id = ?'); params.push(ownerId); }
+    if (query) { where.push('(LOWER(u.username) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(p.prefix) LIKE ? OR LOWER(d.domain) LIKE ?)'); params.push(`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`); }
     const pools = db.all(`
-      SELECT p.id, p.prefix, p.next_index, p.created_at, p.updated_at,
+      SELECT p.id, p.prefix, p.next_index, p.status, p.created_at, p.updated_at,
         u.id AS user_id, u.username, u.email, u.package_name, u.bulk_access_enabled,
         d.domain, COUNT(a.id) AS address_count, MAX(a.created_at) AS last_generated_at
       FROM bulk_address_pools p
       JOIN users u ON u.id = p.user_id
       JOIN domains d ON d.id = p.domain_id
       LEFT JOIN addresses a ON a.bulk_pool_id = p.id
+      WHERE ${where.join(' AND ')}
       GROUP BY p.id
-      ORDER BY p.updated_at DESC, p.id DESC`);
-    res.json({ pools });
+      ORDER BY p.id ASC
+      LIMIT ?`, [...params, limit + 1]);
+    const hasMore = pools.length > limit;
+    const page = hasMore ? pools.slice(0, limit) : pools;
+    res.json({ pools: page, pagination: { limit, next_cursor: hasMore ? page[page.length - 1]?.id || null : null, has_more: hasMore } });
   } catch (err) {
     res.status(500).json({ error: 'internal_error', message: 'Bulk havuzları alınamadı' });
+  }
+});
+
+router.get('/bulk-pools/:id/addresses', (req, res) => {
+  try {
+    const db = getDb();
+    const pool = db.get('SELECT id FROM bulk_address_pools WHERE id = ?', [req.params.id]);
+    if (!pool) return res.status(404).json({ error: 'not_found', message: 'Bulk havuzu bulunamadı' });
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit || '100', 10) || 100, 1), 500);
+    const addresses = db.all(`SELECT id, address, created_at, last_accessed, expires_at
+      FROM addresses WHERE bulk_pool_id = ? ORDER BY id ASC LIMIT ?`, [pool.id, limit]);
+    res.json({ addresses, limit });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error', message: 'Bulk adresleri alınamadı' });
+  }
+});
+
+router.put('/bulk-pools/:id/status', (req, res) => {
+  try {
+    const db = getDb();
+    const status = String(req.body?.status || '');
+    if (!['active', 'paused', 'archived'].includes(status)) return res.status(400).json({ error: 'invalid_request', message: 'Geçerli durum: active, paused veya archived' });
+    const pool = db.get('SELECT id, user_id, prefix FROM bulk_address_pools WHERE id = ?', [req.params.id]);
+    if (!pool) return res.status(404).json({ error: 'not_found', message: 'Bulk havuzu bulunamadı' });
+    db.run('UPDATE bulk_address_pools SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [status, pool.id]);
+    writeAudit(req, { action: `bulk.pool.${status}`, entityType: 'bulk_pool', entityId: pool.id, metadata: { owner_user_id: pool.user_id, prefix: pool.prefix } });
+    res.json({ id: pool.id, status });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error', message: 'Bulk havuzu güncellenemedi' });
+  }
+});
+
+router.get('/audit-logs', (req, res) => {
+  try {
+    const db = getDb();
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit || '50', 10) || 50, 1), 200);
+    const logs = db.all(`SELECT a.*, u.username AS actor_username FROM audit_logs a
+      LEFT JOIN users u ON u.id = a.actor_user_id
+      ORDER BY a.id DESC LIMIT ?`, [limit]).map((entry) => ({
+      ...entry,
+      metadata: (() => { try { return JSON.parse(entry.metadata_json || '{}'); } catch (_) { return {}; } })(),
+    }));
+    res.json({ logs, limit });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error', message: 'Operasyon kaydı alınamadı' });
   }
 });
 

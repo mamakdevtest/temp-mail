@@ -1,6 +1,6 @@
 import { lazy, Suspense, startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, User, Crown, Shield, Sparkles } from 'lucide-react';
+import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, PanelLeft } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 import AddressBar from './components/AddressBar';
 import Inbox from './components/Inbox';
@@ -13,6 +13,9 @@ import { LocaleProvider, createTranslator, normalizeLanguage } from './i18n';
 
 const AuthPage = lazy(() => import('./components/AuthPage'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const BulkStudio = lazy(() => import('./components/BulkStudio'));
+const AdminBulkStudio = lazy(() => import('./components/AdminBulkStudio'));
+const AutomationCenter = lazy(() => import('./components/AutomationCenter'));
 
 const API = '/api';
 const DEFAULT_NOTIFICATION_SOUND = NOTIFICATION_SOUNDS.find((sound) => sound.id === 'chime')?.id || 'classic';
@@ -62,7 +65,7 @@ export default function App() {
     return NOTIFICATION_SOUNDS.some((sound) => sound.id === saved) ? saved : DEFAULT_NOTIFICATION_SOUND;
   });
   const { init: initBeep, play: playBeep, preview: previewBeep } = useBeep(notificationSound);
-  const [page, setPage] = useState('inbox');
+  const [page, setPage] = useState(() => window.location.hash.replace('#/', '') || 'inbox');
   const [addr, setAddr] = useState(null);
   const [domains, setDomains] = useState([]);
   const [emails, setEmails] = useState([]);
@@ -96,6 +99,19 @@ export default function App() {
   const pollTimerRef = useRef(null);
   const pollDelayRef = useRef(5000);
   const restoredRef = useRef(false);
+
+  const navigate = useCallback((nextPage) => {
+    window.history.pushState({}, '', `#/${nextPage}`);
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => setPage(window.location.hash.replace('#/', '') || 'inbox');
+    window.addEventListener('popstate', onPopState);
+    window.addEventListener('hashchange', onPopState);
+    return () => { window.removeEventListener('popstate', onPopState); window.removeEventListener('hashchange', onPopState); };
+  }, []);
 
   useEffect(() => {
     const resolvedTheme = theme === 'system'
@@ -188,7 +204,9 @@ export default function App() {
   }, [initBeep, previewBeep]);
 
   const openAccountSettings = useCallback(() => {
-    accountPanelRef.current?.openSettings?.();
+    setPage('account');
+    window.history.pushState({}, '', '#/account');
+    window.setTimeout(() => accountPanelRef.current?.openSettings?.(), 0);
     setShowUserMenu(false);
   }, []);
 
@@ -521,7 +539,7 @@ export default function App() {
         <div className="absolute bottom-20 left-0 h-72 w-72 rounded-full bg-accent-blue/8 blur-[140px]" />
       </div>
 
-      <header className="app-header sticky top-0 z-50 border-b border-brand-border/40 bg-brand-bg/75 backdrop-blur-2xl">
+      <header className="app-header sticky top-0 z-50 border-b border-brand-border/40 bg-brand-bg/90 backdrop-blur-2xl">
         <div className="max-w-[1680px] mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-11 h-11 rounded-2xl panel-soft flex items-center justify-center shadow-glow-cyan">
@@ -533,10 +551,12 @@ export default function App() {
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <button onClick={() => startTransition(() => setPage('inbox'))} className={`nav-pill ${page === 'inbox' ? 'nav-pill-active' : ''}`}><InboxIcon size={16} /> {t('app.inbox')} <span className="w-1.5 h-1.5 rounded-full bg-accent-blue" /></button>
-            <button onClick={() => startTransition(() => setPage('domains'))} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> {t('app.domains')}</button>
-            {auth.isAdmin && <button onClick={() => startTransition(() => setPage('admin'))} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> {t('app.admin')}</button>}
+          <div className="hidden xl:flex items-center gap-2">
+            <button onClick={() => navigate('inbox')} className={`nav-pill ${page === 'inbox' ? 'nav-pill-active' : ''}`}><InboxIcon size={16} /> {t('app.inbox')}</button>
+            <button onClick={() => navigate('domains')} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> {t('app.domains')}</button>
+            {!auth.isGuest && <button onClick={() => navigate('bulk')} className={`nav-pill ${page === 'bulk' ? 'nav-pill-active' : ''}`}><Boxes size={16} /> Bulk</button>}
+            {!auth.isGuest && <button onClick={() => navigate('automation')} className={`nav-pill ${page === 'automation' ? 'nav-pill-active' : ''}`}><Workflow size={16} /> Otomasyon</button>}
+            {auth.isAdmin && <button onClick={() => navigate('admin')} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> {t('app.admin')}</button>}
           </div>
 
           <div className="flex items-center gap-3">
@@ -573,7 +593,7 @@ export default function App() {
                     <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors">
                       <Settings size={14} /> {t('app.accountSettings')}
                     </button>
-                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); startTransition(() => setPage('admin')); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> {t('app.adminPanel')}</button>}
+                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> {t('app.adminPanel')}</button>}
                     {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-purple hover:bg-accent-purple/5 transition-colors"><Crown size={14} /> {t('app.proUpgrade')}</button>}
                     <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-red hover:bg-accent-red/5 transition-colors"><X size={14} /> {t('app.logout')}</button>
                   </div>
@@ -665,9 +685,18 @@ export default function App() {
         </div>
       )}
 
-      <main className="relative z-10 max-w-[1680px] mx-auto px-5 sm:px-8 py-6 sm:py-8">
+      <div className="workspace-frame relative z-10 max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8">
+        <aside className="workspace-rail hidden lg:flex" aria-label="Çalışma alanı">
+          <button className={page === 'inbox' ? 'is-active' : ''} onClick={() => navigate('inbox')}><InboxIcon size={18} /><span>Inbox</span></button>
+          <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>Domainler</span></button>
+          {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk Studio</span></button>}
+          {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>Otomasyon</span></button>}
+          <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>Hesap</span></button>
+          {auth.isAdmin && <><div className="workspace-rail-divider" /><button className={page === 'admin' ? 'is-active' : ''} onClick={() => navigate('admin')}><PanelLeft size={18} /><span>Operasyonlar</span></button><button className={page === 'admin-bulk' ? 'is-active' : ''} onClick={() => navigate('admin-bulk')}><Shield size={18} /><span>Bulk yönetimi</span></button></>}
+        </aside>
+        <main className="app-main workspace-main">
         {page === 'inbox' ? (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <AddressBar
               currentAddress={addr}
               loading={loading}
@@ -681,37 +710,12 @@ export default function App() {
               onSetPassword={handleSetPassword}
               isPro={auth.isPro}
             />
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-              <div className="xl:col-span-4 2xl:col-span-4 min-h-[530px]">
+            <div className="inbox-workspace grid grid-cols-1 xl:grid-cols-[minmax(320px,0.82fr)_minmax(0,1.7fr)] gap-5">
+              <div className="min-h-[430px] xl:min-h-[590px]">
                 <Inbox emails={emails} selectedId={selected?.id} onSelect={loadDetail} onDelete={delEmail} hasAddr={!!addr} onRefresh={refresh} refreshing={refreshing} live={sockOn} />
               </div>
-              <div className="xl:col-span-5 2xl:col-span-5 min-h-[530px]">
+              <div className="min-h-[430px] xl:min-h-[590px]">
                 <EmailView email={selected} onClose={() => setSelected(null)} api={API} onReply={handleReply} onCopyOtp={copyOtp} />
-              </div>
-              <div className="xl:col-span-3 2xl:col-span-3 min-h-[530px]">
-                <AccountPanel
-                  ref={accountPanelRef}
-                  auth={auth}
-                  user={auth.user}
-                  pkg={auth.pkg}
-                  stats={auth.stats}
-                  activeDomain={activeDomain}
-                  emailCount={emails.length}
-                  history={history}
-                  isGuest={auth.isGuest}
-                  isPro={auth.isPro}
-                  isAdmin={auth.isAdmin}
-                  domains={domains}
-                  notificationSound={notificationSound}
-                  notificationSounds={NOTIFICATION_SOUNDS}
-                  onNotificationSoundChange={setNotificationSound}
-                  onPreviewNotificationSound={handlePreviewNotificationSound}
-                  onRequestPro={handleRequestPro}
-                  onLogin={() => openAuth('login')}
-                  onRegister={() => openAuth('register')}
-                  onLogout={auth.logout}
-                  onAdmin={() => auth.isAdmin && setPage('admin')}
-                />
               </div>
             </div>
           </div>
@@ -736,6 +740,38 @@ export default function App() {
               )) : <div className="text-sm text-txt-muted col-span-full">Henüz aktif domain yok.</div>}
             </div>
           </div>
+        ) : page === 'account' ? (
+          <div className="account-workspace">
+            <AccountPanel
+              ref={accountPanelRef}
+              auth={auth}
+              user={auth.user}
+              pkg={auth.pkg}
+              stats={auth.stats}
+              activeDomain={activeDomain}
+              emailCount={emails.length}
+              history={history}
+              isGuest={auth.isGuest}
+              isPro={auth.isPro}
+              isAdmin={auth.isAdmin}
+              domains={domains}
+              notificationSound={notificationSound}
+              notificationSounds={NOTIFICATION_SOUNDS}
+              onNotificationSoundChange={setNotificationSound}
+              onPreviewNotificationSound={handlePreviewNotificationSound}
+              onRequestPro={handleRequestPro}
+              onLogin={() => openAuth('login')}
+              onRegister={() => openAuth('register')}
+              onLogout={auth.logout}
+              onAdmin={() => auth.isAdmin && navigate('admin')}
+            />
+          </div>
+        ) : page === 'bulk' ? (
+          <Suspense fallback={<div className="ops-loading">Bulk Studio hazırlanıyor…</div>}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenInbox={() => navigate('inbox')} /></Suspense>
+        ) : page === 'automation' ? (
+          auth.isGuest ? <div className="ops-empty"><Workflow size={30} /><h1>Otomasyon için giriş yapın</h1><p>API anahtarlarını ve webhook’ları kayıtlı hesabınızdan yönetebilirsiniz.</p></div> : <Suspense fallback={<div className="ops-loading">Otomasyon hazırlanıyor…</div>}><AutomationCenter token={auth.token} /></Suspense>
+        ) : page === 'admin-bulk' && auth.isAdmin ? (
+          <Suspense fallback={<div className="ops-loading">Bulk yönetimi hazırlanıyor…</div>}><AdminBulkStudio token={auth.token} user={auth.user} domains={domains} /></Suspense>
         ) : auth.isAdmin ? (
           <Suspense fallback={<div className="card p-10 text-center text-txt-muted">Admin paneli yükleniyor...</div>}>
             <AdminPanel
@@ -753,7 +789,16 @@ export default function App() {
             <p className="text-sm text-txt-secondary">Admin yetkisi gerekiyor</p>
           </div>
         )}
-      </main>
+        </main>
+      </div>
+
+      <nav className="mobile-workspace-nav lg:hidden" aria-label="Mobil menü">
+        <button className={page === 'inbox' ? 'is-active' : ''} onClick={() => navigate('inbox')}><InboxIcon size={18} /><span>Inbox</span></button>
+        <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>Domain</span></button>
+        {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk</span></button>}
+        {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>Akış</span></button>}
+        <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>Hesap</span></button>
+      </nav>
 
       <footer className="relative z-10 px-5 sm:px-8 pb-8 pt-5 text-center">
         <p className="text-sm text-txt-muted flex items-center justify-center gap-2">

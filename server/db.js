@@ -3,7 +3,8 @@ const path = require('path');
 const fs = require('fs');
 
 // SQLite veritabanı dosyası yolu
-const DB_PATH = path.join(__dirname, '..', 'data', 'tempmail.db');
+// Varsayılan canlı DB korunur; test ve kopya doğrulama yalnız açıkça verilen yolda çalışır.
+const DB_PATH = process.env.TEMPMAIL_DB_PATH || path.join(__dirname, '..', 'data', 'tempmail.db');
 
 // data klasörünü oluştur (yoksa)
 const dataDir = path.join(__dirname, '..', 'data');
@@ -241,11 +242,89 @@ async function initDatabase() {
       domain_id INTEGER NOT NULL,
       prefix TEXT NOT NULL,
       next_index INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active' CHECK(status IN ('active','paused','archived')),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, domain_id, prefix),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+    );
+  `);
+
+  // Otomasyon ve operasyon kayıtları mevcut verilere dokunmadan eklenir.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      key_prefix TEXT NOT NULL,
+      key_hash TEXT NOT NULL UNIQUE,
+      scopes TEXT DEFAULT '[]',
+      last_used_at DATETIME,
+      expires_at DATETIME,
+      revoked_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS webhooks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      url TEXT NOT NULL,
+      secret TEXT NOT NULL,
+      events TEXT DEFAULT '[]',
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS automation_rules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      conditions_json TEXT DEFAULT '{}',
+      actions_json TEXT DEFAULT '[]',
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS webhook_deliveries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      webhook_id INTEGER NOT NULL,
+      event_type TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      http_status INTEGER,
+      attempt_count INTEGER DEFAULT 0,
+      last_error TEXT,
+      delivered_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (webhook_id) REFERENCES webhooks(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      actor_user_id INTEGER,
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT,
+      metadata_json TEXT DEFAULT '{}',
+      ip TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL
     );
   `);
 
@@ -288,6 +367,7 @@ async function initDatabase() {
     "ALTER TABLE users ADD COLUMN bulk_access_enabled INTEGER DEFAULT 0",
     "ALTER TABLE addresses ADD COLUMN bulk_pool_id INTEGER",
     "ALTER TABLE emails ADD COLUMN otp_code TEXT DEFAULT ''",
+    "ALTER TABLE bulk_address_pools ADD COLUMN status TEXT DEFAULT 'active'",
     "ALTER TABLE domains ADD COLUMN server_ip TEXT DEFAULT ''",
     "ALTER TABLE domains ADD COLUMN a_host TEXT DEFAULT 'mail'",
     "ALTER TABLE domains ADD COLUMN a_value TEXT DEFAULT ''",
@@ -361,7 +441,13 @@ async function initDatabase() {
   db.run('CREATE INDEX IF NOT EXISTS idx_emails_address_id ON emails(address_id);');
   db.run('CREATE INDEX IF NOT EXISTS idx_addresses_bulk_pool ON addresses(bulk_pool_id);');
   db.run('CREATE INDEX IF NOT EXISTS idx_bulk_pools_owner ON bulk_address_pools(user_id);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_bulk_pools_status ON bulk_address_pools(status, updated_at);');
   db.run('CREATE INDEX IF NOT EXISTS idx_attachments_email_id ON attachments(email_id);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_api_keys_owner ON api_keys(user_id, revoked_at);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_webhooks_owner ON webhooks(user_id, is_active);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_rules_owner ON automation_rules(user_id, is_active);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_hook ON webhook_deliveries(webhook_id, id DESC);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at DESC);');
 
   // İlk kaydetme
   saveDatabase();
