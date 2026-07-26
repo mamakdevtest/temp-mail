@@ -211,6 +211,66 @@ router.get('/bulk', (req, res) => {
   }
 });
 
+/**
+ * GET /api/addresses/bulk/:poolId/emails
+ * Bir prefix havuzundaki tüm mailbox maillerini tek operasyon listesinde döndürür.
+ */
+router.get('/bulk/:poolId/emails', rateLimit({ max: 120, key: 'bulk-email-list' }), (req, res) => {
+  try {
+    const db = getDb();
+    const { user, isAdmin } = requireBulkUser(db, req);
+    const poolId = Number.parseInt(req.params.poolId, 10);
+    if (!Number.isInteger(poolId) || poolId < 1) return res.status(400).json({ error: 'invalid_request', message: 'Geçerli bir bulk havuz kimliği gerekli' });
+
+    const pool = db.get(`SELECT p.id, p.user_id, p.prefix, p.next_index, p.status, d.domain
+      FROM bulk_address_pools p JOIN domains d ON d.id = p.domain_id WHERE p.id = ?`, [poolId]);
+    if (!pool) return res.status(404).json({ error: 'not_found', message: 'Bulk havuzu bulunamadı' });
+    if (!isAdmin && pool.user_id !== user.id) return res.status(403).json({ error: 'forbidden', message: 'Bu bulk havuzunu görüntüleme yetkiniz yok' });
+
+    const rawLimit = Number.parseInt(req.query.limit || '100', 10);
+    const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? rawLimit : 100, 1), 200);
+    const cursor = Number.parseInt(req.query.cursor || '0', 10);
+    const query = String(req.query.q || '').trim().toLowerCase();
+    const otpOnly = String(req.query.otp_only || '') === '1';
+    const where = ['a.bulk_pool_id = ?'];
+    const params = [pool.id];
+    if (Number.isInteger(cursor) && cursor > 0) { where.push('e.id < ?'); params.push(cursor); }
+    if (query) {
+      where.push('(LOWER(a.address) LIKE ? OR LOWER(e.sender) LIKE ? OR LOWER(e.subject) LIKE ?)');
+      const needle = `%${query}%`;
+      params.push(needle, needle, needle);
+    }
+    if (otpOnly) where.push("COALESCE(e.otp_code, '') <> ''");
+
+    const emails = db.all(`SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments, e.otp_code,
+      a.address AS recipient_address
+      FROM emails e JOIN addresses a ON a.id = e.address_id
+      WHERE ${where.join(' AND ')}
+      ORDER BY e.id DESC LIMIT ?`, [...params, limit + 1]);
+    const hasMore = emails.length > limit;
+    const page = (hasMore ? emails.slice(0, limit) : emails).map((mail) => ({
+      ...mail,
+      has_attachments: !!mail.has_attachments,
+      otp_code: mail.otp_code || '',
+    }));
+    const summary = db.get(`SELECT COUNT(e.id) AS total_emails,
+      SUM(CASE WHEN COALESCE(e.otp_code, '') <> '' THEN 1 ELSE 0 END) AS otp_emails,
+      COUNT(DISTINCT a.id) AS active_mailboxes
+      FROM addresses a LEFT JOIN emails e ON e.address_id = a.id
+      WHERE a.bulk_pool_id = ?`, [pool.id]);
+
+    res.json({
+      pool: { ...pool, address_count: Number(summary?.active_mailboxes || 0) },
+      emails: page,
+      summary: { total_emails: Number(summary?.total_emails || 0), otp_emails: Number(summary?.otp_emails || 0) },
+      pagination: { limit, next_cursor: hasMore ? page[page.length - 1]?.id || null : null, has_more: hasMore },
+    });
+  } catch (err) {
+    console.error('Bulk inbox listeleme hatası:', err);
+    res.status(err.status || 500).json({ error: err.code || 'internal_error', message: err.message || 'Bulk mailleri alınamadı' });
+  }
+});
+
 router.post('/bulk', rateLimit({ max: 5, key: 'address-bulk' }), (req, res) => {
   const db = getDb();
   try {

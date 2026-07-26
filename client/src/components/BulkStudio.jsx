@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Boxes, CheckCircle2, Clipboard, Download, Plus, ShieldAlert, Sparkles } from 'lucide-react';
+import { Boxes, CheckCircle2, Clipboard, Download, Inbox, Plus, ShieldAlert, Sparkles } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 
 const COUNTS = [5, 10, 25, 50, 100];
@@ -14,7 +14,7 @@ function downloadAddresses(addresses, prefix) {
   URL.revokeObjectURL(url);
 }
 
-export default function BulkStudio({ token, user, pkg, domains = [], onOpenInbox }) {
+export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool }) {
   const [pools, setPools] = useState([]);
   const [prefix, setPrefix] = useState('');
   const [domain, setDomain] = useState('');
@@ -102,7 +102,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenInbox
       </div>
 
       <section className="ops-card bulk-pool-list"><div className="ops-card-heading"><div><span className="ops-step">03</span><h2>Havuzların</h2></div><span className="ops-muted">{pools.length} aktif kayıt</span></div>
-        {pools.length ? <div className="bulk-pool-grid">{pools.map((pool) => <article key={pool.id} className="bulk-pool-item"><div><code>{pool.prefix}_* @{pool.domain}</code><p>{pool.address_count} adres · sonraki indeks {pool.next_index}</p></div><div className="bulk-pool-actions"><button className="btn-secondary text-xs" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Devam et</button><button className="icon-button" title="Kopyala" onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)}><Clipboard size={15} /></button></div></article>)}</div> : <div className="ops-empty-inline"><Boxes size={22} /><p>Henüz bir havuz oluşturmadınız.</p></div>}</section>
+        {pools.length ? <div className="bulk-pool-grid">{pools.map((pool) => <article key={pool.id} className="bulk-pool-item"><div><code>{pool.prefix}_* @{pool.domain}</code><p>{pool.address_count} adres · sonraki indeks {pool.next_index}</p></div><div className="bulk-pool-actions"><button className="btn-primary text-xs px-3 py-2" onClick={() => onOpenPool?.(pool)}><Inbox size={14} /> Mailleri aç</button><button className="btn-secondary text-xs" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Devam et</button><button className="icon-button" title="Kopyala" onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)}><Clipboard size={15} /></button></div></article>)}</div> : <div className="ops-empty-inline"><Boxes size={22} /><p>Henüz bir havuz oluşturmadınız.</p></div>}</section>
     </section>
   );
 }
