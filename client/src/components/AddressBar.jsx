@@ -4,7 +4,7 @@ import { Copy, RefreshCw, Lock, ChevronDown, Clock, Shield, Shuffle, CheckCircle
 import Modal from './Modal';
 import { useLocale } from '../i18n';
 
-export default function AddressBar({ currentAddress, loading, error, domains, history, preferredDomainId = null, onGenerate, onSubmit, onCopy, onSetPassword, isPro }) {
+export default function AddressBar({ currentAddress, loading, error, domains, domainsError = false, history, preferredDomainId = null, onGenerate, onSubmit, onCopy, onSetPassword, isPro }) {
   const { t } = useLocale();
   const [username, setUsername] = useState('');
   const [selectedFullDomain, setSelectedFullDomain] = useState('');
@@ -483,7 +483,9 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
 
       {domains.length === 0 && !loading && (
         <div className="mt-6 text-center">
-          <p className="text-xs text-accent-red/90 bg-accent-red/5 px-4 py-3 rounded-2xl inline-flex items-center gap-2">{t('addressBar.noDomainsHint')}</p>
+          <p className="text-xs text-accent-red/90 bg-accent-red/5 px-4 py-3 rounded-2xl inline-flex items-center gap-2">
+            {domainsError ? t('addressBar.domainsLoadError') : t('addressBar.noDomainsHint')}
+          </p>
         </div>
       )}
     </div>

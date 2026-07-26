@@ -7,6 +7,7 @@ const { generateUsername } = require('../utils');
 const { rateLimit } = require('../middleware/apiContract');
 const { writeAudit } = require('../services/audit');
 const { getApiKeyPrincipal, hasApiScope, requireApiScope } = require('../middleware/apiKeyAuth');
+const { signAddressToken, canAccessMailbox } = require('../middleware/addressAccess');
 
 // Süresiz adres: 9999-12-31
 const NEVER_EXPIRES = '9999-12-31T23:59:59.000Z';
@@ -506,6 +507,7 @@ router.post('/', requireApiScope('addresses:write'), rateLimit({ max: 30, key: '
           has_password: true,
           emails,
           returned: true,
+          address_token: signAddressToken(address),
         });
       }
 
@@ -536,6 +538,7 @@ router.post('/', requireApiScope('addresses:write'), rateLimit({ max: 30, key: '
         has_password: false,
         emails,
         returned: true,
+        address_token: signAddressToken(address),
       });
     }
 
@@ -555,6 +558,7 @@ router.post('/', requireApiScope('addresses:write'), rateLimit({ max: 30, key: '
       domain: fullDomain,
       is_persistent: true,
       has_password: !!password,
+      address_token: signAddressToken(address),
     });
   } catch (err) {
     console.error('Adres oluşturma hatası:', err);
@@ -608,6 +612,7 @@ router.post('/login', requireApiScope('addresses:read'), (req, res) => {
       is_persistent: true,
       has_password: true,
       emails,
+      address_token: signAddressToken(addr.address),
     });
   } catch (err) {
     console.error('Giriş hatası:', err);
@@ -665,10 +670,7 @@ router.get('/:address', requireApiScope('addresses:read'), (req, res) => {
     if (!addr) {
       return res.status(404).json({ error: 'Adres bulunamadı' });
     }
-    const actor = getOptionalUser(req);
-    if (actor?.role !== 'admin' && addr.user_id !== actor?.id) {
-      return res.status(403).json({ error: 'forbidden', message: 'Bu adres için erişim yetkiniz yok' });
-    }
+    if (!canAccessMailbox(req, res, addr)) return;
 
     const emails = db.all(
       `SELECT id, sender, subject, received_at, has_attachments

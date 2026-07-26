@@ -5,6 +5,7 @@ const { extractOtpFromEmail } = require('../utils/otpDetection');
 const { emailEvents, waitForEmail } = require('../services/emailEvents');
 const { rateLimit } = require('../middleware/apiContract');
 const { requireApiScope } = require('../middleware/apiKeyAuth');
+const { canAccessMailbox } = require('../middleware/addressAccess');
 
 const router = express.Router();
 
@@ -57,11 +58,9 @@ async function resolveMailbox(req, res) {
   const address = decodedAddress(req.params.address);
   if (!address) { res.status(400).json({ error: 'invalid_request', message: 'Geçersiz adres' }); return null; }
   const db = getDb();
-  const mailbox = db.get('SELECT id, user_id FROM addresses WHERE address = ?', [address]);
+  const mailbox = db.get('SELECT id, user_id, address, password_hash FROM addresses WHERE address = ?', [address]);
   if (!mailbox) { res.status(404).json({ error: 'not_found', message: 'Adres bulunamadı' }); return null; }
-  if (req.user?.role !== 'admin' && mailbox.user_id !== req.user?.id) {
-    res.status(403).json({ error: 'forbidden', message: 'Bu mailbox için erişim yetkiniz yok' }); return null;
-  }
+  if (!canAccessMailbox(req, res, mailbox)) return null;
   return { db, address, mailbox };
 }
 
@@ -136,9 +135,9 @@ router.get('/send/status', requireApiScope('addresses:read'), (req, res) => res.
 router.get('/single/:id', requireApiScope('emails:read'), rateLimit({ max: 200, key: 'email-detail' }), (req, res) => {
   try {
     const db = getDb();
-    const email = db.get('SELECT e.*, a.address, a.user_id FROM emails e JOIN addresses a ON e.address_id = a.id WHERE e.id = ?', [req.params.id]);
+    const email = db.get('SELECT e.*, a.address, a.user_id, a.password_hash FROM emails e JOIN addresses a ON e.address_id = a.id WHERE e.id = ?', [req.params.id]);
     if (!email) return res.status(404).json({ error: 'not_found', message: 'Mail bulunamadı' });
-    if (req.user?.role !== 'admin' && email.user_id !== req.user?.id) return res.status(403).json({ error: 'forbidden', message: 'Bu mail için erişim yetkiniz yok' });
+    if (!canAccessMailbox(req, res, email)) return;
     const attachments = db.all('SELECT id, filename, content_type, size FROM attachments WHERE email_id = ?', [email.id]);
     const detectedOtp = extractOtpFromEmail(email.subject, email.body_text, email.body_html) || '';
     if (detectedOtp && detectedOtp !== email.otp_code) db.run('UPDATE emails SET otp_code = ? WHERE id = ?', [detectedOtp, email.id]);
@@ -149,9 +148,9 @@ router.get('/single/:id', requireApiScope('emails:read'), rateLimit({ max: 200, 
 router.delete('/:id', requireApiScope('emails:delete'), (req, res) => {
   try {
     const db = getDb();
-    const email = db.get('SELECT e.id, a.user_id FROM emails e JOIN addresses a ON a.id = e.address_id WHERE e.id = ?', [req.params.id]);
+    const email = db.get('SELECT e.id, a.user_id, a.address, a.password_hash FROM emails e JOIN addresses a ON a.id = e.address_id WHERE e.id = ?', [req.params.id]);
     if (!email) return res.status(404).json({ error: 'not_found', message: 'Mail bulunamadı' });
-    if (req.user?.role !== 'admin' && email.user_id !== req.user?.id) return res.status(403).json({ error: 'forbidden', message: 'Bu maili silme yetkiniz yok' });
+    if (!canAccessMailbox(req, res, email)) return;
     db.run('DELETE FROM attachments WHERE email_id = ?', [email.id]);
     db.run('DELETE FROM emails WHERE id = ?', [email.id]);
     res.json({ id: email.id });
@@ -161,11 +160,11 @@ router.delete('/:id', requireApiScope('emails:delete'), (req, res) => {
 router.get('/:emailId/attachments/:attId', requireApiScope('emails:read'), (req, res) => {
   try {
     const db = getDb();
-    const attachment = db.get(`SELECT at.*, a.user_id FROM attachments at
+    const attachment = db.get(`SELECT at.*, a.user_id, a.address, a.password_hash FROM attachments at
       JOIN emails e ON e.id = at.email_id JOIN addresses a ON a.id = e.address_id
       WHERE at.id = ? AND at.email_id = ?`, [req.params.attId, req.params.emailId]);
     if (!attachment) return res.status(404).json({ error: 'not_found', message: 'Ek bulunamadı' });
-    if (req.user?.role !== 'admin' && attachment.user_id !== req.user?.id) return res.status(403).json({ error: 'forbidden', message: 'Bu ek için erişim yetkiniz yok' });
+    if (!canAccessMailbox(req, res, attachment)) return;
     res.locals.skipApiEnvelope = true;
     res.set({ 'Content-Type': attachment.content_type || 'application/octet-stream', 'Content-Disposition': `attachment; filename="${attachment.filename || 'ek'}"`, 'Content-Length': attachment.content?.length || 0 });
     res.send(attachment.content);

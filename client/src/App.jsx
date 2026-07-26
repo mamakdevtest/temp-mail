@@ -9,6 +9,7 @@ import AccountPanel from './components/AccountPanel';
 import Modal from './components/Modal';
 import { playNotificationSound, NOTIFICATION_SOUNDS } from './utils/notificationSound';
 import { apiFetch } from './utils/apiFetch';
+import { addressTokenHeader, setAddressToken } from './utils/addressToken';
 import { LocaleProvider, createTranslator, normalizeLanguage } from './i18n';
 
 const AuthPage = lazy(() => import('./components/AuthPage'));
@@ -71,6 +72,7 @@ export default function App() {
   const [bulkInboxPool, setBulkInboxPool] = useState(null);
   const [addr, setAddr] = useState(null);
   const [domains, setDomains] = useState([]);
+  const [domainsError, setDomainsError] = useState(false);
   const [emails, setEmails] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -271,7 +273,7 @@ export default function App() {
     try {
       const saved = JSON.parse(localStorage.getItem('tm-last-addr') || 'null');
       if (!saved?.address) return false;
-      const r = await apiFetch(`${API}/addresses/${saved.address}`, { headers: authHeaders });
+      const r = await apiFetch(`${API}/addresses/${saved.address}`, { headers: { ...authHeaders, ...addressTokenHeader(saved.address) } });
       if (r.ok) {
         const d = await r.json();
         setAddr(d);
@@ -290,9 +292,11 @@ export default function App() {
       if (r.ok) {
         const d = await r.json();
         if (d.domains) setDomains(d.domains);
+      } else {
+        setDomainsError(true);
       }
     } catch (e) {
-      /* */
+      setDomainsError(true);
     }
   }, [authHeaders]);
 
@@ -310,6 +314,7 @@ export default function App() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Adres oluşturulamadı');
+      if (d.address_token) setAddressToken(d.address, d.address_token);
       setAddr(d);
       setEmails([]);
       toast(d.has_password ? t('app.addressCreatedPassworded') : t('app.addressCreatedReady'), 'success');
@@ -342,6 +347,7 @@ export default function App() {
         return;
       }
       if (!r.ok) throw new Error(d.error || 'İşlem başarısız');
+      if (d.address_token) setAddressToken(d.address, d.address_token);
       setAddr(d);
       setEmails(d.emails || []);
       toast(d.returned ? t('app.addressOpened') : t('app.addressCreatedReady'), 'success');
@@ -368,6 +374,7 @@ export default function App() {
         setLoading(false);
         return;
       }
+      if (d.address_token) setAddressToken(d.address, d.address_token);
       setAddr(d);
       setEmails(d.emails || []);
       setPwModal({ show: false, username: '', domain: '' });
@@ -417,7 +424,7 @@ export default function App() {
   const loadEmails = useCallback(async () => {
     if (!addr) return;
     try {
-      const r = await apiFetch(`${API}/emails/${encodeURIComponent(addr.address)}?limit=100&order=desc`, { headers: authHeaders });
+      const r = await apiFetch(`${API}/emails/${encodeURIComponent(addr.address)}?limit=100&order=desc`, { headers: { ...authHeaders, ...addressTokenHeader(addr.address) } });
       if (r.ok) {
         const d = await r.json();
         if (Array.isArray(d)) setEmails(d);
@@ -438,18 +445,18 @@ export default function App() {
 
   const loadDetail = useCallback(async (id) => {
     try {
-      const r = await apiFetch(`${API}/emails/single/${id}`, { headers: authHeaders });
+      const r = await apiFetch(`${API}/emails/single/${id}`, { headers: { ...authHeaders, ...addressTokenHeader(addr?.address) } });
       if (r.ok) setSelected(await r.json());
     } catch (e) {
       /* */
     }
-  }, [authHeaders]);
+  }, [authHeaders, addr]);
 
   const delEmail = useCallback(async (id, e) => {
     if (e) e.stopPropagation();
     if (!confirm('Silsin mi?')) return;
     try {
-      const r = await apiFetch(`${API}/emails/${id}`, { method: 'DELETE', headers: authHeaders });
+      const r = await apiFetch(`${API}/emails/${id}`, { method: 'DELETE', headers: { ...authHeaders, ...addressTokenHeader(addr?.address) } });
       if (r.ok) {
         setEmails((p) => p.filter((x) => x.id !== id));
         if (selected?.id === id) setSelected(null);
@@ -713,6 +720,7 @@ export default function App() {
               loading={loading}
               error={error}
               domains={domains}
+              domainsError={domainsError}
               history={history}
               preferredDomainId={auth.preferences?.default_domain_id || auth.user?.default_domain_id || null}
               onGenerate={genRandom}

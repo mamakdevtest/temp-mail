@@ -2,11 +2,30 @@ import { useState, useRef, useEffect } from 'react';
 import { Mail, Reply, X, KeyRound, Copy, Check, Download, Globe, AlignLeft, Paperclip, Trash2, Sparkles } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { EmailViewSkeleton } from './Skeleton';
+import { addressTokenHeader } from '../utils/addressToken';
 
 export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isLoading }) {
   const [mode, setMode] = useState('html');
   const [otpCopied, setOtpCopied] = useState(false);
+  const [downloading, setDownloading] = useState(null);
   const iframeRef = useRef(null);
+
+  const downloadAttachment = async (att) => {
+    if (downloading) return;
+    setDownloading(att.id);
+    try {
+      const r = await fetch(`${api}/emails/${email.id}/attachments/${att.id}`, { headers: addressTokenHeader(email.address) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = att.filename || 'ek';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (_) { /* indirilemedi */ }
+    setDownloading(null);
+  };
 
   useEffect(() => {
     if (email?.body_html && iframeRef.current) {
@@ -123,9 +142,9 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
           <p className="section-title mb-3 flex items-center gap-1.5"><Paperclip size={11} /> Ekler ({email.attachments.length})</p>
           <div className="flex flex-wrap gap-2">
             {email.attachments.map((a) => (
-              <a key={a.id} href={`${api}/emails/${email.id}/attachments/${a.id}`} download={a.filename} className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs bg-brand-surface2 border border-brand-border/35 hover:bg-brand-surface3 transition-colors text-txt-secondary">
+              <button key={a.id} onClick={() => downloadAttachment(a)} disabled={downloading === a.id} className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs bg-brand-surface2 border border-brand-border/35 hover:bg-brand-surface3 transition-colors text-txt-secondary disabled:opacity-50">
                 <Download size={12} /> {a.filename || 'Ek'} {a.size > 0 && <span className="text-txt-muted">({(a.size / 1024).toFixed(1)}KB)</span>}
-              </a>
+              </button>
             ))}
           </div>
         </div>

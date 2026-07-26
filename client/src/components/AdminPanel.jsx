@@ -288,7 +288,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
   const openMailDetail = useCallback(async (id, scope = 'address') => {
     try {
-      const res = await fetch(`${api}/emails/single/${id}`);
+      const res = await fetch(`${api}/emails/single/${id}`, { headers: getHeaders() });
       if (!res.ok) throw new Error('Mail detayı alınamadı');
       const mail = unwrapEnvelope(await res.json());
       if (scope === 'global') setSelectedGlobalMail(mail);
@@ -296,7 +296,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     } catch (e) {
       flash(e.message, 'error');
     }
-  }, [api, flash]);
+  }, [api, flash, getHeaders]);
 
   const login = async (e) => {
     e.preventDefault();
@@ -1177,7 +1177,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           {selectedAddressMail.attachments.map((attachment) => (
                             <a
                               key={attachment.id}
-                              href={`${api}/emails/${selectedAddressMail.id}/attachments/${attachment.id}`}
+                              href={`${api}/emails/${selectedAddressMail.id}/attachments/${attachment.id}?password=${encodeURIComponent(pw)}`}
                               className="btn-secondary text-xs px-3 py-2"
                               target="_blank"
                               rel="noreferrer"
