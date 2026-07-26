@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, Copy, Filter, Inbox, MailOpen, RefreshCw, Search, ShieldAlert, Sparkles } from 'lucide-react';
+import { Check, ChevronDown, Copy, Filter, Inbox, MailOpen, RefreshCw, Search, ShieldAlert, Sparkles } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 
 function formatTime(value) {
@@ -9,7 +9,7 @@ function formatTime(value) {
   return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'short', timeStyle: 'short' }).format(date);
 }
 
-export default function BulkInbox({ token, pool, onBack }) {
+export default function BulkInbox({ token, pool }) {
   const [data, setData] = useState(null);
   const [query, setQuery] = useState('');
   const [otpOnly, setOtpOnly] = useState(false);
@@ -50,9 +50,8 @@ export default function BulkInbox({ token, pool, onBack }) {
 
   const statText = useMemo(() => `${data?.summary?.total_emails || 0} mail · ${data?.summary?.otp_emails || 0} OTP`, [data]);
 
-  return <section className="ops-page bulk-inbox-page">
+  return <section className="ops-page bulk-inbox-page" aria-label="Bulk Inbox">
     <header className="bulk-inbox-header">
-      <button className="bulk-back-button" onClick={onBack}><ArrowLeft size={17} /> Havuzlara dön</button>
       <div className="bulk-inbox-title"><p className="ops-eyebrow"><Inbox size={14} /> BULK INBOX</p><h1>{headline?.prefix || 'Bulk'}<span>_*@{headline?.domain || 'domain'}</span></h1><p>{headline?.address_count || 0} mailbox · {statText}</p></div>
       <button className="btn-secondary" onClick={() => load()} disabled={loading}><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Yenile</button>
     </header>

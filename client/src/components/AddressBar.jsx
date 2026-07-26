@@ -89,7 +89,11 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
       if (!rect) return;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const desiredWidth = Math.min(460, Math.max(320, rect.width));
+      // Keep the portal inside even a 320px viewport. The previous 320px
+      // minimum could exceed the available width once page padding was added.
+      const horizontalInset = viewportWidth <= 480 ? 12 : 16;
+      const availableWidth = Math.max(0, viewportWidth - horizontalInset * 2);
+      const desiredWidth = Math.min(460, availableWidth, Math.max(260, rect.width));
       const gap = 12;
       const belowTop = rect.bottom + gap;
       const belowBottomSpace = viewportHeight - belowTop - 16;
@@ -98,7 +102,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
       const top = shouldOpenAbove
         ? Math.max(16, rect.top - gap - 320)
         : Math.min(belowTop, Math.max(16, viewportHeight - 336));
-      const left = Math.min(Math.max(16, rect.left), Math.max(16, viewportWidth - desiredWidth - 16));
+      const left = Math.min(Math.max(horizontalInset, rect.left), Math.max(horizontalInset, viewportWidth - desiredWidth - horizontalInset));
       const maxHeight = shouldOpenAbove
         ? Math.max(220, Math.min(360, rect.top - gap - 24))
         : Math.max(220, Math.min(360, viewportHeight - belowTop - 24));
@@ -189,6 +193,20 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
       }));
     }
   }, [selectedFullDomain, domainInfo]);
+
+  // Subdomain options are part of the normal picker, not a hidden secondary
+  // action. Newly loaded domains therefore start expanded while preserving a
+  // user's explicit collapse choice during this session.
+  useEffect(() => {
+    if (!domains.length) return;
+    setExpandedDomains((previous) => {
+      const next = { ...previous };
+      domains.forEach((domain) => {
+        if (domain.subdomains?.length && !(domain.id in next)) next[domain.id] = true;
+      });
+      return next;
+    });
+  }, [domains]);
 
   return (
     <div className="temp-address-panel card px-4 py-5 sm:px-7 sm:py-7 bg-[radial-gradient(circle_at_0%_0%,rgba(91,141,255,0.22),transparent_32%),radial-gradient(circle_at_100%_100%,rgba(76,210,235,0.12),transparent_30%)]">
@@ -300,7 +318,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, hi
                                               <div className="flex items-center justify-between gap-3">
                                                 <div className="min-w-0">
                                                   <p className="text-sm font-medium text-txt-primary truncate">{sub.full_domain}</p>
-                                                  <p className="text-[10px] text-txt-muted mt-0.5">{sub.name}.{item.domain}</p>
+                                                  <p className="text-[10px] text-txt-muted mt-0.5">Subdomain · {sub.name}.{item.domain}</p>
                                                 </div>
                                                 {isSubSelected ? <span className="badge-purple text-[9px]">{t('addressBar.selected')}</span> : null}
                                               </div>

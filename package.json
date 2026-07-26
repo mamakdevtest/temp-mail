@@ -9,6 +9,7 @@
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "verify:db-copy": "node scripts/verify-db-copy.js",
+    "test:otp": "node scripts/test-otp-detection.js",
     "start": "NODE_ENV=production node server/index.js",
     "install:all": "npm install && cd client && npm install",
     "setup": "cp .env.example .env && npm run install:all"

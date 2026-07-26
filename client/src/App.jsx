@@ -115,6 +115,12 @@ export default function App() {
     return () => { window.removeEventListener('popstate', onPopState); window.removeEventListener('hashchange', onPopState); };
   }, []);
 
+  // Older Bulk Inbox links now open the pool picker. Mail streams are shown in
+  // a popup so the user keeps their Bulk Studio context and can close it fast.
+  useEffect(() => {
+    if (page === 'bulk-inbox') navigate('bulk');
+  }, [navigate, page]);
+
   useEffect(() => {
     const resolvedTheme = theme === 'system'
       ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
@@ -769,9 +775,7 @@ export default function App() {
             />
           </div>
         ) : page === 'bulk' ? (
-          <Suspense fallback={<div className="ops-loading">Bulk Studio hazırlanıyor…</div>}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={(pool) => { setBulkInboxPool(pool); navigate('bulk-inbox'); }} /></Suspense>
-        ) : page === 'bulk-inbox' ? (
-          bulkInboxPool ? <Suspense fallback={<div className="ops-loading">Bulk Inbox hazırlanıyor…</div>}><BulkInbox token={auth.token} pool={bulkInboxPool} onBack={() => navigate('bulk')} /></Suspense> : <div className="ops-empty"><InboxIcon size={30} /><h1>Bulk havuzu seçin</h1><p>Mail listesini açmak için Bulk Studio içinden bir havuz seçin.</p><button className="btn-primary mt-5" onClick={() => navigate('bulk')}>Bulk Studio’ya dön</button></div>
+          <Suspense fallback={<div className="ops-loading">Bulk Studio hazırlanıyor…</div>}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} /></Suspense>
         ) : page === 'automation' ? (
           auth.isGuest ? <div className="ops-empty"><Workflow size={30} /><h1>Otomasyon için giriş yapın</h1><p>API anahtarlarını ve webhook’ları kayıtlı hesabınızdan yönetebilirsiniz.</p></div> : <Suspense fallback={<div className="ops-loading">Otomasyon hazırlanıyor…</div>}><AutomationCenter token={auth.token} /></Suspense>
         ) : page === 'admin-bulk' && auth.isAdmin ? (
@@ -795,6 +799,16 @@ export default function App() {
         )}
         </main>
       </div>
+
+      <Modal
+        show={Boolean(bulkInboxPool)}
+        onClose={() => setBulkInboxPool(null)}
+        title={bulkInboxPool ? `${bulkInboxPool.prefix}_*@${bulkInboxPool.domain}` : ''}
+        subtitle="Bulk Inbox · Havuzdaki tüm mailbox'lara gelen mailler ve OTP kodları"
+        size="full"
+      >
+        {bulkInboxPool && <Suspense fallback={<div className="ops-loading">Bulk Inbox hazırlanıyor…</div>}><BulkInbox token={auth.token} pool={bulkInboxPool} /></Suspense>}
+      </Modal>
 
       <nav className="mobile-workspace-nav lg:hidden" aria-label="Mobil menü">
         <button className={page === 'inbox' ? 'is-active' : ''} onClick={() => navigate('inbox')}><InboxIcon size={18} /><span>Inbox</span></button>

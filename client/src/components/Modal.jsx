@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 
 export default function Modal({ show, onClose, title, subtitle, children, footer, wide, size = 'md', compact = false }) {
   const bodyRef = useRef(null);
@@ -53,11 +54,16 @@ export default function Modal({ show, onClose, title, subtitle, children, footer
       >
         {title && (
           <div className={`${size === 'full' ? 'px-4 sm:px-5 py-3' : 'px-4 sm:px-6 py-4 sm:py-5'} border-b border-brand-border/25 bg-brand-surface2/35 shrink-0 ${size === 'full' ? 'sticky top-0 z-10 backdrop-blur-xl' : ''}`}>
-            <h3 className={`font-semibold text-txt-primary tracking-tight ${size === 'full' ? 'text-base' : 'text-lg'}`}>{title}</h3>
-            {subtitle && <p className={`${size === 'full' ? 'text-xs' : 'text-sm'} text-txt-muted mt-0.5`}>{subtitle}</p>}
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h3 className={`font-semibold text-txt-primary tracking-tight truncate ${size === 'full' ? 'text-base' : 'text-lg'}`}>{title}</h3>
+                {subtitle && <p className={`${size === 'full' ? 'text-xs' : 'text-sm'} text-txt-muted mt-0.5`}>{subtitle}</p>}
+              </div>
+              {onClose && <button type="button" onClick={onClose} className="shrink-0 grid place-items-center w-9 h-9 -my-1 rounded-xl text-txt-muted hover:text-txt-primary hover:bg-brand-bg/60 transition-colors" aria-label="Pencereyi kapat"><X size={18} /></button>}
+            </div>
           </div>
         )}
-        <div ref={bodyRef} className={`${compact ? 'p-0 overflow-hidden flex-1 min-h-0' : size === 'full' ? 'p-3 sm:p-4' : 'p-4 sm:p-6 overflow-y-auto flex-1'} ${size === 'full' ? 'bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.03),transparent_24%)]' : ''}`}>{children}</div>
+        <div ref={bodyRef} className={`${compact ? 'p-0 overflow-hidden flex-1 min-h-0' : size === 'full' ? 'p-3 sm:p-4 overflow-y-auto flex-1 min-h-0' : 'p-4 sm:p-6 overflow-y-auto flex-1'} ${size === 'full' ? 'bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.03),transparent_24%)]' : ''}`}>{children}</div>
         {footer && <div className={`${size === 'full' ? 'px-4 sm:px-5 py-3' : 'px-4 sm:px-6 py-4'} border-t border-brand-border/25 bg-brand-surface2/30 flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0 ${size === 'full' ? 'sticky bottom-0 z-10 backdrop-blur-xl' : ''}`}>{footer}</div>}
       </div>
     </div>,
