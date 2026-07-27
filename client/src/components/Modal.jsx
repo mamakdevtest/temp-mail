@@ -2,71 +2,97 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
-export default function Modal({ show, onClose, title, subtitle, children, footer, wide, size = 'md', compact = false }) {
+const SIZE = {
+  sm: 'sm:max-w-md',
+  md: 'sm:max-w-lg',
+  lg: 'sm:max-w-xl',
+  xl: 'sm:max-w-3xl',
+  '2xl': 'sm:max-w-5xl',
+  '3xl': 'sm:max-w-6xl',
+  full: 'sm:max-w-none',
+};
+
+/**
+ * Token-based modal. Focus-trap + esc + scroll-lock + click-outside.
+ * `size="full"` = edge-to-edge sheet (used by Bulk Inbox legacy path).
+ */
+export default function Modal({ show, onClose, title, subtitle, children, footer, wide, size = 'md', compact = false, closeLabel = 'Close' }) {
   const bodyRef = useRef(null);
+  const cardRef = useRef(null);
 
   useEffect(() => {
     if (!show) return;
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose?.();
+    const card = cardRef.current;
+    const onKey = (e) => {
+      if (e.key === 'Escape') { onClose?.(); return; }
+      if (e.key !== 'Tab' || !card) return;
+      const focusable = card.querySelectorAll('a[href],button:not([disabled]),textarea,input,select,[tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
-    const previousOverflow = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
+    const prevFocus = document.activeElement;
     document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', onKey);
     requestAnimationFrame(() => {
       if (bodyRef.current) bodyRef.current.scrollTop = 0;
+      const focusable = card?.querySelector('input,button,textarea,select,a[href]');
+      focusable?.focus?.();
     });
     return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+      prevFocus?.focus?.();
     };
-  }, [show, title, onClose]);
+  }, [show, onClose]);
 
   if (!show) return null;
-  const sizeClass = {
-    sm: 'max-w-md',
-    md: 'max-w-md',
-    lg: 'max-w-xl',
-    xl: 'max-w-3xl',
-    '2xl': 'max-w-5xl',
-    '3xl': 'max-w-6xl',
-    full: 'max-w-none',
-  }[size] || (wide ? 'max-w-xl' : 'max-w-md');
-  const viewportClass = compact
-    ? 'items-center justify-center p-3 sm:p-4'
-    : size === 'full'
-      ? 'items-stretch p-0 sm:p-0'
-      : 'items-start p-2 sm:p-4';
-  const cardStyle = compact ? { width: 'min(980px, calc(100vw - 1rem))', maxHeight: 'min(800px, calc(100vh - 1rem))' } : undefined;
+  const full = size === 'full';
+  const sizeClass = SIZE[size] || (wide ? SIZE.lg : SIZE.md);
+
   return createPortal(
     <div
-      className={`fixed inset-0 bg-brand-bg/82 backdrop-blur-xl z-[1000] flex justify-center overflow-y-auto animate-fade-in ${viewportClass}`}
+      className={`fixed inset-0 z-[1000] flex justify-center overflow-y-auto bg-[rgb(var(--overlay)/0.6)] backdrop-blur-sm animate-fade-in ${full ? 'items-stretch p-0' : compact ? 'items-center p-3 sm:p-4' : 'items-start p-3 sm:py-8 sm:px-4'}`}
       onClick={onClose}
       role="presentation"
     >
       <div
-        style={cardStyle}
-        className={`bg-brand-surface/95 border border-brand-border/55 rounded-none ${compact ? 'rounded-[30px] border-white/8 bg-[#161616]/96 shadow-[0_28px_100px_rgba(0,0,0,0.58)]' : size === 'full' ? 'sm:rounded-none shadow-none w-screen min-h-screen max-h-screen' : 'sm:rounded-[28px] shadow-panel'} w-full ${compact ? 'max-w-none h-full min-h-0 max-h-none' : sizeClass} animate-pop-in overflow-hidden ${compact ? 'flex' : size === 'full' ? 'min-h-screen max-h-screen' : 'min-h-[calc(100vh-1rem)] max-h-[calc(100vh-1rem)] sm:min-h-0 sm:max-h-[calc(100vh-3rem)]'} flex flex-col`}
+        ref={cardRef}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={title || 'Modal'}
+        aria-label={title || undefined}
+        className={`card w-full flex flex-col overflow-hidden animate-pop-in ${sizeClass} ${
+          full
+            ? 'min-h-screen max-h-screen rounded-none border-0 sm:border'
+            : 'max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-4rem)]'
+        }`}
       >
         {title && (
-          <div className={`${size === 'full' ? 'px-4 sm:px-5 py-3' : 'px-4 sm:px-6 py-4 sm:py-5'} border-b border-brand-border/25 bg-brand-surface2/35 shrink-0 ${size === 'full' ? 'sticky top-0 z-10 backdrop-blur-xl' : ''}`}>
+          <div className={`shrink-0 border-b border-brand-border/60 px-5 py-4 ${full ? 'sticky top-0 z-10 bg-brand-surface' : ''}`}>
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <h3 className={`font-semibold text-txt-primary tracking-tight truncate ${size === 'full' ? 'text-base' : 'text-lg'}`}>{title}</h3>
-                {subtitle && <p className={`${size === 'full' ? 'text-xs' : 'text-sm'} text-txt-muted mt-0.5`}>{subtitle}</p>}
+                <h2 className="t-card-title text-txt-primary truncate">{title}</h2>
+                {subtitle && <p className="t-body-sm text-txt-muted mt-0.5">{subtitle}</p>}
               </div>
-              {onClose && <button type="button" onClick={onClose} className="shrink-0 grid place-items-center w-9 h-9 -my-1 rounded-xl text-txt-muted hover:text-txt-primary hover:bg-brand-bg/60 transition-colors" aria-label="Pencereyi kapat"><X size={18} /></button>}
+              {onClose && (
+                <button type="button" onClick={onClose} aria-label={closeLabel} className="shrink-0 grid place-items-center w-9 h-9 -my-1 -mr-1 rounded-[var(--r-md)] text-txt-muted hover:text-txt-primary hover:bg-brand-surface2 transition-colors">
+                  <X size={18} />
+                </button>
+              )}
             </div>
           </div>
         )}
-        <div ref={bodyRef} className={`${compact ? 'p-0 overflow-hidden flex-1 min-h-0' : size === 'full' ? 'p-3 sm:p-4 overflow-y-auto flex-1 min-h-0' : 'p-4 sm:p-6 overflow-y-auto flex-1'} ${size === 'full' ? 'bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.03),transparent_24%)]' : ''}`}>{children}</div>
-        {footer && <div className={`${size === 'full' ? 'px-4 sm:px-5 py-3' : 'px-4 sm:px-6 py-4'} border-t border-brand-border/25 bg-brand-surface2/30 flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0 ${size === 'full' ? 'sticky bottom-0 z-10 backdrop-blur-xl' : ''}`}>{footer}</div>}
+        <div ref={bodyRef} className={`flex-1 min-h-0 overflow-y-auto ${compact ? 'p-0' : 'p-5'}`}>{children}</div>
+        {footer && (
+          <div className={`shrink-0 border-t border-brand-border/60 px-5 py-3.5 flex flex-col-reverse sm:flex-row justify-end gap-2 ${full ? 'sticky bottom-0 z-10 bg-brand-surface' : ''}`}>{footer}</div>
+        )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
+
+export { Modal };

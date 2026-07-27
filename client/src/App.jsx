@@ -1,12 +1,13 @@
 import { lazy, Suspense, startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, PanelLeft, BookOpen } from 'lucide-react';
+import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, BookOpen, Menu, Search, Command, LogOut, Plus, Moon, Sun } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 import AddressBar from './components/AddressBar';
 import Inbox from './components/Inbox';
 import EmailView from './components/EmailView';
 import AccountPanel from './components/AccountPanel';
 import Modal from './components/Modal';
+import { Drawer, CommandPalette, Avatar, EmptyState, Loading } from './components/ui';
 import { playNotificationSound, NOTIFICATION_SOUNDS } from './utils/notificationSound';
 import { apiFetch } from './utils/apiFetch';
 import { addressTokenHeader, setAddressToken } from './utils/addressToken';
@@ -95,6 +96,8 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [cmdkOpen, setCmdkOpen] = useState(false);
+  const [mobileNav, setMobileNav] = useState(false);
   const authHeaders = useMemo(() => (auth.token ? { Authorization: `Bearer ${auth.token}` } : {}), [auth.token]);
 
   const userMenuRef = useRef(null);
@@ -143,6 +146,18 @@ export default function App() {
       document.removeEventListener('keydown', h);
     };
   }, [initBeep]);
+
+  // ⌘K / Ctrl+K opens the command palette
+  useEffect(() => {
+    const h = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCmdkOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -454,7 +469,7 @@ export default function App() {
 
   const delEmail = useCallback(async (id, e) => {
     if (e) e.stopPropagation();
-    if (!confirm('Silsin mi?')) return;
+    if (!confirm(t('inbox.confirmDelete'))) return;
     try {
       const r = await apiFetch(`${API}/emails/${id}`, { method: 'DELETE', headers: { ...authHeaders, ...addressTokenHeader(addr?.address) } });
       if (r.ok) {
@@ -503,11 +518,15 @@ export default function App() {
   }, [toast, t]);
 
   useEffect(() => {
+    // Domains are a public surface — load for everyone (guest included).
+    loadDomains();
+  }, [loadDomains]);
+
+  useEffect(() => {
     if (auth.user) {
-      loadDomains();
       restoreLastAddress();
     }
-  }, [auth.user, loadDomains, restoreLastAddress]);
+  }, [auth.user, restoreLastAddress]);
 
   useEffect(() => {
     if (domains.length > 0 && !addr && !loading && restoredRef.current && auth.user) {
@@ -546,86 +565,152 @@ export default function App() {
 
   const activeDomain = addr?.address?.split('@')[1] || (domains[0]?.domain || '');
 
+  const setTheme = useCallback((next) => {
+    if (auth.isGuest) { document.documentElement.dataset.theme = next; document.documentElement.style.colorScheme = next; }
+    else auth.updatePreferences?.({ theme: next }).catch(() => {});
+  }, [auth]);
+
+  // Role-aware navigation model — single source of truth for rail + mobile nav.
+  const navGroups = useMemo(() => {
+    const groups = [
+      { label: t('nav.mailbox'), items: [
+        { id: 'inbox', label: t('app.inbox'), icon: InboxIcon },
+        { id: 'domains', label: t('app.domains'), icon: Globe },
+      ] },
+    ];
+    if (!auth.isGuest) groups.push({ label: t('nav.scale'), items: [
+      { id: 'bulk', label: 'Bulk Studio', icon: Boxes },
+      { id: 'automation', label: t('app.automationRail'), icon: Workflow },
+    ] });
+    groups.push({ label: t('nav.learn'), items: [
+      { id: 'docs', label: t('app.docsRail'), icon: BookOpen },
+      { id: 'account', label: t('app.accountRail'), icon: Settings },
+    ] });
+    if (auth.isAdmin) groups.push({ label: t('nav.admin'), items: [
+      { id: 'admin', label: t('app.operationsRail'), icon: Shield },
+      { id: 'admin-bulk', label: t('app.bulkAdminRail'), icon: Boxes },
+    ] });
+    return groups;
+  }, [auth.isGuest, auth.isAdmin, t]);
+
+  const pageTitle = useMemo(() => {
+    for (const g of navGroups) { const it = g.items.find((i) => i.id === page); if (it) return it; }
+    return { label: t('app.inbox'), icon: InboxIcon };
+  }, [navGroups, page, t]);
+
+  const commandItems = useMemo(() => {
+    const nav = navGroups.flatMap((g) => g.items.map((it) => ({
+      id: `go-${it.id}`, label: it.label, icon: it.icon, group: t('cmdk.navigate'),
+      keywords: [it.id], run: () => navigate(it.id),
+    })));
+    const actions = [
+      { id: 'act-new', label: t('cmdk.newAddress'), icon: Plus, group: t('cmdk.actions'), run: () => { navigate('inbox'); genRandom(); } },
+      { id: 'act-copy', label: t('cmdk.copyAddress'), icon: Mail, group: t('cmdk.actions'), run: copyAddr },
+      { id: 'act-dark', label: t('cmdk.themeDark'), icon: Moon, group: t('cmdk.actions'), run: () => setTheme('dark') },
+      { id: 'act-light', label: t('cmdk.themeLight'), icon: Sun, group: t('cmdk.actions'), run: () => setTheme('light') },
+    ];
+    const dom = domains.map((d) => ({
+      id: `dom-${d.id}`, label: d.domain, icon: Globe, group: t('cmdk.domains'),
+      run: () => { if (addr) { const u = addr.address.split('@')[0]; openAddr(u, d.domain); } else navigate('domains'); },
+    }));
+    return [...nav, ...actions, ...dom];
+  }, [navGroups, domains, addr, t, navigate, genRandom, copyAddr, openAddr, setTheme]);
+
   return (
     <LocaleProvider language={language}>
-    <div className="app-shell min-h-screen bg-brand-bg relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-accent-purple/10 blur-[120px]" />
-        <div className="absolute top-32 right-0 h-80 w-80 rounded-full bg-accent-cyan/8 blur-[140px]" />
-        <div className="absolute bottom-20 left-0 h-72 w-72 rounded-full bg-accent-blue/8 blur-[140px]" />
+    <div className="app-shell min-h-screen bg-brand-bg relative">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 right-[-6rem] h-96 w-96 rounded-full bg-[rgb(var(--brand)/0.08)] blur-[130px]" />
       </div>
 
-      <header className="app-header sticky top-0 z-50 border-b border-brand-border/40 bg-brand-bg/90 backdrop-blur-2xl">
-        <div className="max-w-[1680px] mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl panel-soft flex items-center justify-center shadow-glow-cyan">
-              <Mail size={20} className="text-accent-cyan" />
+      <div className="relative z-10 flex min-h-screen">
+        {/* Rail — single source of navigation (lg+) */}
+        <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-brand-border/60 bg-brand-surface/40 backdrop-blur-xl" aria-label={t('app.workspaceAria')}>
+          <div className="flex items-center gap-2.5 px-5 h-16 border-b border-brand-border/60">
+            <div className="w-8 h-8 rounded-[var(--r-md)] bg-[rgb(var(--brand))] flex items-center justify-center">
+              <Mail size={17} className="text-[rgb(var(--on-brand))]" />
             </div>
-            <div>
-              <p className="text-[15px] font-bold tracking-tight text-txt-primary">MS Temp Mail</p>
-              <p className="text-[11px] text-txt-muted">{t('app.brandSubtitle')}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-bold tracking-tight text-txt-primary leading-none">MS Temp Mail</p>
+              <p className="text-[10px] text-txt-muted mt-0.5">{t('app.brandSubtitle')}</p>
             </div>
           </div>
-
-          <div className="hidden xl:flex items-center gap-2">
-            <button onClick={() => navigate('inbox')} className={`nav-pill ${page === 'inbox' ? 'nav-pill-active' : ''}`}><InboxIcon size={16} /> {t('app.inbox')}</button>
-            <button onClick={() => navigate('domains')} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> {t('app.domains')}</button>
-            {!auth.isGuest && <button onClick={() => navigate('bulk')} className={`nav-pill ${page === 'bulk' ? 'nav-pill-active' : ''}`}><Boxes size={16} /> Bulk</button>}
-            {!auth.isGuest && <button onClick={() => navigate('automation')} className={`nav-pill ${page === 'automation' ? 'nav-pill-active' : ''}`}><Workflow size={16} /> Otomasyon</button>}
-            <button onClick={() => navigate('docs')} className={`nav-pill ${page === 'docs' ? 'nav-pill-active' : ''}`}><BookOpen size={16} /> {t('app.docsRail')}</button>
-            {auth.isAdmin && <button onClick={() => navigate('admin')} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> {t('app.admin')}</button>}
-          </div>
-
-          <div className="flex items-center gap-3">
-            {auth.isGuest ? (
-              <>
-                <button onClick={() => openAuth('login')} className="btn-secondary px-4 py-2.5 text-xs">{t('app.signIn')}</button>
-                <button onClick={() => openAuth('register')} className="btn-primary px-4 py-2.5 text-xs">{t('app.signUp')}</button>
-              </>
-            ) : (
-              <div className="relative flex items-center gap-4 pl-4 border-l border-brand-border/45" ref={userMenuRef}>
-                <button onClick={() => setShowUserMenu((v) => !v)} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 hover:bg-brand-surface2/60 transition-colors">
-                  <div className="w-11 h-11 rounded-full overflow-hidden border border-brand-border/30 bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-purple flex items-center justify-center text-white font-semibold shadow-glow-blue">
-                    {auth.user?.avatar_url ? (
-                      <img src={auth.user.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      (auth.user?.username || 'U')[0].toUpperCase()
-                    )}
-                  </div>
-                  <div className="hidden sm:block text-left">
-                    <p className="text-sm font-semibold text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</p>
-                    <p className="text-[11px] text-txt-secondary mt-1 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-accent-green" />
-                      {auth.isAdmin ? t('app.roleAdmin') : auth.isProPlus ? t('app.roleProPlus') : auth.isPro ? t('app.rolePro') : t('app.roleFree')}
-                    </p>
-                  </div>
-                  <ChevronDown size={14} className="text-txt-muted" />
-                </button>
-                {showUserMenu && (
-                  <div className="absolute right-0 top-full mt-3 w-60 card p-2 z-50 animate-slide-down">
-                    <div className="px-3 py-3 border-b border-brand-border/30">
-                      <p className="text-sm font-semibold text-txt-primary">{auth.user?.display_name || auth.user?.username}</p>
-                      <p className="text-xs text-txt-muted mt-1">{auth.user?.email}</p>
-                    </div>
-                    <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors">
-                      <Settings size={14} /> {t('app.accountSettings')}
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+            {navGroups.map((g) => (
+              <div key={g.label}>
+                <p className="section-title px-2 mb-1.5">{g.label}</p>
+                <div className="space-y-0.5">
+                  {g.items.map((it) => (
+                    <button key={it.id} onClick={() => navigate(it.id)} className={`w-full flex items-center gap-3 rounded-[var(--r-md)] px-2.5 py-2 text-sm font-medium transition-colors ${page === it.id ? 'bg-[rgb(var(--brand)/0.1)] text-txt-primary' : 'text-txt-secondary hover:bg-brand-surface2 hover:text-txt-primary'}`}>
+                      <it.icon size={17} className={page === it.id ? 'text-[rgb(var(--brand))]' : 'text-txt-muted'} />
+                      {it.label}
                     </button>
-                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={14} /> {t('app.adminPanel')}</button>}
-                    {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-purple hover:bg-accent-purple/5 transition-colors"><Crown size={14} /> {t('app.proUpgrade')}</button>}
-                    <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-accent-red hover:bg-accent-red/5 transition-colors"><X size={14} /> {t('app.logout')}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </nav>
+          <div className="px-3 py-3 border-t border-brand-border/60">
+            <button onClick={() => setCmdkOpen(true)} className="w-full flex items-center gap-2.5 rounded-[var(--r-md)] border border-brand-border bg-brand-surface2/60 px-2.5 py-2 text-txt-muted hover:text-txt-secondary transition-colors">
+              <Search size={15} /> <span className="text-[13px] flex-1 text-left">{t('cmdk.search')}</span>
+              <kbd className="text-[10px] border border-brand-border rounded px-1.5 py-0.5">⌘K</kbd>
+            </button>
+          </div>
+        </aside>
+
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Top bar */}
+          <header className="sticky top-0 z-40 border-b border-brand-border/60 bg-brand-bg/85 backdrop-blur-xl">
+            <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <button className="lg:hidden -ml-1 p-2 text-txt-secondary hover:text-txt-primary" onClick={() => setMobileNav(true)} aria-label={t('app.mobileNavAria')}><Menu size={20} /></button>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <pageTitle.icon size={18} className="text-[rgb(var(--brand))] shrink-0" />
+                  <h1 className="t-section text-txt-primary truncate">{pageTitle.label}</h1>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                {addr && (
+                  <span className="badge-green hidden sm:inline-flex">
+                    <span className={`w-1.5 h-1.5 rounded-full ${sockOn ? 'bg-[rgb(var(--success))]' : 'bg-txt-disabled'}`} />
+                    {sockOn ? t('inbox.live') : t('inbox.waiting')}
+                  </span>
+                )}
+                <button onClick={() => setCmdkOpen(true)} className="lg:hidden p-2 text-txt-secondary hover:text-txt-primary" aria-label={t('cmdk.search')}><Command size={18} /></button>
+                {auth.isGuest ? (
+                  <>
+                    <button onClick={() => openAuth('login')} className="btn-ghost">{t('app.signIn')}</button>
+                    <button onClick={() => openAuth('register')} className="btn-primary" size="sm">{t('app.signUp')}</button>
+                  </>
+                ) : (
+                  <div className="relative" ref={userMenuRef}>
+                    <button onClick={() => setShowUserMenu((v) => !v)} className="flex items-center gap-2.5 rounded-[var(--r-md)] px-1.5 py-1.5 hover:bg-brand-surface2 transition-colors" aria-haspopup="menu" aria-expanded={showUserMenu}>
+                      <Avatar src={auth.user?.avatar_url} fallback={(auth.user?.username || 'U')[0].toUpperCase()} size="sm" />
+                      <span className="hidden sm:block text-left">
+                        <span className="block text-sm font-medium text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</span>
+                        <span className="block text-[11px] text-txt-muted mt-1">{auth.isAdmin ? t('app.roleAdmin') : auth.isProPlus ? t('app.roleProPlus') : auth.isPro ? t('app.rolePro') : t('app.roleFree')}</span>
+                      </span>
+                      <ChevronDown size={14} className="text-txt-muted" />
+                    </button>
+                    {showUserMenu && (
+                      <div className="absolute right-0 top-full mt-2 w-56 card p-1.5 z-50 animate-slide-down" role="menu">
+                        <div className="px-2.5 py-2.5 border-b border-brand-border/50 mb-1">
+                          <p className="text-sm font-medium text-txt-primary truncate">{auth.user?.display_name || auth.user?.username}</p>
+                          <p className="text-[12px] text-txt-muted truncate">{auth.user?.email}</p>
+                        </div>
+                        <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={15} /> {t('app.accountSettings')}</button>
+                        {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Shield size={15} /> {t('app.adminPanel')}</button>}
+                        {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--otp))] hover:bg-[rgb(var(--otp)/0.08)] transition-colors"><Crown size={15} /> {t('app.proUpgrade')}</button>}
+                        <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--danger-fg))] hover:bg-[rgb(var(--danger)/0.08)] transition-colors"><LogOut size={15} /> {t('app.logout')}</button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
-      </header>
+            </div>
+          </header>
 
-      {notif && (
-        <div className={`fixed top-24 right-6 z-[100] px-4 py-3 rounded-2xl shadow-panel text-sm font-medium animate-slide-down ${notif.type === 'success' ? 'bg-accent-green/15 text-accent-green border border-accent-green/20' : notif.type === 'error' ? 'bg-accent-red/15 text-accent-red border border-accent-red/20' : 'bg-accent-blue/15 text-accent-blue border border-accent-blue/20'}`}>
-          {notif.message}
-        </div>
-      )}
+          <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
 
       <Modal
         show={pwModal.show}
@@ -688,31 +773,6 @@ export default function App() {
         </div>
       </Modal>
 
-      {showAuth && (
-        <div className="fixed inset-0 z-[200] overflow-y-auto bg-brand-bg/92 backdrop-blur-xl">
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-txt-muted">{t('app.loading')}</div>}>
-            <AuthPage
-              defaultMode={authMode}
-              onLogin={auth.login}
-              onRegister={auth.register}
-              onClose={() => setShowAuth(false)}
-              onGuestContinue={() => setShowAuth(false)}
-            />
-          </Suspense>
-        </div>
-      )}
-
-      <div className="workspace-frame relative z-10 max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8">
-        <aside className="workspace-rail hidden lg:flex" aria-label={t('app.workspaceAria')}>
-          <button className={page === 'inbox' ? 'is-active' : ''} onClick={() => navigate('inbox')}><InboxIcon size={18} /><span>Inbox</span></button>
-          <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>{t('app.domainsRail')}</span></button>
-          {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk Studio</span></button>}
-          {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>{t('app.automationRail')}</span></button>}
-          <button className={page === 'docs' ? 'is-active' : ''} onClick={() => navigate('docs')}><BookOpen size={18} /><span>{t('app.docsRail')}</span></button>
-          <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>{t('app.accountRail')}</span></button>
-          {auth.isAdmin && <><div className="workspace-rail-divider" /><button className={page === 'admin' ? 'is-active' : ''} onClick={() => navigate('admin')}><PanelLeft size={18} /><span>{t('app.operationsRail')}</span></button><button className={page === 'admin-bulk' ? 'is-active' : ''} onClick={() => navigate('admin-bulk')}><Shield size={18} /><span>{t('app.bulkAdminRail')}</span></button></>}
-        </aside>
-        <main className="app-main workspace-main">
         {page === 'inbox' ? (
           <div className="space-y-5">
             <AddressBar
@@ -739,26 +799,26 @@ export default function App() {
             </div>
           </div>
         ) : page === 'domains' ? (
-          <div className="card p-8 sm:p-10 text-center">
-            <div className="w-16 h-16 rounded-3xl panel-soft flex items-center justify-center mx-auto mb-5 animate-float-soft">
-              <Globe size={28} className="text-accent-cyan" />
-            </div>
-            <p className="text-xl font-semibold text-txt-primary">Aktif Domainler</p>
-            <p className="text-sm text-txt-muted mt-2">{t('app.domainsSubtitle')}</p>
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
-              {domains.length > 0 ? domains.map((d) => (
-                <div key={d.id} className="panel-soft p-4 rounded-2xl text-left">
-                  <p className="text-sm font-mono font-bold text-accent-cyan truncate">{d.domain}</p>
+          domains.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {domains.map((d) => (
+                <div key={d.id} className="card p-4">
+                  <div className="flex items-center gap-2.5">
+                    <Globe size={16} className="text-[rgb(var(--brand))] shrink-0" />
+                    <p className="t-mono font-semibold text-txt-primary truncate">{d.domain}</p>
+                  </div>
                   {d.wildcard_subdomains === 1 && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="badge-cyan text-[9px]">Subdomain Destekli</span>
-                      <span className="text-[10px] text-txt-muted">*. {d.domain}</span>
+                    <div className="flex items-center gap-2 mt-3">
+                      <span className="badge-blue">{t('domains.subdomainSupported')}</span>
+                      <span className="t-caption text-txt-muted">*.{d.domain}</span>
                     </div>
                   )}
                 </div>
-              )) : <div className="text-sm text-txt-muted col-span-full">{t('app.noActiveDomains')}</div>}
+              ))}
             </div>
-          </div>
+          ) : (
+            <EmptyState icon={Globe} title={t('domains.noneTitle')} description={t('app.noActiveDomains')} />
+          )
         ) : page === 'account' ? (
           <div className="account-workspace">
             <AccountPanel
@@ -786,15 +846,15 @@ export default function App() {
             />
           </div>
         ) : page === 'bulk' ? (
-          <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: 'Bulk Studio' })}</div>}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} /></Suspense>
+          <Suspense fallback={<Loading label={t('app.preparing', { name: 'Bulk Studio' })} />}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} /></Suspense>
         ) : page === 'automation' ? (
-          auth.isGuest ? <div className="ops-empty"><Workflow size={30} /><h1>{t('app.automationGuestTitle')}</h1><p>{t('app.automationGuestHint')}</p></div> : <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: t('app.automationRail') })}</div>}><AutomationCenter token={auth.token} isAdmin={auth.isAdmin} /></Suspense>
+          auth.isGuest ? <EmptyState icon={Workflow} title={t('app.automationGuestTitle')} description={t('app.automationGuestHint')} action={<button className="btn-primary" onClick={() => openAuth('register')}>{t('app.signUp')}</button>} /> : <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.automationRail') })} />}><AutomationCenter token={auth.token} isAdmin={auth.isAdmin} /></Suspense>
         ) : page === 'docs' ? (
-          <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: t('app.docsRail') })}</div>}><DocumentationCenter /></Suspense>
+          <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.docsRail') })} />}><DocumentationCenter /></Suspense>
         ) : page === 'admin-bulk' && auth.isAdmin ? (
-          <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: t('app.bulkAdminRail') })}</div>}><AdminBulkStudio token={auth.token} user={auth.user} domains={domains} /></Suspense>
+          <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.bulkAdminRail') })} />}><AdminBulkStudio token={auth.token} user={auth.user} domains={domains} /></Suspense>
         ) : auth.isAdmin ? (
-          <Suspense fallback={<div className="card p-10 text-center text-txt-muted">{t('app.preparing', { name: t('app.adminPanel') })}</div>}>
+          <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.adminPanel') })} />}>
             <AdminPanel
               api={API}
               token={auth.token}
@@ -805,39 +865,70 @@ export default function App() {
             />
           </Suspense>
         ) : (
-          <div className="card p-10 text-center">
-            <Shield size={40} className="mx-auto mb-3 text-txt-disabled" />
-            <p className="text-sm text-txt-secondary">Admin yetkisi gerekiyor</p>
-          </div>
+          <EmptyState icon={Shield} title={t('app.adminRequired')} />
         )}
-        </main>
+          </main>
+
+          <footer className="border-t border-brand-border/60 px-4 sm:px-6 py-5 text-center">
+            <p className="t-body-sm text-txt-muted">MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio</p>
+          </footer>
+        </div>
       </div>
 
-      <Modal
+      {/* Mobile navigation drawer */}
+      <Drawer show={mobileNav} onClose={() => setMobileNav(false)} side="left" width="max-w-[80vw]" title="MS Temp Mail" closeLabel={t('app.close')}>
+        <nav className="space-y-5">
+          {navGroups.map((g) => (
+            <div key={g.label}>
+              <p className="section-title mb-1.5">{g.label}</p>
+              <div className="space-y-0.5">
+                {g.items.map((it) => (
+                  <button key={it.id} onClick={() => { navigate(it.id); setMobileNav(false); }} className={`w-full flex items-center gap-3 rounded-[var(--r-md)] px-2.5 py-2.5 text-sm font-medium transition-colors ${page === it.id ? 'bg-[rgb(var(--brand)/0.1)] text-txt-primary' : 'text-txt-secondary hover:bg-brand-surface2'}`}>
+                    <it.icon size={17} className={page === it.id ? 'text-[rgb(var(--brand))]' : 'text-txt-muted'} /> {it.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
+      </Drawer>
+
+      {/* Command palette */}
+      <CommandPalette open={cmdkOpen} onClose={() => setCmdkOpen(false)} items={commandItems} placeholder={t('cmdk.search')} emptyLabel={t('cmdk.empty')} />
+
+      {/* Bulk Inbox drawer */}
+      <Drawer
         show={Boolean(bulkInboxPool)}
         onClose={() => setBulkInboxPool(null)}
         title={bulkInboxPool ? `${bulkInboxPool.prefix}_*@${bulkInboxPool.domain}` : ''}
         subtitle={t('bulkInbox.modalSubtitle')}
-        size="full"
+        width="max-w-2xl"
+        closeLabel={t('app.close')}
       >
-        {bulkInboxPool && <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: 'Bulk Inbox' })}</div>}><BulkInbox token={auth.token} pool={bulkInboxPool} /></Suspense>}
-      </Modal>
+        {bulkInboxPool && <Suspense fallback={<Loading label={t('app.preparing', { name: 'Bulk Inbox' })} />}><BulkInbox token={auth.token} pool={bulkInboxPool} /></Suspense>}
+      </Drawer>
 
-      <nav className="mobile-workspace-nav lg:hidden" aria-label={t('app.mobileNavAria')}>
-        <button className={page === 'inbox' ? 'is-active' : ''} onClick={() => navigate('inbox')}><InboxIcon size={18} /><span>Inbox</span></button>
-        <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>Domain</span></button>
-        {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk</span></button>}
-        {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>{t('app.automationRail')}</span></button>}
-        <button className={page === 'docs' ? 'is-active' : ''} onClick={() => navigate('docs')}><BookOpen size={18} /><span>Docs</span></button>
-        <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>{t('app.accountRail')}</span></button>
-      </nav>
+      {/* Toast */}
+      {notif && (
+        <div className={`fixed top-20 right-4 z-[1100] card px-4 py-3 flex items-center gap-2.5 animate-slide-down max-w-[min(360px,calc(100vw-2rem))] ${notif.type === 'success' ? 'text-[rgb(var(--success-fg))]' : notif.type === 'error' ? 'text-[rgb(var(--danger-fg))]' : 'text-[rgb(var(--brand))]'}`} role="status" aria-live="polite">
+          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${notif.type === 'success' ? 'bg-[rgb(var(--success))]' : notif.type === 'error' ? 'bg-[rgb(var(--danger))]' : 'bg-[rgb(var(--brand))]'}`} />
+          <span className="t-body-sm text-txt-primary">{notif.message}</span>
+        </div>
+      )}
 
-      <footer className="relative z-10 px-5 sm:px-8 pb-8 pt-5 text-center">
-        <p className="text-sm text-txt-muted flex items-center justify-center gap-2">
-          <Sparkles size={14} className="text-accent-blue" />
-          MS Temp Mail • Dev: Emir Han Mamak • Mamak Studio
-        </p>
-      </footer>
+      {showAuth && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-brand-bg/92 backdrop-blur-xl">
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-txt-muted">{t('app.loading')}</div>}>
+            <AuthPage
+              defaultMode={authMode}
+              onLogin={auth.login}
+              onRegister={auth.register}
+              onClose={() => setShowAuth(false)}
+              onGuestContinue={() => setShowAuth(false)}
+            />
+          </Suspense>
+        </div>
+      )}
     </div>
     </LocaleProvider>
   );

@@ -9,11 +9,8 @@ import {
   HardDrive,
   History,
   KeyRound,
-  Languages,
   Lock,
   Mail,
-  Monitor,
-  Moon,
   Pencil,
   RefreshCw,
   Save,
@@ -21,7 +18,6 @@ import {
   Shield,
   ShieldCheck,
   Star,
-  Sun,
   Upload,
   User,
   X,
@@ -41,14 +37,15 @@ function buildTabs(t) {
   ];
 }
 
+// token-based (theme-flips light/dark)
 const textInputClass =
-  'w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 transition-colors focus:border-accent-blue/40';
+  'w-full rounded-[var(--r-md)] border border-brand-border bg-brand-surface2 px-4 py-3 text-sm text-txt-primary outline-none placeholder:text-txt-muted transition-colors focus:border-[rgb(var(--brand)/0.4)]';
 const actionButtonClass =
-  'inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition-colors';
+  'inline-flex items-center justify-center gap-2 rounded-[var(--r-md)] px-4 py-2.5 text-sm font-medium transition-colors';
 const primaryActionClass =
-  `${actionButtonClass} bg-accent-blue text-white shadow-[0_12px_30px_rgba(36,108,255,0.26)] hover:bg-accent-blue/90 disabled:cursor-not-allowed disabled:opacity-60`;
+  `${actionButtonClass} bg-[rgb(var(--brand))] text-[rgb(var(--on-brand))] hover:bg-[rgb(var(--brand-hover))] disabled:cursor-not-allowed disabled:opacity-60`;
 const secondaryActionClass =
-  `${actionButtonClass} border border-white/10 bg-white/5 text-white/80 hover:border-white/20 hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60`;
+  `${actionButtonClass} border border-brand-border bg-brand-surface2 text-txt-secondary hover:border-brand-border2 hover:text-txt-primary disabled:cursor-not-allowed disabled:opacity-60`;
 
 export default function AccountEditorModal({
   show,
@@ -168,7 +165,7 @@ export default function AccountEditorModal({
       case 'kullanim':
         return !isPro && !isAdmin ? (
           <button type="button" onClick={onRequestPro} className={primaryActionClass}>
-            <Crown size={14} /> Limit Yükselt
+            <Crown size={14} /> {t('accountModal.upgradeLimit')}
           </button>
         ) : null;
       default:
@@ -182,12 +179,12 @@ export default function AccountEditorModal({
 
   const renderGeneral = () => (
     <div className="space-y-4">
-      <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4 sm:p-5">
+      <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-white/40">{t('accountModal.tabs.general')}</p>
-            <h4 className="mt-1 text-lg font-semibold text-white">{t('accountModal.generalTitle')}</h4>
-            <p className="mt-1 text-sm text-white/50">{t('accountModal.generalSubtitle')}</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.tabs.general')}</p>
+            <h4 className="mt-1 text-lg font-semibold text-txt-primary">{t('accountModal.generalTitle')}</h4>
+            <p className="mt-1 text-sm text-txt-secondary">{t('accountModal.generalSubtitle')}</p>
           </div>
           <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${statusToneClass}`}>
             <span className={`h-2 w-2 rounded-full ${isAdmin ? 'bg-accent-gold' : isPro ? 'bg-accent-cyan' : 'bg-accent-green'}`} />
@@ -195,7 +192,7 @@ export default function AccountEditorModal({
           </span>
         </div>
 
-        <div className="mt-5 divide-y divide-white/8">
+        <div className="mt-5 divide-y divide-brand-border/50">
           <SettingRow label={t('accountModal.appearance')} description={t('accountModal.generalTitle')}>
             <SmallSelect value={prefDraft.theme || 'system'} onChange={(e) => setPrefDraft((p) => ({ ...p, theme: e.target.value }))}>
               <option value="system">{t('accountModal.themeSystem')}</option>
@@ -211,7 +208,7 @@ export default function AccountEditorModal({
           </SettingRow>
           <SettingRow label={t('accountModal.defaultDomain')} description={t('accountModal.defaultDomain')}>
             <SmallSelect value={prefDraft.default_domain_id || ''} onChange={(e) => setPrefDraft((p) => ({ ...p, default_domain_id: e.target.value }))}>
-              <option value="">Seçiniz</option>
+              <option value="">{t('accountModal.selectOption')}</option>
               {domains.map((domain) => (
                 <option key={domain.id} value={domain.id}>
                   {domain.domain}
@@ -237,16 +234,16 @@ export default function AccountEditorModal({
       </section>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatTile label="Adres" value={currentStats?.address_count || 0} icon={HardDrive} tone="blue" />
-        <StatTile label="Mail" value={currentStats?.email_count || emailCount || 0} icon={Mail} tone="green" />
-        <StatTile label="Favori domain" value={favoriteDomainCount} icon={Star} tone="gold" />
+        <StatTile label={t('accountModal.statAddress')} value={currentStats?.address_count || 0} icon={HardDrive} tone="blue" />
+        <StatTile label={t('accountModal.statMail')} value={currentStats?.email_count || emailCount || 0} icon={Mail} tone="green" />
+        <StatTile label={t('accountModal.statFavoriteDomain')} value={favoriteDomainCount} icon={Star} tone="gold" />
       </div>
     </div>
   );
 
   const renderProfile = () => (
     <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-      <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4 sm:p-5">
+      <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <Avatar
             src={profilePhotoPreview}
@@ -256,14 +253,14 @@ export default function AccountEditorModal({
             onError={() => setAvatarLoadError(true)}
           />
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-white/35">{t('accountModal.profileTitle')}</p>
-            <h4 className="mt-1 text-2xl font-semibold tracking-tight text-white break-words">{displayName}</h4>
-            <p className="mt-1 break-all text-sm text-white/55">@{username}</p>
+            <p className="text-[10px] uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.profileTitle')}</p>
+            <h4 className="mt-1 text-2xl font-semibold tracking-tight text-txt-primary break-words">{displayName}</h4>
+            <p className="mt-1 break-all text-sm text-txt-secondary">@{username}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className={statusToneClass}>
                 {statusLabel}
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/65">
+              <span className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-brand-surface2 px-3 py-1.5 text-xs text-txt-secondary">
                 <span className="h-2 w-2 rounded-full bg-accent-green" />
                 {t('accountModal.active')}
               </span>
@@ -279,7 +276,7 @@ export default function AccountEditorModal({
         <div className="mt-5 grid gap-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <p className="mb-2 text-xs text-white/45">{t('accountModal.displayName')}</p>
+              <p className="mb-2 text-xs text-txt-muted">{t('accountModal.displayName')}</p>
               <input
                 value={profileDraft.display_name}
                 onChange={(e) => setProfileDraft((p) => ({ ...p, display_name: e.target.value }))}
@@ -288,7 +285,7 @@ export default function AccountEditorModal({
               />
             </div>
             <div>
-              <p className="mb-2 text-xs text-white/45">{t('accountModal.username')}</p>
+              <p className="mb-2 text-xs text-txt-muted">{t('accountModal.username')}</p>
               <input
                 value={profileDraft.username}
                 onChange={(e) => setProfileDraft((p) => ({ ...p, username: e.target.value }))}
@@ -296,19 +293,19 @@ export default function AccountEditorModal({
                 placeholder={t('accountModal.username')}
                 disabled={usernameLocked}
               />
-              <p className="mt-2 text-[11px] text-white/40">
+              <p className="mt-2 text-[11px] text-txt-muted">
                 {usernameLocked ? t('accountModal.usernameRight') : t('accountModal.quickStatus')}
               </p>
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+          <div className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2/60 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-white">{t('accountModal.email')}</p>
-                <p className="mt-1 text-xs text-white/45">{emailChangeCooldownActive ? t('accountModal.emailChange') : t('accountModal.emailChange')}</p>
+                <p className="text-sm font-medium text-txt-primary">{t('accountModal.email')}</p>
+                <p className="mt-1 text-xs text-txt-muted">{t('accountModal.emailChange')}</p>
               </div>
-              <span className="text-xs text-white/50">{emailPending || email}</span>
+              <span className="text-xs text-txt-secondary">{emailPending || email}</span>
             </div>
 
             {emailStep === 'verify' ? (
@@ -364,41 +361,41 @@ export default function AccountEditorModal({
       </section>
 
       <aside className="space-y-3">
-        <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
+        <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4">
           <div className="flex items-center gap-2">
             <ShieldCheck size={15} className="text-accent-green" />
-          <p className="text-sm font-semibold text-white">{t('accountModal.quickStatus')}</p>
+          <p className="text-sm font-semibold text-txt-primary">{t('accountModal.quickStatus')}</p>
           </div>
           <div className="mt-4 space-y-3 text-sm">
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/4 px-3 py-2.5">
-              <span className="text-white/55">{t('accountModal.usernameRight')}</span>
-              <span className="text-white">{usernameLocked ? 'Kullanıldı' : '1 kez kullanılabilir'}</span>
+            <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface px-3 py-2.5">
+              <span className="text-txt-secondary">{t('accountModal.usernameRight')}</span>
+              <span className="text-txt-primary">{usernameLocked ? t('accountModal.used') : t('accountModal.usernameOnce')}</span>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/4 px-3 py-2.5">
-              <span className="text-white/55">{t('accountModal.emailChange')}</span>
-              <span className="text-white">{emailChangeCooldownActive ? t('accountModal.emailChange') : t('accountModal.active')}</span>
+            <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface px-3 py-2.5">
+              <span className="text-txt-secondary">{t('accountModal.emailChange')}</span>
+              <span className="text-txt-primary">{emailChangeCooldownActive ? t('accountModal.emailChange') : t('accountModal.active')}</span>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/4 px-3 py-2.5">
-              <span className="text-white/55">{t('accountModal.pendingEmail')}</span>
-              <span className="max-w-[170px] truncate text-white">{emailPending || '-'}</span>
+            <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface px-3 py-2.5">
+              <span className="text-txt-secondary">{t('accountModal.pendingEmail')}</span>
+              <span className="max-w-[170px] truncate text-txt-primary">{emailPending || '-'}</span>
             </div>
           </div>
         </section>
 
-        <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-white/35">{t('accountModal.profileTitle')}</p>
+        <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4">
+          <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.profileTitle')}</p>
           <div className="mt-4 grid gap-3 text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-white/55">{t('accountModal.tabsSubtitle.profile')}</span>
-              <span className="text-white">{formatAdminDate(currentUser?.created_at)}</span>
+              <span className="text-txt-secondary">{t('accountModal.tabsSubtitle.profile')}</span>
+              <span className="text-txt-primary">{formatAdminDate(currentUser?.created_at)}</span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-white/55">{t('accountModal.tabsSubtitle.sessions')}</span>
-              <span className="text-white">{formatAdminDate(currentUser?.last_login)}</span>
+              <span className="text-txt-secondary">{t('accountModal.tabsSubtitle.sessions')}</span>
+              <span className="text-txt-primary">{formatAdminDate(currentUser?.last_login)}</span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-white/55">{t('accountModal.tabs.general')}</span>
-              <span className="text-white">{`${currentPrefs?.theme || currentUser?.theme || 'system'} / ${currentPrefs?.language || currentUser?.language || 'tr'}`}</span>
+              <span className="text-txt-secondary">{t('accountModal.tabs.general')}</span>
+              <span className="text-txt-primary">{`${currentPrefs?.theme || currentUser?.theme || 'system'} / ${currentPrefs?.language || currentUser?.language || 'tr'}`}</span>
             </div>
           </div>
         </section>
@@ -408,12 +405,12 @@ export default function AccountEditorModal({
 
   const renderSecurity = () => (
     <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-      <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4 sm:p-5">
+      <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4 sm:p-5">
         <div className="flex items-center gap-2">
           <KeyRound size={15} className="text-accent-blue" />
-          <p className="text-sm font-semibold text-white">{t('accountModal.changePassword')}</p>
+          <p className="text-sm font-semibold text-txt-primary">{t('accountModal.changePassword')}</p>
         </div>
-        <p className="mt-1 text-sm text-white/50">{t('accountModal.changePassword')}</p>
+        <p className="mt-1 text-sm text-txt-secondary">{t('accountModal.changePassword')}</p>
         <div className="mt-4 space-y-3">
           <input
             type="password"
@@ -443,33 +440,33 @@ export default function AccountEditorModal({
       </section>
 
       <section className="space-y-3">
-        <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
+        <div className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4">
           <div className="flex items-center gap-2">
             <ShieldCheck size={15} className="text-accent-green" />
-          <p className="text-sm font-semibold text-white">{t('accountModal.securityStatus')}</p>
+          <p className="text-sm font-semibold text-txt-primary">{t('accountModal.securityStatus')}</p>
           </div>
           <div className="mt-4 space-y-3">
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/4 px-3 py-2.5 text-sm">
-              <span className="text-white/55">{t('accountModal.usernameRight')}</span>
-              <span className="text-white">{usernameLocked ? t('accountModal.locked') : t('accountModal.editable')}</span>
+            <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface px-3 py-2.5 text-sm">
+              <span className="text-txt-secondary">{t('accountModal.usernameRight')}</span>
+              <span className="text-txt-primary">{usernameLocked ? t('accountModal.locked') : t('accountModal.editable')}</span>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/4 px-3 py-2.5 text-sm">
-              <span className="text-white/55">{t('accountModal.emailChange')}</span>
-              <span className="text-white">{emailChangeCooldownActive ? t('accountModal.cooldownActive') : t('accountModal.ready')}</span>
+            <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface px-3 py-2.5 text-sm">
+              <span className="text-txt-secondary">{t('accountModal.emailChange')}</span>
+              <span className="text-txt-primary">{emailChangeCooldownActive ? t('accountModal.cooldownActive') : t('accountModal.ready')}</span>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/4 px-3 py-2.5 text-sm">
-              <span className="text-white/55">{t('accountModal.pendingEmail')}</span>
-              <span className="max-w-[200px] truncate text-white">{emailPending || '-'}</span>
+            <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface px-3 py-2.5 text-sm">
+              <span className="text-txt-secondary">{t('accountModal.pendingEmail')}</span>
+              <span className="max-w-[200px] truncate text-txt-primary">{emailPending || '-'}</span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-white/35">{t('accountModal.accountNote')}</p>
-          <div className="mt-3 space-y-2 text-sm text-white/55">
+        <div className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4">
+          <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.accountNote')}</p>
+          <div className="mt-3 space-y-2 text-sm text-txt-secondary">
               <p>• {t('accountModal.changePasswordNote')}</p>
-            <p>• E-posta değişikliği doğrulama kodu gerektirir.</p>
-              <p>• {t('accountModal.sessionsTitle')} sekmesinden girişleri kapatabilirsin.</p>
+            <p>• {t('accountModal.emailVerifyNote')}</p>
+              <p>• {t('accountModal.sessionsTitle')} {t('accountModal.sessionsCloseNote')}</p>
           </div>
         </div>
       </section>
@@ -478,19 +475,19 @@ export default function AccountEditorModal({
 
   const renderPreferences = () => (
     <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-      <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4 sm:p-5">
+      <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4 sm:p-5">
         <div className="flex items-center gap-2">
           <Bell size={15} className="text-accent-blue" />
-          <p className="text-sm font-semibold text-white">Bildirim tercihleri</p>
+          <p className="text-sm font-semibold text-txt-primary">{t('accountModal.notificationPrefs')}</p>
         </div>
-        <div className="mt-4 divide-y divide-white/8">
-          <SettingRow label="Yeni mail bildirimi" description="Yeni mesaj geldiğinde bildirim ver.">
+        <div className="mt-4 divide-y divide-brand-border/50">
+          <SettingRow label={t('accountModal.newMail')} description={t('accountModal.newMailDesc')}>
             <ToggleSwitch checked={!!prefDraft.notify_new_mail} onClick={() => setPrefDraft((p) => ({ ...p, notify_new_mail: p.notify_new_mail ? 0 : 1 }))} />
           </SettingRow>
           <SettingRow label={t('accountModal.otp')} description={t('accountModal.otpNotificationDesc')}>
             <ToggleSwitch checked={!!prefDraft.notify_otp} onClick={() => setPrefDraft((p) => ({ ...p, notify_otp: p.notify_otp ? 0 : 1 }))} />
           </SettingRow>
-          <SettingRow label="Süresi dolan adresler" description="Kapanacak adresler için hatırlatma al.">
+          <SettingRow label={t('accountModal.expiring')} description={t('accountModal.expiringDesc')}>
             <ToggleSwitch checked={!!prefDraft.notify_expiring} onClick={() => setPrefDraft((p) => ({ ...p, notify_expiring: p.notify_expiring ? 0 : 1 }))} />
           </SettingRow>
           <SettingRow label={t('accountModal.securityAlerts')} description={t('accountModal.securityAlertsDesc')}>
@@ -500,10 +497,10 @@ export default function AccountEditorModal({
       </section>
 
       <section className="space-y-3">
-        <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
+        <div className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4">
           <div className="flex items-center gap-2">
             <Star size={15} className="text-accent-gold" />
-            <p className="text-sm font-semibold text-white">Favori domainler</p>
+            <p className="text-sm font-semibold text-txt-primary">{t('accountModal.favoriteDomains')}</p>
           </div>
           <div className="mt-4 space-y-2">
             {domains.length > 0 ? domains.map((domain) => {
@@ -513,10 +510,10 @@ export default function AccountEditorModal({
                   key={domain.id}
                   type="button"
                   onClick={() => toggleFavoriteDomain?.(domain.id, isFav)}
-                  className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-[var(--r-md)] border px-3 py-2.5 text-left text-sm transition-colors ${
                     isFav
                       ? 'border-accent-gold/20 bg-accent-gold/10 text-accent-gold'
-                      : 'border-white/8 bg-white/4 text-white/70 hover:border-white/15 hover:bg-white/6'
+                      : 'border-brand-border bg-brand-surface text-txt-secondary hover:border-brand-border2 hover:text-txt-primary'
                   }`}
                 >
                   <span className="min-w-0 truncate">{domain.domain}</span>
@@ -524,18 +521,18 @@ export default function AccountEditorModal({
                 </button>
               );
             }) : (
-              <div className="rounded-2xl border border-white/8 bg-white/4 p-4 text-sm text-white/45">
-                Domain yok.
+              <div className="rounded-[var(--r-md)] border border-brand-border bg-brand-surface p-4 text-sm text-txt-muted">
+                {t('accountModal.noDomains')}
               </div>
             )}
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-white/35">Saklama ve ses</p>
+        <div className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4">
+          <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.retentionAndSound')}</p>
           <div className="mt-4 space-y-4">
             <div>
-              <p className="mb-2 text-xs text-white/45">Mail saklama süresi</p>
+              <p className="mb-2 text-xs text-txt-muted">{t('accountModal.mailRetention')}</p>
               <input
                 type="number"
                 min="1"
@@ -546,7 +543,7 @@ export default function AccountEditorModal({
               />
             </div>
             <div>
-              <p className="mb-2 text-xs text-white/45">Bildirim sesi</p>
+              <p className="mb-2 text-xs text-txt-muted">{t('accountModal.notificationSound')}</p>
               <div className="flex gap-2">
                 <SmallSelect value={prefDraft.notification_sound || 'chime'} onChange={(e) => setPrefDraft((p) => ({ ...p, notification_sound: e.target.value }))} className="flex-1">
                   {notificationSounds.map((sound) => (
@@ -568,11 +565,11 @@ export default function AccountEditorModal({
 
   const renderSessions = () => (
     <div className="space-y-4">
-      <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4 sm:p-5">
+      <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-white/35">{t('accountModal.sessionsTitle')}</p>
-            <p className="mt-1 text-sm text-white/50">{t('accountModal.sessionsHint')}</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.sessionsTitle')}</p>
+            <p className="mt-1 text-sm text-txt-secondary">{t('accountModal.sessionsHint')}</p>
           </div>
           <button type="button" onClick={loadCenter} className={secondaryActionClass}>
             <RefreshCw size={14} /> {t('accountModal.refresh')}
@@ -581,73 +578,73 @@ export default function AccountEditorModal({
 
         <div className="mt-4 space-y-3">
           {activeSessions.length > 0 ? activeSessions.map((session) => (
-            <div key={session.id} className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+            <div key={session.id} className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-white">
+                  <p className="text-sm font-medium text-txt-primary">
                     {session.browser || 'Browser'} • {session.device || 'Desktop'}
                   </p>
-                  <p className="mt-1 text-xs text-white/45 break-all">{session.ip || '-'}</p>
-                  <p className="mt-1 text-xs text-white/45">
-                    Son aktif: {formatAdminDate(session.last_seen_at || session.created_at)}
+                  <p className="mt-1 text-xs text-txt-muted break-all">{session.ip || '-'}</p>
+                  <p className="mt-1 text-xs text-txt-muted">
+                    {t('accountModal.lastActive')}: {formatAdminDate(session.last_seen_at || session.created_at)}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {session.current ? (
                     <span className="inline-flex items-center gap-2 rounded-full border border-accent-blue/20 bg-accent-blue/10 px-3 py-1.5 text-xs text-accent-blue">
-                      <CheckCircle2 size={12} /> Bu oturum
+                      <CheckCircle2 size={12} /> {t('accountModal.currentSession')}
                     </span>
                   ) : null}
                   {session.is_suspicious ? (
                     <span className="inline-flex items-center gap-2 rounded-full border border-accent-red/20 bg-accent-red/10 px-3 py-1.5 text-xs text-accent-red">
-                      <AlertTriangle size={12} /> Şüpheli
+                      <AlertTriangle size={12} /> {t('accountModal.suspicious')}
                     </span>
                   ) : null}
                   {!session.current ? (
                     <button type="button" onClick={() => revokeSession(session)} className={secondaryActionClass}>
-                      <X size={14} /> Kapat
+                      <X size={14} /> {t('accountModal.close')}
                     </button>
                   ) : null}
                 </div>
               </div>
             </div>
           )) : (
-            <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-5 text-sm text-white/45">
+            <div className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2 p-5 text-sm text-txt-muted">
               {t('accountModal.noSessions')}
             </div>
           )}
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4 sm:p-5">
+      <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4 sm:p-5">
         <div className="flex items-center gap-2">
           <History size={15} className="text-accent-blue" />
-          <p className="text-sm font-semibold text-white">Giriş geçmişi</p>
+          <p className="text-sm font-semibold text-txt-primary">{t('accountModal.loginHistory')}</p>
         </div>
         <div className="mt-4 space-y-2">
           {recentLogins.length > 0 ? recentLogins.map((row) => (
-            <div key={row.id} className="rounded-[22px] border border-white/8 bg-black/18 px-3 py-3">
+            <div key={row.id} className="rounded-[var(--r-md)] border border-brand-border bg-brand-surface px-3 py-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-white">{formatAdminDate(row.created_at)}</p>
-                  <p className="mt-1 text-xs text-white/45 break-all">
+                  <p className="text-sm font-medium text-txt-primary">{formatAdminDate(row.created_at)}</p>
+                  <p className="mt-1 text-xs text-txt-muted break-all">
                     {row.ip || '-'} • {row.device || '-'} • {row.browser || '-'}
                   </p>
                 </div>
                 {row.success ? (
                   <span className="inline-flex items-center gap-2 rounded-full border border-accent-green/20 bg-accent-green/10 px-3 py-1.5 text-xs text-accent-green">
-                    <CheckCircle2 size={12} /> Başarılı
+                    <CheckCircle2 size={12} /> {t('accountModal.loginSuccess')}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-2 rounded-full border border-accent-red/20 bg-accent-red/10 px-3 py-1.5 text-xs text-accent-red">
-                    <AlertTriangle size={12} /> Başarısız
+                    <AlertTriangle size={12} /> {t('accountModal.loginFail')}
                   </span>
                 )}
               </div>
             </div>
           )) : (
-            <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-5 text-sm text-white/45">
-              Giriş geçmişi bulunmuyor.
+            <div className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2 p-5 text-sm text-txt-muted">
+              {t('accountModal.noLoginHistory')}
             </div>
           )}
         </div>
@@ -658,44 +655,44 @@ export default function AccountEditorModal({
   const renderUsage = () => (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile label="Adres limiti" value={`${currentStats?.address_count || 0}/${currentPkg?.max_addresses === 999 ? '∞' : currentPkg?.max_addresses || 3}`} icon={HardDrive} tone="blue" />
-        <StatTile label="Mail sayısı" value={currentStats?.email_count || emailCount || 0} icon={Mail} tone="green" />
-        <StatTile label="Favori adres" value={center.addresses.filter((a) => a.is_favorite).length} icon={Star} tone="gold" />
+        <StatTile label={t('accountModal.addressLimit')} value={`${currentStats?.address_count || 0}/${currentPkg?.max_addresses === 999 ? '∞' : currentPkg?.max_addresses || 3}`} icon={HardDrive} tone="blue" />
+        <StatTile label={t('accountModal.mailCount')} value={currentStats?.email_count || emailCount || 0} icon={Mail} tone="green" />
+        <StatTile label={t('accountModal.favoriteAddress')} value={center.addresses.filter((a) => a.is_favorite).length} icon={Star} tone="gold" />
         <StatTile label={t('accountModal.sessionsTitle')} value={activeSessions.length} icon={History} tone="purple" />
       </div>
 
-      <section className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4 sm:p-5">
+      <section className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-white/35">Plan</p>
-            <h4 className="mt-1 text-lg font-semibold text-white">{currentPkg?.display_name || planName}</h4>
-            <p className="mt-1 text-sm text-white/50">
-              {isAdmin ? 'Admin yetkileri sınırsız görünür.' : 'Limitler paket bazlı gösterilir.'}
-              {currencyLabel ? ` Faturalama birimi: ${currencyLabel}.` : ''}
+            <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.planTitle')}</p>
+            <h4 className="mt-1 text-lg font-semibold text-txt-primary">{currentPkg?.display_name || planName}</h4>
+            <p className="mt-1 text-sm text-txt-secondary">
+              {isAdmin ? t('accountModal.adminUnlimited') : t('accountModal.packageLimits')}
+              {currencyLabel ? ` ${t('accountModal.billingUnit')}: ${currencyLabel}.` : ''}
             </p>
           </div>
           <span className={statusToneClass}>{isPro || isAdmin ? t('accountModal.active') : t('accountModal.upgradeable')}</span>
         </div>
 
-        <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/8">
+        <div className="mt-5 h-2 overflow-hidden rounded-full bg-brand-surface">
           <div className="h-full rounded-full bg-gradient-to-r from-accent-blue to-accent-cyan" style={{ width: `${usagePercent}%` }} />
         </div>
-        <p className="mt-2 text-xs text-white/45">{usagePercent}% adres kotası kullanıldı</p>
+        <p className="mt-2 text-xs text-txt-muted">{usagePercent}% {t('accountModal.quotaUsed')}</p>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[22px] border border-white/8 bg-black/20 p-4">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-white/35">Kullanılan domain</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{domains.length}</p>
+          <div className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface p-4">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-txt-muted">{t('accountModal.usedDomain')}</p>
+            <p className="mt-2 text-2xl font-semibold text-txt-primary">{domains.length}</p>
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-black/20 p-4">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-white/35">{t('account.address')}</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{currentStats?.address_count || 0}</p>
+          <div className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface p-4">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-txt-muted">{t('account.address')}</p>
+            <p className="mt-2 text-2xl font-semibold text-txt-primary">{currentStats?.address_count || 0}</p>
           </div>
         </div>
 
         {!isPro && !isAdmin ? (
           <button type="button" onClick={onRequestPro} className={`${primaryActionClass} mt-5`}>
-            <Crown size={14} /> Limit Yükselt
+            <Crown size={14} /> {t('accountModal.upgradeLimit')}
           </button>
         ) : null}
       </section>
@@ -727,18 +724,18 @@ export default function AccountEditorModal({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/80 transition-colors hover:border-white/20 hover:bg-white/10"
-              aria-label="Kapat"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--r-md)] border border-brand-border bg-brand-surface text-txt-secondary transition-colors hover:border-brand-border2 hover:text-txt-primary"
+              aria-label={t('accountModal.close')}
             >
               <X size={16} />
             </button>
             <div className="min-w-0 text-right">
-              <p className="text-[10px] uppercase tracking-[0.28em] text-white/35">{t('accountModal.title')}</p>
-              <p className="mt-1 text-sm text-white/55">{t('accountModal.subtitle')}</p>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-txt-muted">{t('accountModal.title')}</p>
+              <p className="mt-1 text-sm text-txt-secondary">{t('accountModal.subtitle')}</p>
             </div>
           </div>
 
-          <div className="mt-4 rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
+          <div className="mt-4 rounded-[var(--r-xl)] border border-brand-border bg-brand-surface p-4">
             <div className="flex items-center gap-3">
               <Avatar
                 src={profilePhotoPreview}
@@ -747,14 +744,14 @@ export default function AccountEditorModal({
                 onError={() => setAvatarLoadError(true)}
               />
               <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-white/35">{t('accountModal.title')}</p>
-                <p className="mt-1 truncate text-base font-semibold text-white">{displayName}</p>
-                <p className="mt-1 truncate text-sm text-white/50">{email}</p>
+            <p className="text-[10px] uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.title')}</p>
+                <p className="mt-1 truncate text-base font-semibold text-txt-primary">{displayName}</p>
+                <p className="mt-1 truncate text-sm text-txt-secondary">{email}</p>
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <span className={statusToneClass}>{statusLabel}</span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/65">
+              <span className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-brand-surface2 px-3 py-1.5 text-xs text-txt-secondary">
                 <span className="h-2 w-2 rounded-full bg-accent-green" />
                 {t('accountModal.active')}
               </span>
@@ -777,8 +774,8 @@ export default function AccountEditorModal({
             })}
           </nav>
 
-          <div className="mt-4 rounded-[24px] border border-white/8 bg-black/20 p-4 text-xs leading-relaxed text-white/45">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-white/30">{t('accountModal.tipTitle')}</p>
+          <div className="mt-4 rounded-[var(--r-lg)] border border-brand-border bg-brand-surface p-4 text-xs leading-relaxed text-txt-muted">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.tipTitle')}</p>
             <p className="mt-2">
               {t('accountModal.tipBody')}
             </p>
@@ -786,11 +783,11 @@ export default function AccountEditorModal({
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col overflow-y-auto p-4 sm:p-5">
-          <div className="flex flex-col gap-4 border-b border-white/8 pb-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-4 border-b border-brand-border/50 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.28em] text-white/35">{activeTab.label}</p>
-              <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">{activeTab.label}</h3>
-              <p className="mt-1 text-sm text-white/50">{activeTab.subtitle}</p>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-txt-muted">{activeTab.label}</p>
+              <h3 className="mt-1 text-2xl font-semibold tracking-tight text-txt-primary">{activeTab.label}</h3>
+              <p className="mt-1 text-sm text-txt-secondary">{activeTab.subtitle}</p>
             </div>
             <div className="flex flex-wrap gap-2">{renderActions()}</div>
           </div>

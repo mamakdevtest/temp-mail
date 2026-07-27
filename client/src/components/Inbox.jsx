@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Mail, RefreshCw, Search, Paperclip, KeyRound, Trash2, Inbox as InboxIcon, Filter, Star, Copy } from 'lucide-react';
+import { Mail, RefreshCw, Search, Paperclip, Trash2, Inbox as InboxIcon, Copy } from 'lucide-react';
 import { InboxSkeleton } from './Skeleton';
+import { EmptyState } from './ui';
 import { useLocale } from '../i18n';
 
 export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr, onRefresh, refreshing, live, isLoading }) {
@@ -23,109 +24,76 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
 
   if (!hasAddr) {
     return (
-      <div className="card p-0 overflow-hidden h-full flex items-center justify-center min-h-[430px] xl:min-h-[590px]">
-        <div className="text-center px-6">
-          <div className="w-16 h-16 rounded-3xl panel-soft flex items-center justify-center mx-auto mb-5"><InboxIcon size={28} className="text-txt-disabled" /></div>
-          <p className="text-lg font-semibold text-txt-secondary">{t('inbox.createAddressFirst')}</p>
-          <p className="text-sm text-txt-muted mt-2">{t('inbox.mailsWillAppear')}</p>
-        </div>
+      <div className="card h-full flex items-center justify-center min-h-[430px] xl:min-h-[590px]">
+        <EmptyState icon={InboxIcon} title={t('inbox.createAddressFirst')} description={t('inbox.mailsWillAppear')} />
       </div>
     );
   }
 
   return (
     <div className="card p-0 overflow-hidden h-full flex flex-col min-h-[430px] xl:min-h-[590px]">
-      <div className="px-5 py-5 border-b border-brand-border/30 flex-shrink-0">
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-2xl panel-soft flex items-center justify-center">
-              <Mail size={15} className="text-accent-blue" />
-            </div>
-            <div>
-              <p className="text-[13px] font-semibold text-txt-primary">{t('inbox.title')}</p>
-              <p className="text-[11px] text-txt-muted">{t('inbox.subtitle')}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="badge-green text-[11px] px-2.5 py-1.5">
-              <span className={`w-2 h-2 rounded-full ${live ? 'bg-accent-green shadow-[0_0_12px_rgba(39,213,155,0.55)]' : 'bg-txt-disabled'}`} />
+      <div className="px-4 py-3.5 border-b border-brand-border/60 flex-shrink-0 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Mail size={15} className="text-[rgb(var(--brand))] shrink-0" />
+            <p className="t-card-title text-txt-primary">{t('inbox.title')}</p>
+            <span className="badge-green ml-1">
+              <span className={`w-1.5 h-1.5 rounded-full ${live ? 'bg-[rgb(var(--success))]' : 'bg-txt-disabled'}`} />
               {live ? t('inbox.live') : t('inbox.waiting')}
-            </div>
-            <button onClick={onRefresh} disabled={refreshing} className="btn-ghost px-2.5 py-2">
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-            </button>
+            </span>
           </div>
+          <button onClick={onRefresh} disabled={refreshing} className="btn-ghost" aria-label={t('inbox.refresh')}>
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+          </button>
         </div>
-
-        <div className="flex gap-3">
-          <div className="flex-1 relative">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-txt-muted" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('inbox.searchPlaceholder')} className="input pl-11 py-3 text-sm" />
-          </div>
-          <button className="btn-secondary px-4 py-3 min-w-[120px]"><Filter size={14} /> {t('inbox.filters')}</button>
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('inbox.searchPlaceholder')} className="input pl-9 py-2" />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4">
+      <div className="flex-1 overflow-y-auto min-h-0 p-2">
         {isLoading ? <InboxSkeleton /> : filtered.length === 0 ? (
-          <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center px-6">
-            <Mail size={30} className="mb-3 text-txt-disabled" />
-            <p className="text-sm text-txt-secondary">{search ? t('inbox.noResults') : t('inbox.noMails')}</p>
-            {!search && <p className="text-xs text-txt-muted mt-1">{t('inbox.noMailsHint')}</p>}
-          </div>
+          <EmptyState icon={Mail} title={search ? t('inbox.noResults') : t('inbox.noMails')} description={!search ? t('inbox.noMailsHint') : undefined} />
         ) : (
-          <div className="space-y-2 stagger-in">
-            {filtered.map((m, i) => (
-              <div
-                key={m.id}
-                onClick={() => onSelect(m.id)}
-                className={`group relative rounded-[22px] px-4 py-4 cursor-pointer transition-all duration-200 border active:scale-[0.995] ${selectedId === m.id ? 'bg-brand-surface2/88 border-accent-blue/40 shadow-[0_14px_30px_rgba(59,130,255,0.14)]' : 'bg-brand-surface/55 border-brand-border/25 hover:bg-brand-surface2/70 hover:border-brand-border/50 hover:shadow-[0_8px_22px_rgba(0,0,0,0.18)] hover:-translate-y-px'}`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${selectedId === m.id ? 'bg-accent-blue shadow-[0_0_12px_rgba(59,130,255,0.55)]' : i % 4 === 0 ? 'bg-accent-blue/80' : i % 4 === 1 ? 'bg-accent-purple/80' : i % 4 === 2 ? 'bg-accent-green/80' : 'bg-pink-400/80'}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-txt-primary truncate">{m.sender}</p>
-                      {m.otp_code && <KeyRound size={12} className="text-accent-purple flex-shrink-0" />}
-                      {m.has_attachments === 1 && <Paperclip size={12} className="text-txt-muted flex-shrink-0" />}
-                      {m.otp_code && <span className="badge-purple text-[10px] px-2 py-0.5">{t('inbox.otpBadge')}</span>}
+          <div className="space-y-1 stagger-in">
+            {filtered.map((m) => {
+              const active = selectedId === m.id;
+              const initial = (m.sender || '?').trim()[0]?.toUpperCase() || '?';
+              return (
+                <div
+                  key={m.id}
+                  onClick={() => onSelect(m.id)}
+                  className={`group relative rounded-[var(--r-md)] px-3 py-2.5 cursor-pointer transition-colors border ${active ? 'bg-[rgb(var(--brand)/0.1)] border-[rgb(var(--brand)/0.3)]' : 'border-transparent hover:bg-brand-surface2'}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-[var(--r-md)] bg-brand-surface2 border border-brand-border flex items-center justify-center shrink-0 text-[11px] font-semibold text-txt-secondary">{initial}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-txt-primary truncate">{m.sender}</p>
+                        {m.otp_code && <span className="badge-purple text-[9px] px-1.5 py-0">{t('inbox.otpBadge')}</span>}
+                        {m.has_attachments === 1 && <Paperclip size={11} className="text-txt-muted shrink-0" />}
+                      </div>
+                      <p className="t-body-sm text-txt-muted truncate mt-0.5">{m.subject || t('inbox.noSubject')}</p>
                     </div>
-                    <p className="text-sm text-txt-secondary truncate mt-1">{m.subject || t('inbox.noSubject')}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <span className="text-xs text-txt-muted">{fmt(m.received_at)}</span>
-                    <div className="flex items-center gap-1">
-                      {m.otp_code ? (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText(m.otp_code);
-                          }}
-                          className="text-accent-purple hover:text-accent-blue opacity-0 group-hover:opacity-100 transition-opacity"
-                          title={t('inbox.copyOtp')}
-                        >
-                          <Copy size={12} />
-                        </button>
-                      ) : null}
-                      <button onClick={(e) => onDelete(m.id, e)} className="text-txt-disabled hover:text-accent-red opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="t-caption text-txt-muted">{fmt(m.received_at)}</span>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {m.otp_code && (
+                          <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(m.otp_code); }} className="p-1 text-[rgb(var(--otp))] hover:text-[rgb(var(--brand))]" title={t('inbox.copyOtp')}>
+                            <Copy size={12} />
+                          </button>
+                        )}
+                        <button onClick={(e) => onDelete(m.id, e)} className="p-1 text-txt-disabled hover:text-[rgb(var(--danger-fg))]" title={t('inbox.delete')}><Trash2 size={12} /></button>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <button className="absolute right-4 bottom-4 text-txt-disabled hover:text-accent-blue"><Star size={13} /></button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
-
-      {!isLoading && (
-        <div className="px-5 pb-5 pt-3 flex-shrink-0">
-          <div className="panel-soft px-4 py-4 rounded-[22px] text-center border border-dashed border-brand-border/55">
-            <p className="text-sm font-medium text-txt-secondary">{t('inbox.footerTitle')}</p>
-            <p className="text-xs text-txt-muted mt-1">{t('inbox.footerHint')}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

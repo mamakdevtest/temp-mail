@@ -3,6 +3,7 @@ import { Archive, Boxes, Download, Pause, Play, Search, ShieldCheck, UserRoundPl
 import { apiFetch } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
 import { ListSkeleton } from './Skeleton';
+import { PageHeader, Card, Field, Input, Select, Button, IconButton, StatusPill } from './ui';
 
 const COUNTS = [10, 25, 50, 100];
 
@@ -63,22 +64,97 @@ export default function AdminBulkStudio({ token, user, domains = [] }) {
     } catch (error) { setMessage(error.message); }
   };
 
-  return <section className="ops-page admin-bulk-page">
-    <header className="ops-page-header"><div><p className="ops-eyebrow"><ShieldCheck size={14} /> ADMIN BULK CONTROL</p><h1>{t('adminBulk.title')}</h1><p>{t('adminBulk.subtitle')}</p></div><div className="ops-stat"><span>{t('adminBulk.activePools')}</span><strong>{pools.filter((pool) => pool.status === 'active').length}</strong></div></header>
-    <div className="admin-bulk-layout">
-      <article className="ops-card admin-bulk-builder"><div className="ops-card-heading"><div><span className="ops-step">NEW</span><h2>{t('adminBulk.adminGeneration')}</h2></div><UserRoundPlus size={18} /></div>
-        <label className="ops-field"><span>{t('adminBulk.poolOwner')}</span><select className="input" value={ownerId} onChange={(event) => setOwnerId(event.target.value)}>{users.map((item) => <option key={item.id} value={item.id}>{item.username} · {item.package_name} · {t('adminBulk.addressCount', { count: item.address_count })}</option>)}</select></label>
-        {selectedOwner && <p className="admin-owner-note">{t('adminBulk.ownerQuotaNote', { used: selectedOwner.address_count, quota: selectedOwner.package_name === 'pro_plus' ? 50 : selectedOwner.package_name === 'pro' ? 25 : 3 })}</p>}
-        <label className="ops-field"><span>Prefix</span><input className="input font-mono" value={prefix} onChange={(event) => setPrefix(event.target.value)} placeholder="campaign" /></label>
-        <label className="ops-field"><span>Domain</span><select className="input" value={domain} onChange={(event) => setDomain(event.target.value)}>{domains.map((item) => <option key={item.id || item.domain} value={item.domain}>{item.domain}</option>)}</select></label>
-        <div className="bulk-counts">{COUNTS.map((value) => <button key={value} className={count === value ? 'is-active' : ''} onClick={() => setCount(value)}>{value}</button>)}</div>
-        <button className="btn-primary w-full mt-6" disabled={loading} onClick={generate}><Boxes size={16} />{loading ? t('adminBulk.generating') : t('adminBulk.generateWithOverride')}</button>
-        {message && <p className="ops-note mt-4">{message}</p>}
-      </article>
-      <article className="ops-card admin-bulk-guide"><span className="ops-step">CONTROL</span><h2>{t('adminBulk.guideTitle')}</h2><p>{t('adminBulk.guideBody')}</p><ul><li><b>{t('adminBulk.guideActiveLabel')}</b> {t('adminBulk.guideActive')}</li><li><b>{t('adminBulk.guidePauseLabel')}</b> {t('adminBulk.guidePause')}</li><li><b>{t('adminBulk.guideArchiveLabel')}</b> {t('adminBulk.guideArchive')}</li></ul></article>
-    </div>
-    <section className="ops-card bulk-operations"><div className="ops-card-heading"><div><span className="ops-step">POOLS</span><h2>{t('adminBulk.poolOperations')}</h2></div><div className="admin-bulk-filters"><label><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('adminBulk.searchPlaceholder')} /></label><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">{t('adminBulk.allStatuses')}</option><option value="active">{t('adminBulk.statusActive')}</option><option value="paused">{t('adminBulk.statusPaused')}</option><option value="archived">{t('adminBulk.statusArchived')}</option></select></div></div>
-      {poolsLoading ? <ListSkeleton rows={4} /> : <div className="bulk-table stagger-in">{pools.map((pool) => <article key={pool.id} className="bulk-admin-row"><div><code>{pool.prefix}_*@{pool.domain}</code><p>{pool.username} · {pool.package_name} · {t('adminBulk.addressCount', { count: pool.address_count })}</p></div><span className={`ops-status status-${pool.status}`}>{pool.status}</span><div className="bulk-admin-actions">{pool.status !== 'active' && <button className="icon-button active:scale-95 transition-all" title={t('adminBulk.activate')} onClick={() => setPoolStatus(pool, 'active')}><Play size={15} /></button>}{pool.status === 'active' && <button className="icon-button active:scale-95 transition-all" title={t('adminBulk.pause')} onClick={() => setPoolStatus(pool, 'paused')}><Pause size={15} /></button>}<button className="icon-button active:scale-95 transition-all" title={t('adminBulk.archive')} onClick={() => setPoolStatus(pool, 'archived')}><Archive size={15} /></button><button className="icon-button active:scale-95 transition-all" title={t('adminBulk.viewForCsv')} onClick={() => window.open(`/api/admin/bulk-pools/${pool.id}/addresses?limit=500`, '_blank')}><Download size={15} /></button></div></article>)}</div>}
+  const activeCount = pools.filter((pool) => pool.status === 'active').length;
+
+  return (
+    <section className="space-y-6">
+      <PageHeader eyebrow="ADMIN BULK CONTROL" icon={ShieldCheck} title={t('adminBulk.title')} subtitle={t('adminBulk.subtitle')} actions={(
+        <div className="text-right">
+          <p className="section-title">{t('adminBulk.activePools')}</p>
+          <p className="text-2xl font-semibold text-txt-primary tabular-nums">{activeCount}</p>
+        </div>
+      )} />
+
+      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+        {/* Builder */}
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="t-card-title text-txt-primary">{t('adminBulk.adminGeneration')}</h2>
+            <UserRoundPlus size={16} className="text-[rgb(var(--brand))]" />
+          </div>
+          <div className="space-y-3">
+            <Field label={t('adminBulk.poolOwner')}>
+              <Select value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
+                {users.map((item) => <option key={item.id} value={item.id}>{item.username} · {item.package_name} · {t('adminBulk.addressCount', { count: item.address_count })}</option>)}
+              </Select>
+            </Field>
+            {selectedOwner && <p className="t-caption text-txt-muted">{t('adminBulk.ownerQuotaNote', { used: selectedOwner.address_count, quota: selectedOwner.package_name === 'pro_plus' ? 50 : selectedOwner.package_name === 'pro' ? 25 : 3 })}</p>}
+            <Field label="Prefix"><Input className="font-mono" value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="campaign" /></Field>
+            <Field label="Domain">
+              <Select value={domain} onChange={(e) => setDomain(e.target.value)}>
+                {domains.map((item) => <option key={item.id || item.domain} value={item.domain}>{item.domain}</option>)}
+              </Select>
+            </Field>
+            <div className="flex gap-1.5">
+              {COUNTS.map((value) => (
+                <button key={value} onClick={() => setCount(value)} className={`flex-1 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors border ${count === value ? 'bg-[rgb(var(--brand)/0.1)] border-[rgb(var(--brand)/0.3)] text-[rgb(var(--brand))]' : 'border-brand-border text-txt-secondary hover:bg-brand-surface2'}`}>{value}</button>
+              ))}
+            </div>
+            <Button variant="primary" className="w-full" loading={loading} onClick={generate}><Boxes size={15} /> {loading ? t('adminBulk.generating') : t('adminBulk.generateWithOverride')}</Button>
+            {message && <p className="t-body-sm text-txt-secondary">{message}</p>}
+          </div>
+        </Card>
+
+        {/* Guide */}
+        <Card>
+          <p className="section-title">CONTROL</p>
+          <h2 className="t-card-title text-txt-primary mt-1">{t('adminBulk.guideTitle')}</h2>
+          <p className="t-body-sm text-txt-muted mt-2">{t('adminBulk.guideBody')}</p>
+          <ul className="mt-4 space-y-2 t-body-sm text-txt-secondary">
+            <li><b className="text-txt-primary">{t('adminBulk.guideActiveLabel')}</b> {t('adminBulk.guideActive')}</li>
+            <li><b className="text-txt-primary">{t('adminBulk.guidePauseLabel')}</b> {t('adminBulk.guidePause')}</li>
+            <li><b className="text-txt-primary">{t('adminBulk.guideArchiveLabel')}</b> {t('adminBulk.guideArchive')}</li>
+          </ul>
+        </Card>
+      </div>
+
+      {/* Pool operations */}
+      <Card>
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <h2 className="t-card-title text-txt-primary">{t('adminBulk.poolOperations')}</h2>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('adminBulk.searchPlaceholder')} className="pl-9 py-2 w-48" />
+            </div>
+            <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-36">
+              <option value="all">{t('adminBulk.allStatuses')}</option>
+              <option value="active">{t('adminBulk.statusActive')}</option>
+              <option value="paused">{t('adminBulk.statusPaused')}</option>
+              <option value="archived">{t('adminBulk.statusArchived')}</option>
+            </Select>
+          </div>
+        </div>
+        {poolsLoading ? <ListSkeleton rows={4} /> : (
+          <div className="space-y-2 stagger-in">
+            {pools.map((pool) => (
+              <div key={pool.id} className="flex items-center gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface2 px-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <code className="t-mono text-txt-primary block truncate">{pool.prefix}_*@{pool.domain}</code>
+                  <p className="t-caption text-txt-muted">{pool.username} · {pool.package_name} · {t('adminBulk.addressCount', { count: pool.address_count })}</p>
+                </div>
+                <StatusPill status={pool.status} label={pool.status} />
+                <div className="flex items-center gap-1 shrink-0">
+                  {pool.status !== 'active' && <IconButton icon={Play} size={15} label={t('adminBulk.activate')} onClick={() => setPoolStatus(pool, 'active')} />}
+                  {pool.status === 'active' && <IconButton icon={Pause} size={15} label={t('adminBulk.pause')} onClick={() => setPoolStatus(pool, 'paused')} />}
+                  <IconButton icon={Archive} size={15} label={t('adminBulk.archive')} onClick={() => setPoolStatus(pool, 'archived')} />
+                  <IconButton icon={Download} size={15} label={t('adminBulk.viewForCsv')} onClick={() => window.open(`/api/admin/bulk-pools/${pool.id}/addresses?limit=500`, '_blank')} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </section>
-  </section>;
+  );
 }

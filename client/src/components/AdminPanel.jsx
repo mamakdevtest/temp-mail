@@ -65,7 +65,18 @@ import {
 import { unwrapEnvelope } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
 
-const CHART_COLORS = ['#3B82FF', '#27D59B', '#F5C84C', '#7A63FF', '#34D7FF'];
+// Chart colors read the live theme tokens so they flip with light/dark.
+function readChartColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const c = (name) => `rgb(${cs.getPropertyValue(name).trim()})`;
+  return {
+    palette: [c('--chart-1'), c('--chart-2'), c('--chart-3'), c('--chart-4'), c('--chart-5')],
+    grid: c('--border'),
+    axis: c('--text-3'),
+    surface: c('--surface-2'),
+    text: c('--text'),
+  };
+}
 const ADDRESS_PAGE_SIZE = 10;
 
 function sanitizeIpInput(value) {
@@ -74,6 +85,7 @@ function sanitizeIpInput(value) {
 
 export default function AdminPanel({ api, token, notificationSound = 'classic', notificationSounds = [], onNotificationSoundChange, onPreviewNotificationSound }) {
   const { t } = useLocale();
+  const chart = readChartColors(); // ponytail: read at render; refreshes on next re-render after theme flip
   const [pw, setPw] = useState(() => localStorage.getItem('tm-admin-pw') || '');
   const [auth, setAuth] = useState(Boolean(token));
   const [loading, setLoading] = useState(false);
@@ -1229,42 +1241,42 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-            <AdminPanelCard title="Mail Trafiği" icon={Activity} className="xl:col-span-6">
+            <AdminPanelCard title={t('admin.ui.dash.traffic')} icon={Activity} className="xl:col-span-6">
               {trafficData.some((item) => item.incoming > 0 || item.otp > 0 || item.attachments > 0) ? (
                 <div className="h-[240px] animate-fade-in">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trafficData}>
                       <defs>
                         <linearGradient id="incomingFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3B82FF" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#3B82FF" stopOpacity={0} />
+                          <stop offset="5%" stopColor={chart.palette[0]} stopOpacity={0.35} />
+                          <stop offset="95%" stopColor={chart.palette[0]} stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="otpFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7A63FF" stopOpacity={0.28} />
-                          <stop offset="95%" stopColor="#7A63FF" stopOpacity={0} />
+                          <stop offset="5%" stopColor={chart.palette[3]} stopOpacity={0.28} />
+                          <stop offset="95%" stopColor={chart.palette[3]} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                      <XAxis dataKey="hour" tick={{ fill: '#6B7FA5', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#6B7FA5', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ background: '#0A1329', border: '1px solid rgba(27,45,82,0.5)', borderRadius: '16px', color: '#F6FAFF' }} />
-                      <Area type="monotone" dataKey="incoming" stroke="#3B82FF" fill="url(#incomingFill)" strokeWidth={2.5} />
-                      <Area type="monotone" dataKey="otp" stroke="#7A63FF" fill="url(#otpFill)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="attachments" stroke="#F5C84C" fill="transparent" strokeWidth={1.6} />
+                      <CartesianGrid stroke={chart.grid} vertical={false} />
+                      <XAxis dataKey="hour" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ background: chart.surface, border: `1px solid ${chart.grid}`, borderRadius: '12px', color: chart.text }} />
+                      <Area type="monotone" dataKey="incoming" stroke={chart.palette[0]} fill="url(#incomingFill)" strokeWidth={2.5} />
+                      <Area type="monotone" dataKey="otp" stroke={chart.palette[3]} fill="url(#otpFill)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="attachments" stroke={chart.palette[2]} fill="transparent" strokeWidth={1.6} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <AdminEmptyState title="Grafik için veri yok" subtitle="Mail geldikçe trafik burada belirecek." />
+                <AdminEmptyState title={t('admin.ui.dash.trafficEmptyTitle')} subtitle={t('admin.ui.dash.trafficEmptySubtitle')} />
               )}
             </AdminPanelCard>
 
-            <AdminPanelCard title="Sistem Durumu" icon={Shield} className="xl:col-span-3" action={<span className="badge-green">Operasyon özeti</span>}>
+            <AdminPanelCard title={t('admin.ui.dash.systemStatus')} icon={Shield} className="xl:col-span-3" action={<span className="badge-green">{t('admin.ui.dash.opsSummary')}</span>}>
               <div className="space-y-3">
                 {systemChecks.map((item) => (
                   <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
                     <div className="flex items-center gap-2 text-txt-secondary">
-                      <span className="w-2.5 h-2.5 rounded-full bg-accent-green" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[rgb(var(--success))]" />
                       {item.label}
                     </div>
                     <span className={`font-medium ${item.tone}`}>{item.value}</span>
@@ -1273,7 +1285,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               </div>
             </AdminPanelCard>
 
-            <AdminPanelCard title="Son Aktiviteler" icon={RefreshCw} className="xl:col-span-3">
+            <AdminPanelCard title={t('admin.ui.dash.recentActivity')} icon={RefreshCw} className="xl:col-span-3">
               {activities.length > 0 ? (
                 <div className="space-y-4">
                   {activities.map((item) => (
@@ -1288,29 +1300,29 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   ))}
                 </div>
               ) : (
-                <AdminEmptyState title="Henüz aktivite yok" subtitle="Yeni işlemler burada görünecek." />
+                <AdminEmptyState title={t('admin.ui.dash.activityEmptyTitle')} subtitle={t('admin.ui.dash.activityEmptySubtitle')} />
               )}
             </AdminPanelCard>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-            <AdminPanelCard title="Domain Yönetimi" icon={Globe} className="xl:col-span-7" action={<button onClick={() => setTab('domains')} className="btn-ghost text-accent-blue">Tümünü Gör</button>}>
+            <AdminPanelCard title={t('admin.ui.dash.domainMgmt')} icon={Globe} className="xl:col-span-7" action={<button onClick={() => setTab('domains')} className="btn-ghost text-accent-blue">{t('admin.ui.dash.viewAll')}</button>}>
               {topDomainRows.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
                         <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Domain</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Adres</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Oluşturulma</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.dash.colStatus')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.dash.colAddress')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.dash.colCreated')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {topDomainRows.map((domain) => (
                         <tr key={domain.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                           <td className="py-4 text-txt-primary font-medium">{domain.domain}</td>
-                          <td className="py-4">{domain.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}</td>
+                          <td className="py-4">{domain.is_active === 1 ? <span className="badge-green">{t('admin.ui.domains.active')}</span> : <span className="badge-red">{t('admin.ui.domains.inactive')}</span>}</td>
                           <td className="py-4 text-txt-secondary">{domain.address_count}</td>
                           <td className="py-4 text-txt-muted">{formatAdminDate(domain.created_at)}</td>
                         </tr>
@@ -1319,48 +1331,48 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   </table>
                 </div>
               ) : (
-                <AdminEmptyState title="Henüz domain eklenmedi" subtitle="Üstteki hızlı aksiyonla yeni domain ekleyin." />
+                <AdminEmptyState title={t('admin.ui.dash.domainEmptyTitle')} subtitle={t('admin.ui.dash.domainEmptySubtitle')} />
               )}
             </AdminPanelCard>
 
-            <AdminPanelCard title="Güvenlik ve Temizlik" icon={Lock} className="xl:col-span-5">
+            <AdminPanelCard title={t('admin.ui.dash.security')} icon={Lock} className="xl:col-span-5">
               <div className="space-y-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-txt-secondary">Bekleyen Pro İsteği</span>
+                  <span className="text-txt-secondary">{t('admin.ui.dash.pendingPro')}</span>
                   <span className={pendingRequests > 0 ? 'text-accent-gold font-medium' : 'text-accent-green font-medium'}>{pendingRequests}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-txt-secondary">Pasif Kullanıcı</span>
+                  <span className="text-txt-secondary">{t('admin.ui.dash.inactiveUsers')}</span>
                   <span className={inactiveUsers > 0 ? 'text-accent-red font-medium' : 'text-accent-green font-medium'}>{inactiveUsers}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-txt-secondary">Şifreli Adres</span>
+                  <span className="text-txt-secondary">{t('admin.ui.dash.protectedAddr')}</span>
                   <span className="text-accent-cyan font-medium">{protectedAddresses}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-txt-secondary">Süresi Dolan Adres</span>
+                  <span className="text-txt-secondary">{t('admin.ui.dash.expiredAddr')}</span>
                   <span className={expiredAddresses > 0 ? 'text-accent-red font-medium' : 'text-accent-green font-medium'}>{expiredAddresses}</span>
                 </div>
                 <button onClick={() => setTab('requests')} className="btn-secondary w-full mt-3">
-                  <Settings2 size={14} /> İstekleri Yönet
+                  <Settings2 size={14} /> {t('admin.ui.dash.manageRequests')}
                 </button>
               </div>
             </AdminPanelCard>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-            <AdminPanelCard title="Son Mailler" icon={Mail} className="xl:col-span-8" action={<button onClick={() => { setTab('emails'); loadEmails(1); }} className="btn-ghost text-accent-blue">Tüm mailleri görüntüle</button>}>
+            <AdminPanelCard title={t('admin.ui.dash.recentMails')} icon={Mail} className="xl:col-span-8" action={<button onClick={() => { setTab('emails'); loadEmails(1); }} className="btn-ghost text-accent-blue">{t('admin.ui.dash.viewAllMails')}</button>}>
               {(stats?.latest_emails || []).length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Gönderen</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Alıcı</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Konu</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Tarih</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlem</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.sender')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.dash.colRecipient')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.subject')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.date')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.dash.colStatus')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.dash.colAction')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1368,9 +1380,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                         <tr key={mail.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                           <td className="py-4 text-txt-primary">{mail.sender}</td>
                           <td className="py-4 text-txt-secondary font-mono">{mail.recipient_address}</td>
-                          <td className="py-4 text-txt-secondary">{mail.subject || '(Konu yok)'}</td>
+                          <td className="py-4 text-txt-secondary">{mail.subject || t('admin.common.noSubject')}</td>
                           <td className="py-4 text-txt-muted">{formatAdminDate(mail.received_at)}</td>
-                          <td className="py-4">{mail.otp_code ? <span className="badge-purple">OTP</span> : <span className="badge-green">Gelen</span>}</td>
+                          <td className="py-4">{mail.otp_code ? <span className="badge-purple">OTP</span> : <span className="badge-green">{t('admin.ui.dash.tagIncoming')}</span>}</td>
                           <td className="py-4">
                             <button onClick={() => openAddressDetail(mail.recipient_address)} className="btn-ghost text-accent-blue px-0 active:scale-95 transition-all">
                               <Eye size={14} />
@@ -1382,32 +1394,32 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   </table>
                 </div>
               ) : (
-                <AdminEmptyState title="Henüz mail yok" subtitle="Yeni mesajlar geldiğinde burada listelenecek." />
+                <AdminEmptyState title={t('admin.ui.dash.mailsEmptyTitle')} subtitle={t('admin.ui.dash.mailsEmptySubtitle')} />
               )}
             </AdminPanelCard>
 
-            <AdminPanelCard title="Mail Dağılımı" icon={PieChartIcon} className="xl:col-span-4">
+            <AdminPanelCard title={t('admin.ui.dash.mailMix')} icon={PieChartIcon} className="xl:col-span-4">
               {mailMix.length > 0 ? (
                 <div className="h-[260px] animate-fade-in">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
                       <Pie data={mailMix} dataKey="value" innerRadius={55} outerRadius={88} paddingAngle={3}>
-                        {mailMix.map((entry, index) => <Cell key={entry.name} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
+                        {mailMix.map((entry, index) => <Cell key={entry.name} fill={chart.palette[index % chart.palette.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ background: '#0A1329', border: '1px solid rgba(27,45,82,0.5)', borderRadius: '16px', color: '#F6FAFF' }} />
+                      <Tooltip contentStyle={{ background: chart.surface, border: `1px solid ${chart.grid}`, borderRadius: '12px', color: chart.text }} />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                   <div className="flex flex-wrap justify-center gap-3 mt-2">
                     {mailMix.map((entry, index) => (
                       <span key={entry.name} className="text-xs text-txt-secondary inline-flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chart.palette[index % chart.palette.length] }} />
                         {entry.name}
                       </span>
                     ))}
                   </div>
                 </div>
               ) : (
-                <AdminEmptyState title="Dağılım verisi yok" subtitle="Mail geldikçe pasta grafik dolacak." />
+                <AdminEmptyState title={t('admin.ui.dash.mixEmptyTitle')} subtitle={t('admin.ui.dash.mixEmptySubtitle')} />
               )}
             </AdminPanelCard>
           </div>
@@ -1420,32 +1432,32 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             <><StatsSkeleton count={4} /><div className="card"><TableSkeleton rows={8} cols={6} /></div></>
           ) : <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 stagger-in">
-            <AdminStatCard title="Toplam Adres" value={addrs.length} subtitle="Tüm mailbox kayıtları" icon={Users} tone="green" />
-            <AdminStatCard title="Aktif Adres" value={activeAddressCount} subtitle="Son erişim veya mail var" icon={CheckCircle2} tone="green" />
-            <AdminStatCard title="Süresi Dolan" value={expiredAddresses} subtitle="Temizlik bekleyen" icon={Clock3} tone="gold" />
-            <AdminStatCard title="Şifre Korumalı" value={protectedAddresses} subtitle="Ek güvenlik açık" icon={FolderLock} tone="purple" />
+            <AdminStatCard title={t('admin.ui.addr.total')} value={addrs.length} subtitle={t('admin.ui.addr.totalHint')} icon={Users} tone="green" />
+            <AdminStatCard title={t('admin.ui.addr.active')} value={activeAddressCount} subtitle={t('admin.ui.addr.activeHint')} icon={CheckCircle2} tone="green" />
+            <AdminStatCard title={t('admin.ui.addr.expired')} value={expiredAddresses} subtitle={t('admin.ui.addr.expiredHint')} icon={Clock3} tone="gold" />
+            <AdminStatCard title={t('admin.ui.addr.protected')} value={protectedAddresses} subtitle={t('admin.ui.addr.protectedHint')} icon={FolderLock} tone="purple" />
           </div>
 
-          <AdminPanelCard title="Tüm Adresler" icon={Inbox}>
+          <AdminPanelCard title={t('admin.ui.addr.all')} icon={Inbox}>
             <AdminToolbar className="mb-4">
               <div className="flex-1 grid grid-cols-1 xl:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,0.7fr))] gap-3">
                 <div className="relative">
                   <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-txt-muted" />
-                  <input value={addressQuery} onChange={(e) => setAddressQuery(e.target.value)} placeholder="E-posta adresi ara..." className="input pl-11" />
+                  <input value={addressQuery} onChange={(e) => setAddressQuery(e.target.value)} placeholder={t('admin.ui.addr.searchPlaceholder')} className="input pl-11" />
                 </div>
                 <div className="relative">
                   <select value={addressStatusFilter} onChange={(e) => setAddressStatusFilter(e.target.value)} className="input appearance-none pr-10">
-                    <option value="all">Durum</option>
-                    <option value="active">Aktif</option>
-                    <option value="protected">Şifreli</option>
-                    <option value="idle">Pasif</option>
-                    <option value="expired">Süresi doldu</option>
+                    <option value="all">{t('admin.ui.addr.fStatus')}</option>
+                    <option value="active">{t('admin.ui.addr.fActive')}</option>
+                    <option value="protected">{t('admin.ui.addr.fProtected')}</option>
+                    <option value="idle">{t('admin.ui.addr.fIdle')}</option>
+                    <option value="expired">{t('admin.ui.addr.fExpired')}</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-txt-muted pointer-events-none" />
                 </div>
                 <div className="relative">
                   <select value={addressDomainFilter} onChange={(e) => setAddressDomainFilter(e.target.value)} className="input appearance-none pr-10">
-                    <option value="all">Domain</option>
+                    <option value="all">{t('admin.ui.addr.fDomain')}</option>
                     {[...new Set(addrs.map((item) => item.domain))].map((domain) => (
                       <option key={domain} value={domain}>{domain}</option>
                     ))}
@@ -1454,11 +1466,11 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 </div>
                 <div className="relative">
                   <select value={addressSort} onChange={(e) => setAddressSort(e.target.value)} className="input appearance-none pr-10">
-                    <option value="newest">Sırala: En yeni</option>
-                    <option value="oldest">Sırala: En eski</option>
-                    <option value="last-mail">Son aktivite</option>
-                    <option value="usage">Kullanım sayısı</option>
-                    <option value="domain">Domain</option>
+                    <option value="newest">{t('admin.ui.addr.sortNewest')}</option>
+                    <option value="oldest">{t('admin.ui.addr.sortOldest')}</option>
+                    <option value="last-mail">{t('admin.ui.addr.sortLastMail')}</option>
+                    <option value="usage">{t('admin.ui.addr.sortUsage')}</option>
+                    <option value="domain">{t('admin.ui.addr.sortDomain')}</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-txt-muted pointer-events-none" />
                 </div>
@@ -1472,7 +1484,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 }}
                 className="btn-secondary"
               >
-                <Filter size={15} /> Filtreyi Temizle
+                <Filter size={15} /> {t('admin.ui.addr.clearFilter')}
               </button>
             </AdminToolbar>
 
@@ -1482,14 +1494,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm min-w-[1120px]">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">E-posta Adresi</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Oluşturulma</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Son Aktivite</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Mail Sayısı</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Domain</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Saklama</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlemler</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colEmail')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colStatus')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colCreated')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colActivity')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colMailCount')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colDomain')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colRetention')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.addr.colActions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1523,17 +1535,17 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-4">
                   <p className="text-sm text-txt-muted">
-                    {filteredAddresses.length} adresten {(addressPage - 1) * ADDRESS_PAGE_SIZE + 1}-{Math.min(addressPage * ADDRESS_PAGE_SIZE, filteredAddresses.length)} arası gösteriliyor
+                    {t('admin.ui.addr.showingRange', { total: filteredAddresses.length, from: (addressPage - 1) * ADDRESS_PAGE_SIZE + 1, to: Math.min(addressPage * ADDRESS_PAGE_SIZE, filteredAddresses.length) })}
                   </p>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => setAddressPage((prev) => Math.max(1, prev - 1))} disabled={addressPage <= 1} className="btn-secondary text-xs px-4 py-2">Önceki</button>
-                    <span className="text-sm text-txt-secondary">Sayfa {addressPage} / {addressTotalPages}</span>
-                    <button onClick={() => setAddressPage((prev) => Math.min(addressTotalPages, prev + 1))} disabled={addressPage >= addressTotalPages} className="btn-secondary text-xs px-4 py-2">Sonraki</button>
+                    <button onClick={() => setAddressPage((prev) => Math.max(1, prev - 1))} disabled={addressPage <= 1} className="btn-secondary text-xs px-4 py-2">{t('admin.ui.addr.prev')}</button>
+                    <span className="text-sm text-txt-secondary">{t('admin.ui.addr.page', { page: addressPage, total: addressTotalPages })}</span>
+                    <button onClick={() => setAddressPage((prev) => Math.min(addressTotalPages, prev + 1))} disabled={addressPage >= addressTotalPages} className="btn-secondary text-xs px-4 py-2">{t('admin.ui.addr.next')}</button>
                   </div>
                 </div>
               </>
             ) : (
-              <AdminEmptyState title="Adres bulunamadı" subtitle="Arama ve filtreleri temizleyip tekrar deneyin." />
+              <AdminEmptyState title={t('admin.ui.addr.emptyTitle')} subtitle={t('admin.ui.addr.emptySubtitle')} />
             )}
           </AdminPanelCard>
           </>}
@@ -1542,28 +1554,28 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       {tab === 'domains' && (
         <div className="space-y-5">
-          <AdminPanelCard title="Domain Yönetimi" icon={Globe}>
+          <AdminPanelCard title={t('admin.ui.domains.title')} icon={Globe}>
             <AdminToolbar className="mb-5">
               <div className="flex flex-wrap gap-3">
                 <button onClick={() => setShowDomainForm((v) => !v)} className="btn-primary">
-                  <Plus size={15} /> {showDomainForm ? 'Formu Kapat' : 'Yeni Domain Ekle'}
+                  <Plus size={15} /> {showDomainForm ? t('admin.ui.domains.closeForm') : t('admin.ui.domains.addNew')}
                 </button>
                 <button onClick={loadDomains} className="btn-secondary">
-                  <RefreshCw size={15} /> Yenile
+                  <RefreshCw size={15} /> {t('admin.ui.domains.refresh')}
                 </button>
               </div>
-              <div className="text-sm text-txt-muted">{activeDomains} aktif / {domains.length} toplam</div>
+              <div className="text-sm text-txt-muted">{t('admin.ui.domains.activeTotal', { active: activeDomains, total: domains.length })}</div>
             </AdminToolbar>
 
             {showDomainForm ? (
               <form onSubmit={addDomain} className="panel-soft p-4 mb-5 space-y-3">
                 <div className="flex flex-col md:flex-row gap-3">
                   <input ref={addDomainInputRef} value={newDom} onChange={(e) => setNewDom(e.target.value)} placeholder="ornek.com" className="input flex-1" />
-                  <button type="submit" disabled={loading || !newDom.trim()} className="btn-primary">Kaydet</button>
+                  <button type="submit" disabled={loading || !newDom.trim()} className="btn-primary">{t('admin.ui.domains.save')}</button>
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <div className={`relative w-10 h-5 rounded-full transition-colors ${newDomWildcard ? 'bg-accent-cyan' : 'bg-brand-surface2/70'}`}>
-                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${newDomWildcard ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  <div className={`relative w-10 h-5 rounded-full transition-colors ${newDomWildcard ? 'bg-[rgb(var(--brand))]' : 'bg-brand-surface2/70'}`}>
+                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-[rgb(var(--on-brand))] shadow transition-transform ${newDomWildcard ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </div>
                   <input
                     type="checkbox"
@@ -1572,8 +1584,8 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                     className="sr-only"
                   />
                   <div>
-                    <p className="text-sm font-medium text-txt-primary">Wildcard Subdomain Desteği</p>
-                    <p className="text-[11px] text-txt-muted">Aktif edilirse *.domain.com şeklinde alt domainler oluşturulabilir</p>
+                    <p className="text-sm font-medium text-txt-primary">{t('admin.ui.domains.wildcardTitle')}</p>
+                    <p className="text-[11px] text-txt-muted">{t('admin.ui.domains.wildcardHint')}</p>
                   </div>
                 </label>
               </form>
@@ -1588,32 +1600,32 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   const rootAddressCount = addressCountByMailboxDomain[rootDomainKey] || domain.address_count || 0;
 
                   return (
-                    <div key={domain.id} className="card p-6 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.08),transparent_30%),linear-gradient(180deg,rgba(10,19,41,0.96),rgba(10,19,41,0.78))]">
+                    <div key={domain.id} className="card p-6">
                       <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-3">
                             <p className="text-[1.7rem] font-semibold tracking-tight text-txt-primary break-all">{domain.domain}</p>
-                            {domain.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}
-                            {domain.wildcard_subdomains === 1 ? <span className="badge-cyan">Wildcard Aktif</span> : <span className="badge-gold">Wildcard Kapalı</span>}
+                            {domain.is_active === 1 ? <span className="badge-green">{t('admin.ui.domains.active')}</span> : <span className="badge-red">{t('admin.ui.domains.inactive')}</span>}
+                            {domain.wildcard_subdomains === 1 ? <span className="badge-cyan">{t('admin.ui.domains.wildcardActive')}</span> : <span className="badge-gold">{t('admin.ui.domains.wildcardOff')}</span>}
                           </div>
-                          <p className="text-sm text-txt-muted mt-2">Sistemdeki root domainleri yönetin ve alt domainleri tek panelden düzenleyin.</p>
+                          <p className="text-sm text-txt-muted mt-2">{t('admin.ui.domains.cardSubtitle')}</p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
                           <button onClick={() => openDomainEditor(domain)} className="btn-secondary text-xs px-3 py-2">
-                            <Pencil size={13} /> Düzenle
+                            <Pencil size={13} /> {t('admin.ui.domains.edit')}
                           </button>
                           <button onClick={() => { setDocsDomain(domain); setDocsIp(domain.server_ip || ''); }} className="btn-secondary text-xs px-3 py-2">
-                            <FileText size={13} /> Domain Docs
+                            <FileText size={13} /> {t('admin.ui.domains.docs')}
                           </button>
                           <button onClick={() => toggleDom(domain.id, domain.is_active === 1, domain.wildcard_subdomains)} className="btn-secondary text-xs px-3 py-2">
-                            {domain.is_active === 1 ? 'Pasifleştir' : 'Aktifleştir'}
+                            {domain.is_active === 1 ? t('admin.ui.domains.deactivate') : t('admin.ui.domains.activate')}
                           </button>
                           <button onClick={() => setExpandedDomains((prev) => ({ ...prev, [domain.id]: !prev[domain.id] }))} className="btn-secondary text-xs px-3 py-2">
                             <ChevronDown size={13} className={`transition-transform ${expandedDomains[domain.id] ? 'rotate-180' : ''}`} />
-                            {expandedDomains[domain.id] ? 'Daralt' : 'Genişlet'}
+                            {expandedDomains[domain.id] ? t('admin.ui.domains.collapse') : t('admin.ui.domains.expand')}
                           </button>
-                          <button onClick={() => delDom(domain.id, domain.domain)} className="btn-danger text-xs px-3 py-2">Sil</button>
+                          <button onClick={() => delDom(domain.id, domain.domain)} className="btn-danger text-xs px-3 py-2">{t('admin.ui.domains.delete')}</button>
                         </div>
                       </div>
 
@@ -1621,37 +1633,37 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                         <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
                           <div className="flex items-center gap-2 text-txt-secondary">
                             <Server size={15} className="text-accent-blue" />
-                            <span className="text-sm">Sunucu IP</span>
+                            <span className="text-sm">{t('admin.ui.domains.serverIp')}</span>
                           </div>
                           <p className="text-lg font-semibold text-txt-primary mt-3">{domain.server_ip || '-'}</p>
                         </div>
                         <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
                           <div className="flex items-center gap-2 text-txt-secondary">
                             <Mail size={15} className="text-accent-blue" />
-                            <span className="text-sm">MX Kaydı</span>
+                            <span className="text-sm">{t('admin.ui.domains.mxRecord')}</span>
                           </div>
                           <p className="text-lg font-semibold text-txt-primary mt-3 break-all">{domain.mx_value || '-'}</p>
                         </div>
                         <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
                           <div className="flex items-center gap-2 text-txt-secondary">
                             <CalendarRange size={15} className="text-accent-blue" />
-                            <span className="text-sm">Oluşturulma Tarihi</span>
+                            <span className="text-sm">{t('admin.ui.domains.createdAt')}</span>
                           </div>
                           <p className="text-lg font-semibold text-txt-primary mt-3">{formatAdminDate(domain.created_at)}</p>
                         </div>
                         <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
                           <div className="flex items-center gap-2 text-txt-secondary">
                             <Activity size={15} className="text-accent-blue" />
-                            <span className="text-sm">Wildcard Desteği</span>
+                            <span className="text-sm">{t('admin.ui.domains.wildcardSupport')}</span>
                           </div>
-                          <p className="text-lg font-semibold text-txt-primary mt-3">{domain.wildcard_subdomains === 1 ? 'Aktif edildi' : 'Pasif'}</p>
+                          <p className="text-lg font-semibold text-txt-primary mt-3">{domain.wildcard_subdomains === 1 ? t('admin.ui.domains.wildcardEnabled') : t('admin.ui.domains.inactive')}</p>
                         </div>
                         <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
                           <div className="flex items-center gap-2 text-txt-secondary">
                             <Users size={15} className="text-accent-blue" />
-                            <span className="text-sm">Toplam Aktif Adres</span>
+                            <span className="text-sm">{t('admin.ui.domains.totalActiveAddr')}</span>
                           </div>
-                          <p className="text-lg font-semibold text-accent-green mt-3">{rootAddressCount} adres</p>
+                          <p className="text-lg font-semibold text-accent-green mt-3">{t('admin.ui.domains.addrUnit', { count: rootAddressCount })}</p>
                         </div>
                       </div>
 
@@ -1660,10 +1672,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                             <div>
                               <div className="flex items-center gap-3">
-                                <h4 className="text-[1.05rem] font-semibold text-txt-primary">Alt Domainler</h4>
-                                <span className="badge-cyan">{activeSubdomainCount} aktif</span>
+                                <h4 className="text-[1.05rem] font-semibold text-txt-primary">{t('admin.ui.domains.subdomains')}</h4>
+                                <span className="badge-cyan">{t('admin.ui.domains.subActive', { count: activeSubdomainCount })}</span>
                               </div>
-                              <p className="text-sm text-txt-muted mt-2">Bu root domain altında alt domainler oluşturabilir ve yönetebilirsiniz.</p>
+                              <p className="text-sm text-txt-muted mt-2">{t('admin.ui.domains.subSectionHint')}</p>
                             </div>
 
                             {domain.wildcard_subdomains === 1 ? (
@@ -1678,7 +1690,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                                         addSubdomain(domain.id, domain.domain);
                                       }
                                     }}
-                                    placeholder="Yeni subdomain ekle (örn: mail, gmail, temp)"
+                                    placeholder={t('admin.ui.domains.subPlaceholder')}
                                     className="flex-1 bg-transparent px-4 py-3 text-sm text-txt-primary placeholder-txt-muted outline-none"
                                   />
                                   <div className="hidden sm:flex items-center px-4 text-sm text-txt-secondary border-l border-brand-border/20">
@@ -1691,12 +1703,12 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                                   className="btn-primary px-6"
                                 >
                                   {addingSubdomainTo === domain.id ? <LoaderCircle size={15} className="animate-spin" /> : <Plus size={15} />}
-                                  Ekle
+                                  {t('admin.ui.domains.add')}
                                 </button>
                               </div>
                             ) : (
                               <div className="rounded-2xl border border-accent-gold/20 bg-accent-gold/10 px-4 py-3 text-sm text-accent-gold">
-                                Subdomain oluşturmak için önce wildcard desteğini açın.
+                                {t('admin.ui.domains.wildcardRequired')}
                               </div>
                             )}
                           </div>
@@ -1707,7 +1719,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                                 const fullDomain = `${subdomain.subdomain}.${domain.domain}`.toLowerCase();
                                 const subdomainAddressCount = addressCountByMailboxDomain[fullDomain] || 0;
                                 return (
-                                  <div key={subdomain.id} className="rounded-[24px] border border-brand-border/20 bg-[#101d39]/72 px-5 py-4">
+                                  <div key={subdomain.id} className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2 px-5 py-4">
                                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                                       <div className="min-w-0 flex items-start gap-4">
                                         <div className="w-12 h-12 rounded-[18px] panel-soft flex items-center justify-center shrink-0">
@@ -1716,19 +1728,19 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                                         <div className="min-w-0">
                                           <div className="flex flex-wrap items-center gap-3">
                                             <p className="text-[1.05rem] font-semibold text-txt-primary break-all">{subdomain.subdomain}.{domain.domain}</p>
-                                            {subdomain.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}
+                                            {subdomain.is_active === 1 ? <span className="badge-green">{t('admin.ui.domains.active')}</span> : <span className="badge-red">{t('admin.ui.domains.inactive')}</span>}
                                           </div>
-                                          <p className="text-sm text-txt-secondary mt-2 break-all">Ornek: demo@{subdomain.subdomain}.{domain.domain}</p>
+                                          <p className="text-sm text-txt-secondary mt-2 break-all">{t('admin.ui.domains.subExample', { domain: `${subdomain.subdomain}.${domain.domain}` })}</p>
                                         </div>
                                       </div>
 
                                       <div className="flex flex-wrap items-center gap-2">
-                                        <span className="badge-green text-sm px-3 py-1.5">{subdomainAddressCount} aktif adres</span>
-                                        <button onClick={() => copyText(`${subdomain.subdomain}.${domain.domain}`, 'Subdomain kopyalandı')} className="btn-secondary text-xs px-3 py-2">
-                                          <Copy size={13} /> Kopyala
+                                        <span className="badge-green text-sm px-3 py-1.5">{t('admin.ui.domains.activeAddr', { count: subdomainAddressCount })}</span>
+                                        <button onClick={() => copyText(`${subdomain.subdomain}.${domain.domain}`, t('admin.ui.domains.subdomainCopied'))} className="btn-secondary text-xs px-3 py-2">
+                                          <Copy size={13} /> {t('admin.ui.domains.copy')}
                                         </button>
                                         <button onClick={() => deleteSubdomain(domain.id, subdomain.id, `${subdomain.subdomain}.${domain.domain}`)} className="btn-danger text-xs px-3 py-2">
-                                          <Trash2 size={13} /> Sil
+                                          <Trash2 size={13} /> {t('admin.ui.domains.delete')}
                                         </button>
                                       </div>
                                     </div>
@@ -1740,12 +1752,12 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                                 {loadingSubdomains[domain.id] ? (
                                   <div className="inline-flex items-center gap-2 text-sm text-txt-secondary">
                                     <LoaderCircle size={15} className="animate-spin" />
-                                    Subdomainler yukleniyor...
+                                    {t('admin.ui.domains.loadingSubdomains')}
                                   </div>
                                 ) : (
                                   <>
-                                    <p className="text-sm font-medium text-txt-secondary">Henüz subdomain eklenmedi</p>
-                                    <p className="text-xs text-txt-muted mt-1">Yukarıdaki alanı kullanarak bu root domain için ilk subdomaini oluşturabilirsiniz.</p>
+                                    <p className="text-sm font-medium text-txt-secondary">{t('admin.ui.domains.noSubTitle')}</p>
+                                    <p className="text-xs text-txt-muted mt-1">{t('admin.ui.domains.noSubSubtitle')}</p>
                                   </>
                                 )}
                               </div>
@@ -1758,7 +1770,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 })}
               </div>
             ) : (
-              <AdminEmptyState title="Domain yok" subtitle="Yeni bir domain ekleyerek başlayın." />
+              <AdminEmptyState title={t('admin.ui.domains.emptyTitle')} subtitle={t('admin.ui.domains.emptySubtitle')} />
             )}
           </AdminPanelCard>
         </div>
@@ -1766,7 +1778,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       {tab === 'emails' && (
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-          <AdminPanelCard title={`Tüm Mailler (${emailsTotal})`} icon={Mail} className="xl:col-span-8" action={<button onClick={() => loadEmails(1)} className="btn-ghost"><RefreshCw size={14} /></button>}>
+          <AdminPanelCard title={t('admin.ui.emails.all', { count: emailsTotal })} icon={Mail} className="xl:col-span-8" action={<button onClick={() => loadEmails(1)} className="btn-ghost"><RefreshCw size={14} /></button>}>
             {tableLoading.emails && emails.length === 0 ? (
               <TableSkeleton rows={10} cols={6} />
             ) : emails.length > 0 ? (
@@ -1775,12 +1787,12 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm min-w-[920px]">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Gönderen</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Alıcı</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Konu</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Tarih</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Etiket</th>
-                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlem</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.emails.colSender')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.emails.colRecipient')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.emails.colSubject')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.emails.colDate')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.emails.colTag')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.emails.colAction')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1788,13 +1800,13 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                         <tr key={mail.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                           <td className="py-4 text-txt-primary">{mail.sender}</td>
                           <td className="py-4 text-txt-secondary font-mono">{mail.recipient_address}</td>
-                          <td className="py-4 text-txt-secondary">{mail.subject || '(Konu yok)'}</td>
+                          <td className="py-4 text-txt-secondary">{mail.subject || t('admin.common.noSubject')}</td>
                           <td className="py-4 text-txt-muted">{formatAdminDate(mail.received_at)}</td>
                           <td className="py-4">
                             <div className="flex gap-2 flex-wrap">
                               {mail.otp_code && <span className="badge-purple">OTP</span>}
-                              {mail.has_attachments && <span className="badge-cyan">Ekli</span>}
-                              {!mail.otp_code && !mail.has_attachments && <span className="badge-green">Normal</span>}
+                              {mail.has_attachments && <span className="badge-cyan">{t('admin.ui.emails.tagAttached')}</span>}
+                              {!mail.otp_code && !mail.has_attachments && <span className="badge-green">{t('admin.ui.emails.tagNormal')}</span>}
                             </div>
                           </td>
                           <td className="py-4">
@@ -1811,46 +1823,46 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 </div>
                 {emailsTotal > 50 ? (
                   <div className="flex items-center justify-center gap-3 mt-5">
-                    <button onClick={() => loadEmails(emailsPage - 1)} disabled={emailsPage <= 1} className="btn-secondary text-xs px-3 py-2">Önceki</button>
-                    <span className="text-sm text-txt-secondary">Sayfa {emailsPage}</span>
-                    <button onClick={() => loadEmails(emailsPage + 1)} disabled={emails.length < 50} className="btn-secondary text-xs px-3 py-2">Sonraki</button>
+                    <button onClick={() => loadEmails(emailsPage - 1)} disabled={emailsPage <= 1} className="btn-secondary text-xs px-3 py-2">{t('admin.ui.emails.prev')}</button>
+                    <span className="text-sm text-txt-secondary">{t('admin.ui.emails.page', { page: emailsPage })}</span>
+                    <button onClick={() => loadEmails(emailsPage + 1)} disabled={emails.length < 50} className="btn-secondary text-xs px-3 py-2">{t('admin.ui.emails.next')}</button>
                   </div>
                 ) : null}
               </>
             ) : (
-              <AdminEmptyState title="Henüz mail yok" subtitle="Sistem mail almaya başladığında burada listelenecek." />
+              <AdminEmptyState title={t('admin.ui.emails.emptyTitle')} subtitle={t('admin.ui.emails.emptySubtitle')} />
             )}
           </AdminPanelCard>
 
-          <AdminPanelCard title="Mail Detayı" icon={Eye} className="xl:col-span-4">
+          <AdminPanelCard title={t('admin.ui.emails.detail')} icon={Eye} className="xl:col-span-4">
             {selectedGlobalMail ? (
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-txt-secondary">{selectedGlobalMail.sender}</p>
-                  <h4 className="text-lg font-semibold text-txt-primary mt-1">{selectedGlobalMail.subject || '(Konu yok)'}</h4>
+                  <h4 className="text-lg font-semibold text-txt-primary mt-1">{selectedGlobalMail.subject || t('admin.common.noSubject')}</h4>
                   <p className="text-xs text-txt-muted mt-1">{formatAdminDate(selectedGlobalMail.received_at)}</p>
                 </div>
                 {selectedGlobalMail.otp_code ? (
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="badge-purple text-sm px-3 py-2 font-mono">{selectedGlobalMail.otp_code}</span>
                     <button onClick={() => navigator.clipboard.writeText(selectedGlobalMail.otp_code)} className="btn-secondary text-xs px-3 py-2">
-                      <Copy size={12} /> OTP Kopyala
+                      <Copy size={12} /> {t('admin.ui.emails.copyOtp')}
                     </button>
                   </div>
                 ) : null}
                 <div className="rounded-3xl border border-brand-border/30 bg-brand-surface2/25 p-4 min-h-[260px]">
-                  <pre className="whitespace-pre-wrap text-sm text-txt-secondary font-mono leading-relaxed">{selectedGlobalMail.body_text || '(HTML içerik)'}</pre>
+                  <pre className="whitespace-pre-wrap text-sm text-txt-secondary font-mono leading-relaxed">{selectedGlobalMail.body_text || t('admin.common.htmlContent')}</pre>
                 </div>
               </div>
             ) : (
-              <AdminEmptyState title="Bir mail seçin" subtitle="Detayı görmek için listedeki göz ikonuna basın." />
+              <AdminEmptyState title={t('admin.ui.emails.detailEmptyTitle')} subtitle={t('admin.ui.emails.detailEmptySubtitle')} />
             )}
           </AdminPanelCard>
         </div>
       )}
 
       {tab === 'users' && (
-        <AdminPanelCard title={`Kullanıcılar (${users.length})`} icon={Users} action={<button onClick={loadUsers} className="btn-ghost"><RefreshCw size={14} /></button>}>
+        <AdminPanelCard title={t('admin.ui.users.title', { count: users.length })} icon={Users} action={<button onClick={loadUsers} className="btn-ghost"><RefreshCw size={14} /></button>}>
           {tableLoading.users && users.length === 0 ? (
             <TableSkeleton rows={8} cols={7} />
           ) : users.length > 0 ? (
@@ -1858,14 +1870,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               <table className="w-full text-sm min-w-[920px]">
                 <thead className="text-left text-txt-muted">
                   <tr className="border-b border-brand-border/20">
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Kullanıcı</th>
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Rol</th>
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Adres</th>
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Mail</th>
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Bulk</th>
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Son giriş</th>
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
-                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlem</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colUser')}</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colRole')}</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colAddr')}</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colMail')}</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colBulk')}</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colLastLogin')}</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colStatus')}</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.users.colAction')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1877,7 +1889,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                       </td>
                       <td className="py-4">
                         <div className="flex flex-col gap-2">
-                          {user.role === 'admin' ? <span className="badge-blue">Admin</span> : user.role === 'pro' ? <span className="badge-purple">Pro</span> : <span className="badge-cyan">Free</span>}
+                          {user.role === 'admin' ? <span className="badge-blue">{t('admin.ui.users.admin')}</span> : user.role === 'pro' ? <span className="badge-purple">{t('admin.ui.users.pro')}</span> : <span className="badge-cyan">{t('admin.ui.users.free')}</span>}
                           <span className="text-[10px] uppercase tracking-[0.18em] text-txt-muted">{user.package_name === 'pro_plus' ? 'pro+' : (user.package_name || user.role)}</span>
                         </div>
                       </td>
@@ -1885,12 +1897,12 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                       <td className="py-4 text-txt-secondary">{user.email_count}</td>
                       <td className="py-4">
                         <div className="flex flex-col gap-1">
-                          <span className={user.bulk_access_enabled ? 'badge-green' : 'badge-cyan'}>{user.bulk_access_enabled ? 'Açık' : 'Kapalı'}</span>
-                          {user.bulk_pool_count > 0 ? <span className="text-xs text-txt-muted">{user.bulk_pool_count} havuz</span> : null}
+                          <span className={user.bulk_access_enabled ? 'badge-green' : 'badge-cyan'}>{user.bulk_access_enabled ? t('admin.ui.users.bulkOn') : t('admin.ui.users.bulkOff')}</span>
+                          {user.bulk_pool_count > 0 ? <span className="text-xs text-txt-muted">{t('admin.ui.users.pools', { count: user.bulk_pool_count })}</span> : null}
                         </div>
                       </td>
                       <td className="py-4 text-txt-secondary">{formatAdminDate(user.last_login)}</td>
-                      <td className="py-4">{user.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}</td>
+                      <td className="py-4">{user.is_active === 1 ? <span className="badge-green">{t('admin.ui.users.active')}</span> : <span className="badge-red">{t('admin.ui.users.inactive')}</span>}</td>
                       <td className="py-4">
                         <div className="flex flex-wrap gap-2">
                           <select
@@ -1898,30 +1910,30 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                             onChange={(e) => updateUserRole(user.id, e.target.value)}
                             className="input !py-2 !px-3 !text-xs !rounded-xl !w-auto min-w-[110px]"
                           >
-                            <option value="free">Free</option>
-                            <option value="pro">Pro</option>
-                            <option value="admin">Admin</option>
+                            <option value="free">{t('admin.ui.users.free')}</option>
+                            <option value="pro">{t('admin.ui.users.pro')}</option>
+                            <option value="admin">{t('admin.ui.users.admin')}</option>
                           </select>
                           {user.role === 'admin' ? (
-                            <span className="badge-gold px-3 py-2 text-xs">Admin Package</span>
+                            <span className="badge-gold px-3 py-2 text-xs">{t('admin.ui.users.adminPackage')}</span>
                           ) : (
                             <select
                               value={user.package_name || (user.role === 'pro' ? 'pro' : 'free')}
                               onChange={(e) => updateUserPackage(user.id, e.target.value)}
                               className="input !py-2 !px-3 !text-xs !rounded-xl !w-auto min-w-[120px]"
                             >
-                              <option value="free">Free</option>
-                              <option value="pro">Pro</option>
-                              <option value="pro_plus">Pro+</option>
+                              <option value="free">{t('admin.ui.users.free')}</option>
+                              <option value="pro">{t('admin.ui.users.pro')}</option>
+                              <option value="pro_plus">{t('admin.ui.users.proPlus')}</option>
                             </select>
                           )}
                           {user.role === 'pro' && ['pro', 'pro_plus'].includes(user.package_name) ? (
                             <button onClick={() => updateUserBulkAccess(user.id, !user.bulk_access_enabled)} className={user.bulk_access_enabled ? 'btn-secondary text-xs px-3 py-2' : 'btn-primary text-xs px-3 py-2'}>
-                              {user.bulk_access_enabled ? 'Bulk Kapat' : 'Bulk Aç'}
+                              {user.bulk_access_enabled ? t('admin.ui.users.bulkClose') : t('admin.ui.users.bulkOpen')}
                             </button>
                           ) : null}
                           <button onClick={() => updateUserStatus(user.id, user.is_active !== 1)} className="btn-secondary text-xs px-3 py-2">
-                            {user.is_active === 1 ? 'Pasifleştir' : 'Aktifleştir'}
+                            {user.is_active === 1 ? t('admin.ui.users.deactivate') : t('admin.ui.users.activate')}
                           </button>
                         </div>
                       </td>
@@ -1931,7 +1943,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               </table>
             </div>
           ) : (
-            <AdminEmptyState title="Kullanıcı bulunamadı" subtitle="Kayıt olan kullanıcılar burada listelenir." />
+            <AdminEmptyState title={t('admin.ui.users.emptyTitle')} subtitle={t('admin.ui.users.emptySubtitle')} />
           )}
         </AdminPanelCard>
       )}
@@ -1939,26 +1951,26 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
       {tab === 'bulk' && (
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-in">
-            <AdminStatCard title="Aktif Havuz" value={bulkPools.length} subtitle="Kullanıcıya bağlı prefix havuzları" icon={Boxes} tone="purple" />
-            <AdminStatCard title="Üretilen Adres" value={bulkPools.reduce((sum, pool) => sum + Number(pool.address_count || 0), 0)} subtitle="Normal paket kotasına dahildir" icon={Inbox} tone="blue" />
-            <AdminStatCard title="Yetkili Kullanıcı" value={users.filter((user) => user.bulk_access_enabled).length} subtitle="Yalnız Pro ve Pro+" icon={Users} tone="green" />
+            <AdminStatCard title={t('admin.ui.bulk.activePool')} value={bulkPools.length} subtitle={t('admin.ui.bulk.activePoolHint')} icon={Boxes} tone="purple" />
+            <AdminStatCard title={t('admin.ui.bulk.generatedAddr')} value={bulkPools.reduce((sum, pool) => sum + Number(pool.address_count || 0), 0)} subtitle={t('admin.ui.bulk.generatedAddrHint')} icon={Inbox} tone="blue" />
+            <AdminStatCard title={t('admin.ui.bulk.authorizedUsers')} value={users.filter((user) => user.bulk_access_enabled).length} subtitle={t('admin.ui.bulk.authorizedUsersHint')} icon={Users} tone="green" />
           </div>
-          <AdminPanelCard title={`Bulk Havuzları (${bulkPools.length})`} icon={Boxes} action={<button onClick={loadBulkPools} className="btn-ghost"><RefreshCw size={14} /></button>}>
+          <AdminPanelCard title={t('admin.ui.bulk.pools', { count: bulkPools.length })} icon={Boxes} action={<button onClick={loadBulkPools} className="btn-ghost"><RefreshCw size={14} /></button>}>
             <div className="mb-4 relative max-w-xl">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
-              <input value={bulkQuery} onChange={(e) => setBulkQuery(e.target.value)} className="input w-full pl-10" placeholder="Kullanıcı, prefix veya domain ara" />
+              <input value={bulkQuery} onChange={(e) => setBulkQuery(e.target.value)} className="input w-full pl-10" placeholder={t('admin.ui.bulk.searchPlaceholder')} />
             </div>
             {tableLoading.bulk && bulkPools.length === 0 ? (
               <TableSkeleton rows={6} cols={6} />
             ) : bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).length > 0 ? (
-              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Sahip</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Paket</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Havuz</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Adres</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Son üretim</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Yetki</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-accent-cyan">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">Açık</span> : <span className="badge-red">Kapalı</span>}</td></tr>)}</tbody></table></div>
-            ) : <AdminEmptyState title="Bulk havuzu bulunamadı" subtitle="Yetki verdiğiniz Pro/Pro+ kullanıcılar burada havuz oluşturabilir." />}
+              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colOwner')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colPackage')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colPool')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colAddr')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colLastGen')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colAccess')}</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-[rgb(var(--brand))]">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">{t('admin.ui.bulk.accessOn')}</span> : <span className="badge-red">{t('admin.ui.bulk.accessOff')}</span>}</td></tr>)}</tbody></table></div>
+            ) : <AdminEmptyState title={t('admin.ui.bulk.emptyTitle')} subtitle={t('admin.ui.bulk.emptySubtitle')} />}
           </AdminPanelCard>
         </div>
       )}
 
       {tab === 'requests' && (
-        <AdminPanelCard title={`Pro İstekleri (${requests.length})`} icon={Crown} action={<button onClick={loadRequests} className="btn-ghost"><RefreshCw size={14} /></button>}>
+        <AdminPanelCard title={t('admin.ui.requests.title', { count: requests.length })} icon={Crown} action={<button onClick={loadRequests} className="btn-ghost"><RefreshCw size={14} /></button>}>
           {requests.length > 0 ? (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 stagger-in">
               {requests.map((request) => (
@@ -1967,59 +1979,59 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-medium text-txt-primary">{request.username}</p>
-                        {request.status === 'pending' ? <span className="badge-purple">Bekliyor</span> : request.status === 'approved' ? <span className="badge-green">Onaylandı</span> : <span className="badge-red">Reddedildi</span>}
+                        {request.status === 'pending' ? <span className="badge-purple">{t('admin.ui.requests.pending')}</span> : request.status === 'approved' ? <span className="badge-green">{t('admin.ui.requests.approved')}</span> : <span className="badge-red">{t('admin.ui.requests.rejected')}</span>}
                       </div>
                       <p className="text-xs text-txt-muted mt-1">{request.email}</p>
                     </div>
-                    {request.role === 'pro' ? <span className="badge-cyan">Zaten Pro</span> : null}
+                    {request.role === 'pro' ? <span className="badge-cyan">{t('admin.ui.requests.alreadyPro')}</span> : null}
                   </div>
-                  <p className="text-sm text-txt-secondary mt-4">{request.message || 'Mesaj bırakılmadı.'}</p>
+                  <p className="text-sm text-txt-secondary mt-4">{request.message || t('admin.ui.requests.noMessage')}</p>
                   <p className="text-xs text-txt-disabled mt-4">{formatAdminDate(request.reviewed_at || request.created_at)}</p>
                   {request.status === 'pending' ? (
                     <div className="flex gap-2 mt-5">
-                      <button onClick={() => handleRequestDecision(request.id, 'approved')} className="btn-primary text-xs px-4 py-2"><CheckCircle2 size={12} /> Onayla</button>
-                      <button onClick={() => handleRequestDecision(request.id, 'rejected')} className="btn-danger text-xs px-4 py-2"><AlertTriangle size={12} /> Reddet</button>
+                      <button onClick={() => handleRequestDecision(request.id, 'approved')} className="btn-primary text-xs px-4 py-2"><CheckCircle2 size={12} /> {t('admin.ui.requests.approve')}</button>
+                      <button onClick={() => handleRequestDecision(request.id, 'rejected')} className="btn-danger text-xs px-4 py-2"><AlertTriangle size={12} /> {t('admin.ui.requests.reject')}</button>
                     </div>
                   ) : null}
                 </div>
               ))}
             </div>
           ) : (
-            <AdminEmptyState title="Bekleyen istek yok" subtitle="Yeni Pro talepleri burada görünür." />
+            <AdminEmptyState title={t('admin.ui.requests.emptyTitle')} subtitle={t('admin.ui.requests.emptySubtitle')} />
           )}
         </AdminPanelCard>
       )}
 
       {tab === 'settings' && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-          <AdminPanelCard title="Genel Ayarlar" icon={Settings2}>
+          <AdminPanelCard title={t('admin.ui.settings.general')} icon={Settings2}>
             <div className="space-y-4 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Aktif Domain Sayısı</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.activeDomainCount')}</span>
                 <span className="text-txt-primary">{activeDomains}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Varsayılan Veri Saklama</span>
-                <span className="text-txt-primary">7 gün / yalnızca manuel tetikleme</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.defaultRetention')}</span>
+                <span className="text-txt-primary">{t('admin.ui.settings.defaultRetentionValue')}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Temizlik Politikası</span>
-                <span className="text-txt-primary">Manuel + servis bazlı</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.cleanupPolicy')}</span>
+                <span className="text-txt-primary">{t('admin.ui.settings.cleanupPolicyValue')}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Admin kimlik doğrulama</span>
-                <span className="text-txt-primary">JWT + parola fallback</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.adminAuth')}</span>
+                <span className="text-txt-primary">{t('admin.ui.settings.adminAuthValue')}</span>
               </div>
               <button type="button" onClick={refreshAll} className="btn-secondary mt-2">
-                <RefreshCw size={14} /> Tüm Veriyi Yenile
+                <RefreshCw size={14} /> {t('admin.ui.settings.refreshAll')}
               </button>
             </div>
           </AdminPanelCard>
 
-          <AdminPanelCard title="Bildirim Sesi" icon={Mail}>
+          <AdminPanelCard title={t('admin.ui.settings.notifSound')} icon={Mail}>
             <div className="space-y-4">
               <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-4">
-                <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">Seçili Sinyal</p>
+                <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('admin.ui.settings.selectedSignal')}</p>
                 <div className="mt-3 flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1 min-w-0">
                     <select
@@ -2040,7 +2052,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                     onClick={() => onPreviewNotificationSound?.(notificationSound)}
                     className="btn-primary shrink-0"
                   >
-                    <Mail size={12} /> Önizle
+                    <Mail size={12} /> {t('admin.ui.settings.preview')}
                   </button>
                 </div>
               </div>
@@ -2049,38 +2061,38 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-txt-primary">
-                      {notificationSounds.find((sound) => sound.id === notificationSound)?.name || 'Glass Chime'}
+                      {notificationSounds.find((sound) => sound.id === notificationSound)?.name || t('admin.ui.settings.defaultSoundName')}
                     </p>
                     <p className="text-xs text-txt-muted mt-1">
-                      {notificationSounds.find((sound) => sound.id === notificationSound)?.description || 'Katmanlı ve parlak bir chime efekti.'}
+                      {notificationSounds.find((sound) => sound.id === notificationSound)?.description || t('admin.ui.settings.defaultSoundDesc')}
                     </p>
                   </div>
-                  {notificationSound === 'chime' ? <span className="badge-blue">Glass Chime</span> : null}
+                  {notificationSound === 'chime' ? <span className="badge-blue">{t('admin.ui.settings.defaultSoundName')}</span> : null}
                 </div>
               </div>
             </div>
           </AdminPanelCard>
 
-          <AdminPanelCard title="Operasyon Özeti" icon={Shield}>
+          <AdminPanelCard title={t('admin.ui.settings.opsSummary')} icon={Shield}>
             <div className="space-y-4 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Toplam Kullanıcı</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.totalUsers')}</span>
                 <span className="text-txt-primary">{users.length}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Bekleyen İstek</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.pendingRequests')}</span>
                 <span className="text-txt-primary">{pendingRequests}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Şifreli Mailbox</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.protectedMailbox')}</span>
                 <span className="text-txt-primary">{protectedAddresses}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-txt-secondary">Mail Hacmi</span>
+                <span className="text-txt-secondary">{t('admin.ui.settings.mailVolume')}</span>
                 <span className="text-txt-primary">{stats?.total_emails || 0}</span>
               </div>
               <button type="button" onClick={logout} className="btn-danger mt-2">
-                <Trash2 size={14} /> Admin Oturumunu Kapat
+                <Trash2 size={14} /> {t('admin.ui.settings.logout')}
               </button>
             </div>
           </AdminPanelCard>
@@ -2103,42 +2115,42 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   setDocsDomain(null);
                   setDocsIp('');
                 }}
-                aria-label="Kapat"
+                aria-label={t('admin.ui.dnsModal.close')}
                 className="absolute right-0 top-0 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-brand-border/60 bg-brand-surface2/80 text-txt-muted transition hover:border-brand-border2 hover:text-txt-primary hover:bg-brand-surface2"
               >
                 <X size={16} />
               </button>
 
               <div className="flex items-start gap-4">
-                <div className="w-11 h-11 rounded-2xl panel-soft flex items-center justify-center shadow-glow-cyan shrink-0">
+                <div className="w-11 h-11 rounded-2xl panel-soft flex items-center justify-center shrink-0">
                   <Globe size={20} className="text-accent-blue" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-2xl sm:text-[2rem] font-semibold tracking-tight text-txt-primary">DNS Kayıt Kurulumu</h4>
-                  <p className="text-sm text-txt-muted mt-1">Aşağıdaki DNS kayıtlarını alan adınız için ekleyin.</p>
+                  <h4 className="text-2xl sm:text-[2rem] font-semibold tracking-tight text-txt-primary">{t('admin.ui.dnsModal.title')}</h4>
+                  <p className="text-sm text-txt-muted mt-1">{t('admin.ui.dnsModal.subtitle')}</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-accent-blue/18 bg-[radial-gradient(circle_at_top_left,rgba(59,130,255,0.16),transparent_32%),linear-gradient(135deg,rgba(11,21,45,0.96),rgba(9,18,38,0.9))] p-5 sm:p-6 shadow-[0_24px_70px_rgba(8,16,35,0.55)]">
+            <div className="rounded-[var(--r-xl)] border border-brand-border bg-brand-surface2 p-5 sm:p-6">
               <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
                 <div className="space-y-2 min-w-0">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-accent-blue/80">Alan Adı</p>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-accent-blue/80">{t('admin.ui.dnsModal.domainName')}</p>
                   <div className="flex flex-wrap items-center gap-2">
                     <h4 className="text-2xl sm:text-[2rem] font-semibold text-txt-primary break-all">{docsDomain.domain}</h4>
                     <button
-                      onClick={() => copyText(docsDomain.domain, 'Alan adı kopyalandı')}
+                      onClick={() => copyText(docsDomain.domain, t('admin.ui.dnsModal.domainNameCopied'))}
                       className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-brand-border/55 bg-brand-surface2/70 text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40 hover:bg-brand-surface2/90"
-                      aria-label="Alan adını kopyala"
+                      aria-label={t('admin.ui.dnsModal.copyDomainName')}
                     >
                       <Copy size={14} />
                     </button>
                   </div>
-                  <p className="max-w-2xl text-sm text-txt-muted">Seçilen alan adınız için gerekli DNS kayıtlarını aşağıda görebilirsiniz.</p>
+                  <p className="max-w-2xl text-sm text-txt-muted">{t('admin.ui.dnsModal.domainDesc')}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-txt-muted">Kayıt Durumu</p>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-txt-muted">{t('admin.ui.dnsModal.recordStatus')}</p>
                   <div className="flex flex-wrap gap-2">
                     <span className="badge-blue">A</span>
                     <span className="badge-cyan">MX</span>
@@ -2150,17 +2162,17 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-brand-border/20 bg-brand-surface2/25 p-5 sm:p-6">
+            <div className="rounded-[var(--r-xl)] border border-brand-border/20 bg-brand-surface2/25 p-5 sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-txt-primary">Sunucu IP</p>
-                  <p className="text-xs text-txt-muted mt-1">Tüm e-posta trafiği bu IP adresi üzerinden yönlendirilecektir.</p>
+                  <p className="text-sm font-semibold text-txt-primary">{t('admin.ui.dnsModal.serverIp')}</p>
+                  <p className="text-xs text-txt-muted mt-1">{t('admin.ui.dnsModal.serverIpDesc')}</p>
                 </div>
                 <button
-                  onClick={() => copyText(docsIp || docsDomain.server_ip || '', 'Sunucu IP kopyalandı')}
+                  onClick={() => copyText(docsIp || docsDomain.server_ip || '', t('admin.ui.dnsModal.serverIpCopied'))}
                   className="inline-flex items-center gap-2 rounded-2xl border border-brand-border/55 bg-brand-surface2/70 px-3 py-2 text-xs font-semibold text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
                 >
-                  <Copy size={14} /> Kopyala
+                  <Copy size={14} /> {t('admin.ui.dnsModal.copy')}
                 </button>
               </div>
               <div className="mt-4">
@@ -2178,7 +2190,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <FileText size={16} className="text-accent-blue" />
-                <h5 className="text-sm font-semibold text-txt-primary">DNS Kayıtları</h5>
+                <h5 className="text-sm font-semibold text-txt-primary">{t('admin.ui.dnsModal.dnsRecords')}</h5>
               </div>
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {docsRecords.map((row) => {
@@ -2195,7 +2207,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                             </div>
                           </div>
                         </div>
-                        <span className="badge-green">Ekleyin</span>
+                        <span className="badge-green">{t('admin.ui.dnsModal.addLabel')}</span>
                       </div>
 
                       <div className={`mt-4 grid gap-3 ${row.fields.length > 3 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
@@ -2209,7 +2221,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
                       <div className="mt-4 flex justify-end">
                         <button onClick={() => copyDnsRecord(row)} className={tone.copy}>
-                          <Copy size={12} /> Kopyala
+                          <Copy size={12} /> {t('admin.ui.dnsModal.copy')}
                         </button>
                       </div>
                     </div>
@@ -2220,14 +2232,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
             {/* Wildcard Subdomain DNS Kayıtları */}
             {docsDomain.wildcard_subdomains === 1 && (
-              <div className="rounded-[28px] border border-accent-purple/25 bg-[radial-gradient(circle_at_top_left,rgba(122,99,255,0.15),transparent_30%),linear-gradient(135deg,rgba(11,21,45,0.96),rgba(9,18,38,0.9))] p-5 sm:p-6">
+              <div className="rounded-[var(--r-xl)] border border-accent-purple/25 bg-accent-purple/5 p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div>
                     <div className="flex items-center gap-2">
                       <Globe size={18} className="text-accent-purple" />
-                      <p className="text-sm font-semibold text-accent-purple">Wildcard Subdomain DNS Kayıtları</p>
+                      <p className="text-sm font-semibold text-accent-purple">{t('admin.ui.dnsModal.wildcardTitle')}</p>
                     </div>
-                    <p className="text-xs text-txt-muted mt-1">Subdomain desteği için aşağıdaki DNS kayıtlarını ekleyin. Bu kayıtlar ile *.domain.com şeklinde tüm alt domainler otomatik çalışır.</p>
+                    <p className="text-xs text-txt-muted mt-1">{t('admin.ui.dnsModal.wildcardDesc')}</p>
                   </div>
                 </div>
 
@@ -2236,11 +2248,11 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-brand-border/30">
-                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">Type</th>
-                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">Host</th>
-                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">Value</th>
+                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">{t('admin.ui.dnsModal.colType')}</th>
+                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">{t('admin.ui.dnsModal.colHost')}</th>
+                        <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">{t('admin.ui.dnsModal.colValue')}</th>
                         <th className="text-left py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">TTL</th>
-                        <th className="text-right py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">İşlem</th>
+                        <th className="text-right py-3 px-3 text-[11px] uppercase tracking-[0.2em] text-txt-muted font-medium">{t('admin.ui.dnsModal.colAction')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2249,14 +2261,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           <span className="badge-blue text-[10px]">A Record</span>
                         </td>
                         <td className="py-3 px-3 font-mono text-txt-primary">mail</td>
-                        <td className="py-3 px-3 font-mono text-accent-cyan">{docsIp || docsDomain.server_ip || 'SUNUCU_IP'}</td>
+                        <td className="py-3 px-3 font-mono text-[rgb(var(--brand))]">{docsIp || docsDomain.server_ip || 'SUNUCU_IP'}</td>
                         <td className="py-3 px-3 text-txt-muted text-xs">Automatic</td>
                         <td className="py-3 px-3 text-right">
                           <button
-                            onClick={() => copyText(`A | mail | ${docsIp || docsDomain.server_ip || 'SUNUCU_IP'} | Automatic`, 'A Record kopyalandı')}
+                            onClick={() => copyText(`A | mail | ${docsIp || docsDomain.server_ip || 'SUNUCU_IP'} | Automatic`, t('admin.ui.dnsModal.aRecordCopied'))}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-brand-border/50 bg-brand-surface2/70 px-2.5 py-1.5 text-[11px] text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
                           >
-                            <Copy size={11} /> Kopyala
+                            <Copy size={11} /> {t('admin.ui.dnsModal.copy')}
                           </button>
                         </td>
                       </tr>
@@ -2265,14 +2277,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           <span className="badge-purple text-[10px]">TXT Record</span>
                         </td>
                         <td className="py-3 px-3 font-mono text-txt-primary">*</td>
-                        <td className="py-3 px-3 font-mono text-accent-cyan break-all">v=spf1 ip4:{docsIp || docsDomain.server_ip || 'SUNUCU_IP'} ~all</td>
+                        <td className="py-3 px-3 font-mono text-[rgb(var(--brand))] break-all">v=spf1 ip4:{docsIp || docsDomain.server_ip || 'SUNUCU_IP'} ~all</td>
                         <td className="py-3 px-3 text-txt-muted text-xs">Automatic</td>
                         <td className="py-3 px-3 text-right">
                           <button
-                            onClick={() => copyText(`TXT | * | v=spf1 ip4:${docsIp || docsDomain.server_ip || 'SUNUCU_IP'} ~all | Automatic`, 'TXT Record kopyalandı')}
+                            onClick={() => copyText(`TXT | * | v=spf1 ip4:${docsIp || docsDomain.server_ip || 'SUNUCU_IP'} ~all | Automatic`, t('admin.ui.dnsModal.txtRecordCopied'))}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-brand-border/50 bg-brand-surface2/70 px-2.5 py-1.5 text-[11px] text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
                           >
-                            <Copy size={11} /> Kopyala
+                            <Copy size={11} /> {t('admin.ui.dnsModal.copy')}
                           </button>
                         </td>
                       </tr>
@@ -2281,7 +2293,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           <span className="badge-cyan text-[10px]">MX Record</span>
                         </td>
                         <td className="py-3 px-3 font-mono text-txt-primary">*</td>
-                        <td className="py-3 px-3 font-mono text-accent-cyan">mail.{docsDomain.domain}.</td>
+                        <td className="py-3 px-3 font-mono text-[rgb(var(--brand))]">mail.{docsDomain.domain}.</td>
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2">
                             <span className="text-txt-muted text-xs">Automatic</span>
@@ -2290,10 +2302,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                         </td>
                         <td className="py-3 px-3 text-right">
                           <button
-                            onClick={() => copyText(`MX | * | mail.${docsDomain.domain}. | Priority 10 | Automatic`, 'MX Record kopyalandı')}
+                            onClick={() => copyText(`MX | * | mail.${docsDomain.domain}. | Priority 10 | Automatic`, t('admin.ui.dnsModal.mxRecordCopied'))}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-brand-border/50 bg-brand-surface2/70 px-2.5 py-1.5 text-[11px] text-txt-secondary transition hover:text-txt-primary hover:border-accent-blue/40"
                           >
-                            <Copy size={11} /> Kopyala
+                            <Copy size={11} /> {t('admin.ui.dnsModal.copy')}
                           </button>
                         </td>
                       </tr>
@@ -2303,8 +2315,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
                 <div className="mt-4 p-3 rounded-xl bg-accent-purple/10 border border-accent-purple/20">
                   <p className="text-xs text-accent-purple leading-relaxed">
-                    <strong>Not:</strong> Bu kayıtlar ile <span className="font-mono">*. {docsDomain.domain}</span> şeklindeki tüm subdomain'ler otomatik olarak çalışacaktır.
-                    Kullanıcılar istedikleri subdomain'i seçerek mail adresi oluşturabilir.
+                    <strong>{t('admin.ui.dnsModal.wildcardNote')}</strong> <span className="font-mono">*.{docsDomain.domain}</span> {t('admin.ui.dnsModal.wildcardNoteBody')}
                   </p>
                 </div>
                 <div className="mt-4 flex justify-end">
@@ -2316,11 +2327,11 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                         `TXT | * | v=spf1 ip4:${ip} ~all | Automatic`,
                         `MX | * | mail.${docsDomain.domain}. | Priority 10 | Automatic`,
                       ].join('\n');
-                      copyText(lines, 'Wildcard Subdomain DNS kayıtları kopyalandı');
+                      copyText(lines, t('admin.ui.dnsModal.wildcardCopied'));
                     }}
                     className="btn-primary text-xs px-4 py-2"
                   >
-                    <Copy size={12} /> Tümünü Kopyala
+                    <Copy size={12} /> {t('admin.ui.dnsModal.copyAll')}
                   </button>
                 </div>
               </div>
@@ -2330,23 +2341,23 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               <div className="rounded-2xl border border-accent-blue/20 bg-accent-blue/10 p-4 text-sm text-txt-secondary">
                 <div className="flex items-center gap-2 text-accent-blue">
                   <Globe size={16} />
-                  <p className="text-xs uppercase tracking-[0.22em]">Nasıl Kullanılır?</p>
+                  <p className="text-xs uppercase tracking-[0.22em]">{t('admin.ui.dnsModal.howToTitle')}</p>
                 </div>
-                <p className="mt-2 leading-relaxed">Alan adınızın DNS paneline gidin ve yukarıdaki kayıtları eksiksiz şekilde ekleyin.</p>
+                <p className="mt-2 leading-relaxed">{t('admin.ui.dnsModal.howToBody')}</p>
               </div>
-              <div className="rounded-2xl border border-accent-cyan/20 bg-cyan-400/10 p-4 text-sm text-txt-secondary">
-                <div className="flex items-center gap-2 text-cyan-300">
+              <div className="rounded-2xl border border-accent-cyan/20 bg-accent-cyan/10 p-4 text-sm text-txt-secondary">
+                <div className="flex items-center gap-2 text-accent-cyan">
                   <CalendarRange size={16} />
-                  <p className="text-xs uppercase tracking-[0.22em]">Yayılma Süresi</p>
+                  <p className="text-xs uppercase tracking-[0.22em]">{t('admin.ui.dnsModal.propagationTitle')}</p>
                 </div>
-                <p className="mt-2 leading-relaxed">DNS değişiklikleri genellikle 5-60 dakika içinde yayılır.</p>
+                <p className="mt-2 leading-relaxed">{t('admin.ui.dnsModal.propagationBody')}</p>
               </div>
               <div className="rounded-2xl border border-accent-green/20 bg-accent-green/10 p-4 text-sm text-txt-secondary">
                 <div className="flex items-center gap-2 text-accent-green">
                   <CheckCircle2 size={16} />
-                  <p className="text-xs uppercase tracking-[0.22em]">Doğrulama</p>
+                  <p className="text-xs uppercase tracking-[0.22em]">{t('admin.ui.dnsModal.verifyTitle')}</p>
                 </div>
-                <p className="mt-2 leading-relaxed">Kayıtlar eklendikten sonra doğrulama işlemini yenileyebilirsiniz.</p>
+                <p className="mt-2 leading-relaxed">{t('admin.ui.dnsModal.verifyBody')}</p>
               </div>
             </div>
 
@@ -2358,14 +2369,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                 }}
                 className="btn-secondary w-full sm:w-auto"
               >
-                Kapat
+                {t('admin.ui.dnsModal.close')}
               </button>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <button onClick={refreshDocsDomain} disabled={docsRefreshing} className="btn-secondary w-full sm:w-auto">
-                  <RefreshCw size={14} className={docsRefreshing ? 'animate-spin' : ''} /> Doğrulamayı Yenile
+                  <RefreshCw size={14} className={docsRefreshing ? 'animate-spin' : ''} /> {t('admin.ui.dnsModal.refreshVerify')}
                 </button>
                 <button onClick={() => copyDomainDocs(docsDomain)} className="btn-primary w-full sm:w-auto">
-                  <Copy size={14} /> Tüm Değerleri Kopyala
+                  <Copy size={14} /> {t('admin.ui.dnsModal.copyAllValues')}
                 </button>
               </div>
             </div>
@@ -2380,8 +2391,8 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           setEditDomainIp('');
           setEditDomainWildcard(false);
         }}
-        title={editingDomain ? `${editingDomain.domain} Domain Düzenle` : 'Domain Düzenle'}
-        subtitle="IP adresini güncelleyin. Sistem A, MX ve TXT değerlerini otomatik yeniden üretir."
+        title={editingDomain ? t('admin.ui.editDomain.title', { domain: editingDomain.domain }) : t('admin.ui.editDomain.titleFallback')}
+        subtitle={t('admin.ui.editDomain.subtitle')}
         footer={
           <>
             <button
@@ -2392,10 +2403,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               }}
               className="btn-secondary"
             >
-              Kapat
+              {t('admin.ui.editDomain.close')}
             </button>
             <button onClick={saveDomainEditor} disabled={loading} className="btn-primary">
-              <Pencil size={12} /> Kaydet
+              <Pencil size={12} /> {t('admin.ui.editDomain.save')}
             </button>
           </>
         }
@@ -2403,11 +2414,11 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         {editingDomain ? (
           <div className="space-y-4">
             <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 p-4">
-              <p className="text-sm text-txt-secondary">Domain</p>
+              <p className="text-sm text-txt-secondary">{t('admin.ui.editDomain.domain')}</p>
               <p className="text-base font-semibold text-txt-primary mt-2 break-all">{editingDomain.domain}</p>
             </div>
             <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 p-4">
-              <p className="text-sm text-txt-secondary">Sunucu IP</p>
+              <p className="text-sm text-txt-secondary">{t('admin.ui.editDomain.serverIp')}</p>
               <div className="mt-2 flex gap-2">
                 <input
                   value={editDomainIp}
@@ -2421,14 +2432,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   onClick={() => navigator.clipboard.writeText(editDomainIp || '')}
                   className="btn-secondary shrink-0"
                 >
-                  <Copy size={12} /> Kopyala
+                  <Copy size={12} /> {t('admin.ui.editDomain.copy')}
                 </button>
               </div>
             </div>
             <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 p-4">
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className={`relative w-10 h-5 rounded-full transition-colors ${editDomainWildcard ? 'bg-accent-cyan' : 'bg-brand-surface2/70'}`}>
-                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${editDomainWildcard ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                <div className={`relative w-10 h-5 rounded-full transition-colors ${editDomainWildcard ? 'bg-[rgb(var(--brand))]' : 'bg-brand-surface2/70'}`}>
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-[rgb(var(--on-brand))] shadow transition-transform ${editDomainWildcard ? 'translate-x-5' : 'translate-x-0.5'}`} />
                 </div>
                 <input
                   type="checkbox"
@@ -2437,14 +2448,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   className="sr-only"
                 />
                 <div>
-                  <p className="text-sm font-medium text-txt-primary">Wildcard Subdomain Desteği</p>
-                  <p className="text-[11px] text-txt-muted mt-1">Aktif edilirse *.domain.com şeklinde alt domainler oluşturulabilir</p>
+                  <p className="text-sm font-medium text-txt-primary">{t('admin.ui.editDomain.wildcardTitle')}</p>
+                  <p className="text-[11px] text-txt-muted mt-1">{t('admin.ui.editDomain.wildcardHint')}</p>
                 </div>
               </label>
             </div>
             <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/30 p-4 text-sm text-txt-secondary space-y-2">
-              <p><strong className="text-txt-primary">Not:</strong> Sadece rakam ve nokta kabul edilir.</p>
-              <p><strong className="text-txt-primary">Örnek:</strong> 123.45.67.89</p>
+              <p><strong className="text-txt-primary">{t('admin.ui.editDomain.noteLabel')}</strong> {t('admin.ui.editDomain.noteBody')}</p>
+              <p><strong className="text-txt-primary">{t('admin.ui.editDomain.exampleLabel')}</strong> {t('admin.ui.editDomain.exampleBody')}</p>
             </div>
           </div>
         ) : null}

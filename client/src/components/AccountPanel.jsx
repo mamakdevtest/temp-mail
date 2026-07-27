@@ -317,7 +317,7 @@ const AccountPanel = forwardRef(function AccountPanel({
   const requestEmailChange = async () => {
     const nextEmail = emailDraft.trim().toLowerCase();
     if (!nextEmail) {
-      flash('E-posta gerekli', 'error');
+      flash(t('account.flashEmailRequired'), 'error');
       return;
     }
     if (nextEmail === String(currentUser?.email || '').toLowerCase()) {
@@ -496,11 +496,11 @@ const AccountPanel = forwardRef(function AccountPanel({
   };
 
   const deleteAddress = async (addr) => {
-    if (!confirm(`"${addr.address}" silinsin mi?`)) return;
+    if (!confirm(t('account.confirmDeleteAddress', { address: addr.address }))) return;
     setSaving(true);
     try {
       await request(`/auth/addresses/${addr.id}`, { method: 'DELETE', json: false });
-      flash('Adres silindi');
+      flash(t('account.flashAddressDeleted'));
       await loadCenter();
     } catch (e) {
       flash(e.message, 'error');
@@ -574,7 +574,7 @@ const AccountPanel = forwardRef(function AccountPanel({
                 <span className="badge-blue">{planName}</span>
               </div>
             </div>
-            <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3 animate-fade-in">
+            <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[var(--r-xl)] border border-brand-border/20 bg-brand-surface2/25 p-3 animate-fade-in">
               <div
                 className="relative h-24 w-24 rounded-full"
                 style={{
@@ -722,7 +722,7 @@ const AccountPanel = forwardRef(function AccountPanel({
               <span className="badge-green">{t('account.active')}</span>
             </div>
           </div>
-          <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3 animate-fade-in">
+          <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[var(--r-xl)] border border-brand-border/20 bg-brand-surface2/25 p-3 animate-fade-in">
             <div
               className="relative h-24 w-24 rounded-full"
               style={{

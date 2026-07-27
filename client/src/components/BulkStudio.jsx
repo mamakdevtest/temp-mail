@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Boxes, CheckCircle2, Clipboard, Download, Inbox, Plus, ShieldAlert, Sparkles } from 'lucide-react';
+import { Boxes, CheckCircle2, Clipboard, Download, Inbox, Plus, ShieldAlert } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
+import { PageHeader, Card, Field, Input, Select, Button, IconButton, EmptyState, ErrorState, StatCard } from './ui';
 import { ListSkeleton } from './Skeleton';
 
 const COUNTS = [5, 10, 25, 50, 100];
@@ -79,36 +80,118 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
   };
 
   if (!canUseBulk) {
-    return <section className="ops-page ops-empty"><ShieldAlert size={30} /><h1>{t('bulk.accessDeniedTitle')}</h1><p>{t('bulk.accessDeniedBody')}</p></section>;
+    return (
+      <section className="max-w-2xl mx-auto py-10">
+        <EmptyState icon={ShieldAlert} title={t('bulk.accessDeniedTitle')} description={t('bulk.accessDeniedBody')} />
+      </section>
+    );
   }
 
   return (
-    <section className="ops-page bulk-studio">
-      <header className="ops-page-header">
-        <div><p className="ops-eyebrow"><Boxes size={14} /> BULK STUDIO</p><h1>{t('bulk.title')}</h1><p>{t('bulk.subtitle')}</p></div>
-        <div className="ops-stat"><span>{t('bulk.plan')}</span><strong>{isAdmin ? t('bulk.adminOverride') : pkg?.display_name || 'Pro'}</strong></div>
-      </header>
+    <section className="space-y-6">
+      <PageHeader
+        eyebrow={t('bulk.eyebrow')}
+        icon={Boxes}
+        title={t('bulk.title')}
+        subtitle={t('bulk.subtitle')}
+        actions={<StatCard label={t('bulk.plan')} value={isAdmin ? t('bulk.adminOverride') : (pkg?.display_name || 'Pro')} tone={isAdmin ? 'pro' : 'brand'} />}
+      />
 
-      <div className="bulk-layout">
-        <article className="ops-card bulk-builder">
-          <div className="ops-card-heading"><div><span className="ops-step">01</span><h2>{t('bulk.newSeries')}</h2></div><Sparkles size={18} /></div>
-          <label className="ops-field"><span>Prefix</span><input className="input font-mono" value={prefix} onChange={(event) => setPrefix(event.target.value)} placeholder="ornek" autoComplete="off" /><small>{t('bulk.startWith', { address: previewStart })}</small></label>
-          <label className="ops-field"><span>Domain</span><select className="input" value={domain} onChange={(event) => setDomain(event.target.value)}>{activeDomains.map((item) => <option key={item.id || item.domain} value={item.domain}>{item.domain}</option>)}</select></label>
-          <div className="ops-field"><span>{t('bulk.howMany')}</span><div className="bulk-counts">{COUNTS.map((value) => <button key={value} className={count === value ? 'is-active' : ''} onClick={() => setCount(value)}>{value}</button>)}</div><input className="input mt-3" type="number" min="1" max="100" value={count} onChange={(event) => setCount(Math.min(100, Math.max(1, Number(event.target.value) || 1)))} /></div>
-          <button className="btn-primary w-full mt-6" onClick={createPool} disabled={loading}>{loading ? t('bulk.preparing') : <><Plus size={16} /> {t('bulk.createAddresses')}</>}</button>
-          {error && <p className="ops-error">{error}</p>}
-        </article>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="section-title text-[rgb(var(--brand))]">01</span>
+            <h2 className="t-card-title text-txt-primary">{t('bulk.newSeries')}</h2>
+          </div>
+          <Field label={t('bulk.prefixLabel')} hint={t('bulk.startWith', { address: previewStart })}>
+            <Input className="font-mono" value={prefix} onChange={(event) => setPrefix(event.target.value)} placeholder={t('bulk.prefixPlaceholder')} autoComplete="off" />
+          </Field>
+          <Field label={t('bulk.domainLabel')}>
+            <Select value={domain} onChange={(event) => setDomain(event.target.value)}>
+              {activeDomains.map((item) => <option key={item.id || item.domain} value={item.domain}>{item.domain}</option>)}
+            </Select>
+          </Field>
+          <Field label={t('bulk.howMany')}>
+            <div className="flex flex-wrap gap-1.5">
+              {COUNTS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setCount(value)}
+                  className={`px-3 py-1.5 rounded-[var(--r-md)] text-sm font-medium tabular-nums border transition-colors ${count === value ? 'border-[rgb(var(--brand))] bg-[rgb(var(--brand)/0.1)] text-[rgb(var(--brand))]' : 'border-brand-border text-txt-secondary hover:bg-brand-surface2'}`}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <Input className="mt-2" type="number" min="1" max="100" value={count} onChange={(event) => setCount(Math.min(100, Math.max(1, Number(event.target.value) || 1)))} />
+          </Field>
+          <Button variant="primary" className="w-full" onClick={createPool} loading={loading} icon={loading ? undefined : Plus}>
+            {loading ? t('bulk.preparing') : t('bulk.createAddresses')}
+          </Button>
+          {error && <ErrorState message={error} />}
+        </Card>
 
-        <aside className="ops-card bulk-preview">
-          <div className="ops-card-heading"><div><span className="ops-step">02</span><h2>{t('bulk.livePreview')}</h2></div></div>
-          <div className="bulk-address-preview"><span>{t('bulk.firstAddress')}</span><code>{previewStart}</code><span>{t('bulk.lastAddress')}</span><code>{previewEnd}</code></div>
-          <p className="ops-note">{matchedPool ? t('bulk.continueFromIndex', { index: matchedPool.next_index }) : t('bulk.newPoolWillCreate')}</p>
-          {result && <div className="bulk-success"><CheckCircle2 size={20} /><div><strong>{t('bulk.addressesReady', { count: result.addresses?.length || 0 })}</strong><p>{result.pool?.prefix}_* @{result.pool?.domain}</p></div><button className="icon-button" title={t('bulk.copyAll')} onClick={() => navigator.clipboard.writeText((result.addresses || []).join('\n'))}><Clipboard size={16} /></button><button className="icon-button" title={t('bulk.downloadTxt')} onClick={() => downloadAddresses(result.addresses || [], result.pool?.prefix)}><Download size={16} /></button></div>}
-        </aside>
+        <Card as="aside" className="space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="section-title text-[rgb(var(--brand))]">02</span>
+            <h2 className="t-card-title text-txt-primary">{t('bulk.livePreview')}</h2>
+          </div>
+          <div className="space-y-2">
+            <div className="rounded-[var(--r-md)] border border-brand-border bg-brand-surface2 p-3">
+              <p className="section-title">{t('bulk.firstAddress')}</p>
+              <code className="t-mono text-txt-primary break-all">{previewStart}</code>
+            </div>
+            <div className="rounded-[var(--r-md)] border border-brand-border bg-brand-surface2 p-3">
+              <p className="section-title">{t('bulk.lastAddress')}</p>
+              <code className="t-mono text-txt-primary break-all">{previewEnd}</code>
+            </div>
+          </div>
+          <p className="t-body-sm text-txt-muted">{matchedPool ? t('bulk.continueFromIndex', { index: matchedPool.next_index }) : t('bulk.newPoolWillCreate', { count })}</p>
+          {result && (
+            <div className="flex items-center gap-3 rounded-[var(--r-lg)] border border-[rgb(var(--success)/0.25)] bg-[rgb(var(--success)/0.08)] p-3">
+              <CheckCircle2 size={20} className="text-[rgb(var(--success-fg))] shrink-0" />
+              <div className="min-w-0 flex-1">
+                <strong className="block text-sm text-txt-primary">{t('bulk.addressesReady', { count: result.addresses?.length || 0 })}</strong>
+                <p className="t-mono text-txt-muted truncate">{t('bulk.successTarget', { prefix: result.pool?.prefix, domain: result.pool?.domain })}</p>
+              </div>
+              <IconButton icon={Clipboard} label={t('bulk.copyAll')} onClick={() => navigator.clipboard.writeText((result.addresses || []).join('\n'))} />
+              <IconButton icon={Download} label={t('bulk.downloadTxt')} onClick={() => downloadAddresses(result.addresses || [], result.pool?.prefix)} />
+            </div>
+          )}
+        </Card>
       </div>
 
-      <section className="ops-card bulk-pool-list"><div className="ops-card-heading"><div><span className="ops-step">03</span><h2>{t('bulk.yourPools')}</h2></div><span className="ops-muted">{t('bulk.activeRecords', { count: pools.length })}</span></div>
-        {poolsLoading ? <ListSkeleton rows={3} /> : pools.length ? <div className="bulk-pool-grid stagger-in">{pools.map((pool) => <article key={pool.id} className="bulk-pool-item"><div><code>{pool.prefix}_* @{pool.domain}</code><p>{t('bulk.poolMeta', { count: pool.address_count, index: pool.next_index })}</p></div><div className="bulk-pool-actions"><button className="btn-primary text-xs px-3 py-2" onClick={() => onOpenPool?.(pool)}><Inbox size={14} /> {t('bulk.openMails')}</button><button className="btn-secondary text-xs" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>{t('bulk.continue')}</button><button className="icon-button active:scale-95 transition-all" title={t('bulk.copy')} onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)}><Clipboard size={15} /></button></div></article>)}</div> : <div className="ops-empty-inline"><Boxes size={22} /><p>{t('bulk.noPools')}</p></div>}</section>
+      <Card className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="section-title text-[rgb(var(--brand))]">03</span>
+            <h2 className="t-card-title text-txt-primary">{t('bulk.yourPools')}</h2>
+          </div>
+          <span className="t-body-sm text-txt-muted">{t('bulk.activeRecords', { count: pools.length })}</span>
+        </div>
+        {poolsLoading ? (
+          <ListSkeleton rows={3} />
+        ) : pools.length ? (
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {pools.map((pool) => (
+              <article key={pool.id} className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2 p-3.5 flex flex-col gap-3">
+                <div className="min-w-0">
+                  <code className="t-mono text-txt-primary break-all">{pool.prefix}_* @{pool.domain}</code>
+                  <p className="t-body-sm text-txt-muted mt-1">{t('bulk.poolMeta', { count: pool.address_count, index: pool.next_index })}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="primary" size="sm" icon={Inbox} onClick={() => onOpenPool?.(pool)}>{t('bulk.openMails')}</Button>
+                  <Button variant="secondary" size="sm" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>{t('bulk.continue')}</Button>
+                  <IconButton icon={Clipboard} label={t('bulk.copy')} onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)} />
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <EmptyState icon={Boxes} title={t('bulk.noPools')} />
+        )}
+      </Card>
     </section>
   );
 }

@@ -1,12 +1,23 @@
 import { useMemo, useState } from 'react';
 import { BookOpen, Boxes, Check, ChevronRight, CircleHelp, Clipboard, Cloud, Copy, Globe2, KeyRound, Mail, Play, Search, Server, ShieldCheck, TerminalSquare, Workflow } from 'lucide-react';
 import { useLocale } from '../i18n';
+import { PageHeader, Card, Input, EmptyState } from './ui';
 
 function CodeBlock({ value }) {
   const { t } = useLocale();
   const [copied, setCopied] = useState(false);
   const copy = async () => { await navigator.clipboard.writeText(value); setCopied(true); window.setTimeout(() => setCopied(false), 1300); };
-  return <div className="docs-code"><div><TerminalSquare size={14} /><span>{t('docs.codeExample')}</span><button onClick={copy}>{copied ? <Check size={14} /> : <Copy size={14} />}{copied ? t('docs.codeCopied') : t('docs.codeCopy')}</button></div><pre>{value}</pre></div>;
+  return (
+    <div className="rounded-[var(--r-lg)] border border-brand-border overflow-hidden bg-brand-bg">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-brand-border/60 bg-brand-surface2">
+        <span className="inline-flex items-center gap-1.5 section-title"><TerminalSquare size={13} /> {t('docs.codeExample')}</span>
+        <button onClick={copy} className="inline-flex items-center gap-1.5 t-caption text-txt-muted hover:text-txt-primary transition-colors">
+          {copied ? <Check size={13} className="text-[rgb(var(--success-fg))]" /> : <Copy size={13} />}{copied ? t('docs.codeCopied') : t('docs.codeCopy')}
+        </button>
+      </div>
+      <pre className="p-4 overflow-x-auto text-[12.5px] leading-relaxed font-mono text-txt-secondary whitespace-pre">{value}</pre>
+    </div>
+  );
 }
 
 export default function DocumentationCenter() {
@@ -80,30 +91,84 @@ export default function DocumentationCenter() {
   }, [query, articles]);
   const Icon = active.icon;
 
-  return <section className="docs-center">
-    <header className="docs-hero">
-      <div className="docs-hero-mark"><BookOpen size={25} /><span>MS TEMP MAIL</span></div>
-      <div className="docs-hero-copy"><p>{t('docs.heroEyebrow')}</p><h1>{t('docs.heroTitle')}</h1><span>{t('docs.heroSubtitle')}</span></div>
-      <div className="docs-hero-signal"><ShieldCheck size={17} /><div><strong>{t('docs.heroSignal')}</strong><small>{t('docs.heroSignalSub')}</small></div></div>
-    </header>
+  const sidecards = [
+    { icon: Cloud, p: t('docs.sideDeployTitle'), strong: t('docs.sideDeployStrong'), body: t('docs.sideDeployBody') },
+    { icon: Workflow, p: t('docs.sideAutomationTitle'), strong: t('docs.sideAutomationStrong'), body: t('docs.sideAutomationBody') },
+    { icon: Globe2, p: t('docs.sideDomainTitle'), strong: t('docs.sideDomainStrong'), body: t('docs.sideDomainBody') },
+  ];
 
-    <div className="docs-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('docs.searchPlaceholder')} /><kbd>⌘ K</kbd></div>
+  return (
+    <section className="space-y-6">
+      <PageHeader eyebrow={t('docs.heroEyebrow')} icon={BookOpen} title={t('docs.heroTitle')} subtitle={t('docs.heroSubtitle')} actions={(
+        <span className="inline-flex items-center gap-2 badge-green"><ShieldCheck size={13} /> {t('docs.heroSignal')}</span>
+      )} />
 
-    <div className="docs-layout">
-      <aside className="docs-library stagger-in" aria-label={t('docs.libraryAria')}>
-        <p>{t('docs.topics')}</p>
-        {visibleArticles.map((article) => { const ArticleIcon = article.icon; return <button key={article.id} onClick={() => setActiveId(article.id)} className={`${active.id === article.id ? 'is-active' : ''} active:scale-[0.98] transition-all`}><ArticleIcon size={17} /><span><small>{article.category}</small><strong>{article.title}</strong></span><ChevronRight size={15} /></button>; })}
-        {!visibleArticles.length && <div className="docs-no-result"><CircleHelp size={18} />{t('docs.noResult')}</div>}
-      </aside>
+      <div className="relative">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
+        <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('docs.searchPlaceholder')} className="pl-9" />
+      </div>
 
-      <article className="docs-reader">
-        <div className="docs-reader-lead"><div className="docs-reader-icon"><Icon size={23} /></div><div><p>{active.category}</p><h2>{active.title}</h2><span>{active.description}</span></div></div>
-        <ol className="docs-steps">{active.steps.map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, '0')}</span><div><h3>{title}</h3><p>{text}</p></div></li>)}</ol>
-        <CodeBlock value={active.code} />
-        <div className="docs-note"><Clipboard size={17} /><p><strong>{t('docs.noteLabel')}</strong>{active.note}</p></div>
-      </article>
+      <div className="grid gap-6 lg:grid-cols-[minmax(220px,1fr)_2fr] xl:grid-cols-[minmax(240px,1fr)_2.4fr_minmax(200px,1fr)]">
+        {/* Library */}
+        <aside className="space-y-1 stagger-in" aria-label={t('docs.libraryAria')}>
+          <p className="section-title px-1 pb-1">{t('docs.topics')}</p>
+          {visibleArticles.map((article) => {
+            const ArticleIcon = article.icon;
+            const isActive = active.id === article.id;
+            return (
+              <button key={article.id} onClick={() => setActiveId(article.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-left transition-colors border ${isActive ? 'bg-[rgb(var(--brand)/0.1)] border-[rgb(var(--brand)/0.3)]' : 'border-transparent hover:bg-brand-surface2'}`}>
+                <ArticleIcon size={16} className={isActive ? 'text-[rgb(var(--brand))]' : 'text-txt-muted'} />
+                <span className="flex-1 min-w-0">
+                  <span className="block section-title">{article.category}</span>
+                  <span className="block text-sm font-medium text-txt-primary truncate">{article.title}</span>
+                </span>
+                <ChevronRight size={14} className="text-txt-disabled shrink-0" />
+              </button>
+            );
+          })}
+          {!visibleArticles.length && <EmptyState icon={CircleHelp} title={t('docs.noResult')} />}
+        </aside>
 
-      <aside className="docs-sidecards stagger-in"><div><Cloud size={18} /><p>{t('docs.sideDeployTitle')}</p><strong>{t('docs.sideDeployStrong')}</strong><span>{t('docs.sideDeployBody')}</span></div><div><Workflow size={18} /><p>{t('docs.sideAutomationTitle')}</p><strong>{t('docs.sideAutomationStrong')}</strong><span>{t('docs.sideAutomationBody')}</span></div><div><Globe2 size={18} /><p>{t('docs.sideDomainTitle')}</p><strong>{t('docs.sideDomainStrong')}</strong><span>{t('docs.sideDomainBody')}</span></div></aside>
-    </div>
-  </section>;
+        {/* Reader */}
+        <Card as="article" className="space-y-5">
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 rounded-[var(--r-lg)] bg-[rgb(var(--brand)/0.12)] flex items-center justify-center shrink-0"><Icon size={21} className="text-[rgb(var(--brand))]" /></div>
+            <div className="min-w-0">
+              <p className="section-title">{active.category}</p>
+              <h2 className="t-title text-txt-primary mt-0.5">{active.title}</h2>
+              <p className="t-body-sm text-txt-muted mt-1">{active.description}</p>
+            </div>
+          </div>
+          <ol className="space-y-3">
+            {active.steps.map(([title, text], index) => (
+              <li key={title} className="flex gap-3">
+                <span className="w-7 h-7 rounded-[var(--r-md)] bg-brand-surface2 border border-brand-border flex items-center justify-center shrink-0 text-[11px] font-semibold font-mono text-txt-muted">{String(index + 1).padStart(2, '0')}</span>
+                <div className="min-w-0 pt-0.5">
+                  <h3 className="text-sm font-semibold text-txt-primary">{title}</h3>
+                  <p className="t-body-sm text-txt-secondary mt-0.5">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <CodeBlock value={active.code} />
+          <div className="flex items-start gap-2.5 rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2 p-3.5">
+            <Clipboard size={16} className="text-txt-muted shrink-0 mt-0.5" />
+            <p className="t-body-sm text-txt-secondary"><strong className="text-txt-primary">{t('docs.noteLabel')}</strong> {active.note}</p>
+          </div>
+        </Card>
+
+        {/* Sidecards */}
+        <aside className="space-y-3 stagger-in hidden xl:block">
+          {sidecards.map((c) => (
+            <Card key={c.p} className="p-4">
+              <c.icon size={17} className="text-[rgb(var(--brand))]" />
+              <p className="section-title mt-2">{c.p}</p>
+              <p className="text-sm font-semibold text-txt-primary mt-1">{c.strong}</p>
+              <p className="t-body-sm text-txt-muted mt-1">{c.body}</p>
+            </Card>
+          ))}
+        </aside>
+      </div>
+    </section>
+  );
 }

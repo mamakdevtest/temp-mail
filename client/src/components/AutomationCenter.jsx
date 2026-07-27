@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { BellRing, KeyRound, Plus, Power, Trash2, Webhook } from 'lucide-react';
+import { BellRing, KeyRound, Plus, Power, Trash2, Webhook, Copy } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
 import { ListSkeleton } from './Skeleton';
+import { PageHeader, Card, Field, Input, Checkbox, Button, IconButton, EmptyState } from './ui';
 
 const EVENT_OPTIONS = ['email.received', 'otp.detected', 'address.expiring', 'bulk.completed'];
 const SCOPE_OPTIONS = ['addresses:read', 'addresses:write', 'emails:read', 'emails:delete', 'bulk:write', 'webhooks:manage'];
@@ -54,10 +55,101 @@ export default function AutomationCenter({ token, isAdmin = false }) {
   const toggleKey = async (key) => { await apiFetch(`/api/automation/api-keys/${key.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !key.is_active }) }); await load(); };
   const toggleHook = async (hook) => { await apiFetch(`/api/automation/webhooks/${hook.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !hook.is_active }) }); await load(); };
 
-  return <section className="ops-page automation-page"><header className="ops-page-header"><div><p className="ops-eyebrow"><BellRing size={14} /> AUTOMATION CENTER</p><h1>{t('automation.title')}</h1><p>{t('automation.subtitle')}</p></div></header>
-    {secret && <div className="ops-secret"><strong>{t('automation.newSecret')}</strong><code>{secret}</code><button className="btn-secondary" onClick={() => navigator.clipboard.writeText(secret)}>{t('automation.copy')}</button></div>}
-    {message && <p className="ops-error">{message}</p>}
-    <div className="automation-grid"><article className="ops-card"><div className="ops-card-heading"><div><span className="ops-step">API</span><h2>{t('automation.apiKey')}</h2></div><KeyRound size={18} /></div><label className="ops-field"><span>{t('automation.name')}</span><input className="input" value={keyName} onChange={(event) => setKeyName(event.target.value)} placeholder="CUSTOM_TEMPMAIL_TOKEN" /></label><label className="ops-field"><span>{t('automation.rateLimit')}</span><input className="input" type="number" min="10" max={isAdmin ? 10000 : 1000} value={keyRateLimit} onChange={(event) => setKeyRateLimit(event.target.value)} /></label>{isAdmin && <label className="choice-grid mb-4"><span><input type="checkbox" checked={masterKey} onChange={(event) => setMasterKey(event.target.checked)} /> {t('automation.masterKey')}</span></label>}<div className="ops-field"><span>{t('automation.scopes')}</span><div className="choice-grid">{SCOPE_OPTIONS.map((scope) => <label key={scope}><input type="checkbox" checked={masterKey || keyScopes.includes(scope)} disabled={masterKey} onChange={() => toggle(keyScopes, setKeyScopes, scope)} />{scope}</label>)}</div></div><button className="btn-primary w-full" onClick={createKey}><Plus size={16} /> {t('automation.createKey')}</button>{listLoading ? <ListSkeleton rows={3} /> : <div className="automation-list stagger-in">{keys.map((key) => <article key={key.id}><div><strong>{key.name} {key.key_type === 'master' ? '· MASTER' : ''}</strong><code>{key.key_prefix}••••</code><small>{key.is_active ? t('automation.active') : t('automation.inactive')} · {key.rate_limit_per_minute}/dk · {t('automation.usageCount', { count: key.usage_count || 0 })}</small><small>{key.last_used_at ? t('automation.lastUsed', { date: new Date(key.last_used_at).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR') }) : t('automation.neverUsed')}</small></div><div className="bulk-pool-actions"><button className="icon-button active:scale-95 transition-all" title={key.is_active ? t('automation.deactivate') : t('automation.activate')} onClick={() => toggleKey(key)}><Power size={15} className={key.is_active ? 'text-accent-green' : ''} /></button><button className="icon-button active:scale-95 transition-all" title={t('automation.revoke')} onClick={() => revoke(key.id)}><Trash2 size={15} /></button></div></article>)}</div>}</article>
-      <article className="ops-card"><div className="ops-card-heading"><div><span className="ops-step">WEBHOOK</span><h2>{t('automation.webhookTarget')}</h2></div><Webhook size={18} /></div><label className="ops-field"><span>{t('automation.name')}</span><input className="input" value={hookName} onChange={(event) => setHookName(event.target.value)} placeholder="Production events" /></label><label className="ops-field"><span>HTTPS URL</span><input className="input font-mono" value={hookUrl} onChange={(event) => setHookUrl(event.target.value)} placeholder="https://example.com/hooks/mail" /></label><div className="ops-field"><span>{t('automation.events')}</span><div className="choice-grid">{EVENT_OPTIONS.map((eventName) => <label key={eventName}><input type="checkbox" checked={hookEvents.includes(eventName)} onChange={() => toggle(hookEvents, setHookEvents, eventName)} />{eventName}</label>)}</div></div><button className="btn-primary w-full" onClick={createHook}><Plus size={16} /> {t('automation.addWebhook')}</button>{listLoading ? <ListSkeleton rows={3} /> : <div className="automation-list stagger-in">{hooks.map((hook) => <article key={hook.id}><div><strong>{hook.name}</strong><code>{hook.url}</code><small>{hook.events.join(', ')}</small></div><button className="icon-button active:scale-95 transition-all" title={hook.is_active ? t('automation.stop') : t('automation.start')} onClick={() => toggleHook(hook)}><Power size={15} className={hook.is_active ? 'text-accent-green' : ''} /></button></article>)}</div>}</article></div>
-  </section>;
+  return (
+    <section className="space-y-6">
+      <PageHeader eyebrow={t('automation.eyebrow') || 'AUTOMATION'} icon={BellRing} title={t('automation.title')} subtitle={t('automation.subtitle')} />
+
+      {secret && (
+        <Card className="border-[rgb(var(--success)/0.4)] bg-[rgb(var(--success)/0.08)]">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <p className="section-title text-[rgb(var(--success-fg))]">{t('automation.newSecret')}</p>
+              <code className="t-mono text-txt-primary break-all">{secret}</code>
+            </div>
+            <Button variant="secondary" onClick={() => navigator.clipboard.writeText(secret)}><Copy size={14} /> {t('automation.copy')}</Button>
+          </div>
+        </Card>
+      )}
+      {message && <p className="t-body-sm text-[rgb(var(--danger-fg))]">{message}</p>}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* API keys */}
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2"><KeyRound size={16} className="text-[rgb(var(--brand))]" /><h2 className="t-card-title text-txt-primary">{t('automation.apiKey')}</h2></div>
+          </div>
+          <div className="space-y-3">
+            <Field label={t('automation.name')}><Input value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="CUSTOM_TEMPMAIL_TOKEN" /></Field>
+            <Field label={t('automation.rateLimit')}><Input type="number" min="10" max={isAdmin ? 10000 : 1000} value={keyRateLimit} onChange={(e) => setKeyRateLimit(e.target.value)} /></Field>
+            {isAdmin && <Checkbox checked={masterKey} onChange={(e) => setMasterKey(e.target.checked)} label={t('automation.masterKey')} />}
+            <div>
+              <p className="section-title mb-2">{t('automation.scopes')}</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                {SCOPE_OPTIONS.map((scope) => <Checkbox key={scope} checked={masterKey || keyScopes.includes(scope)} onChange={() => toggle(keyScopes, setKeyScopes, scope)} label={<span className="t-mono">{scope}</span>} />)}
+              </div>
+            </div>
+            <Button variant="primary" className="w-full" onClick={createKey}><Plus size={15} /> {t('automation.createKey')}</Button>
+          </div>
+          <div className="mt-4">
+            {listLoading ? <ListSkeleton rows={3} /> : keys.length === 0 ? (
+              <EmptyState icon={KeyRound} title={t('automation.noKeys') || t('automation.apiKey')} />
+            ) : (
+              <div className="space-y-2 stagger-in">
+                {keys.map((key) => (
+                  <div key={key.id} className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface2 px-3 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-txt-primary truncate">{key.name} {key.key_type === 'master' && <span className="badge-gold text-[9px] px-1.5 py-0 ml-1">MASTER</span>}</p>
+                      <code className="t-mono text-txt-muted">{key.key_prefix}••••</code>
+                      <p className="t-caption text-txt-muted">{key.is_active ? t('automation.active') : t('automation.inactive')} · {key.rate_limit_per_minute}/dk · {t('automation.usageCount', { count: key.usage_count || 0 })}</p>
+                      <p className="t-caption text-txt-disabled">{key.last_used_at ? t('automation.lastUsed', { date: new Date(key.last_used_at).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR') }) : t('automation.neverUsed')}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <IconButton icon={Power} size={15} label={key.is_active ? t('automation.deactivate') : t('automation.activate')} onClick={() => toggleKey(key)} className={key.is_active ? '!text-[rgb(var(--success-fg))]' : ''} />
+                      <IconButton icon={Trash2} size={15} label={t('automation.revoke')} onClick={() => revoke(key.id)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Webhooks */}
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2"><Webhook size={16} className="text-[rgb(var(--brand))]" /><h2 className="t-card-title text-txt-primary">{t('automation.webhookTarget')}</h2></div>
+          </div>
+          <div className="space-y-3">
+            <Field label={t('automation.name')}><Input value={hookName} onChange={(e) => setHookName(e.target.value)} placeholder="Production events" /></Field>
+            <Field label="HTTPS URL"><Input className="font-mono" value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} placeholder="https://example.com/hooks/mail" /></Field>
+            <div>
+              <p className="section-title mb-2">{t('automation.events')}</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                {EVENT_OPTIONS.map((eventName) => <Checkbox key={eventName} checked={hookEvents.includes(eventName)} onChange={() => toggle(hookEvents, setHookEvents, eventName)} label={<span className="t-mono">{eventName}</span>} />)}
+              </div>
+            </div>
+            <Button variant="primary" className="w-full" onClick={createHook}><Plus size={15} /> {t('automation.addWebhook')}</Button>
+          </div>
+          <div className="mt-4">
+            {listLoading ? <ListSkeleton rows={3} /> : hooks.length === 0 ? (
+              <EmptyState icon={Webhook} title={t('automation.noHooks') || t('automation.webhookTarget')} />
+            ) : (
+              <div className="space-y-2 stagger-in">
+                {hooks.map((hook) => (
+                  <div key={hook.id} className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-brand-border bg-brand-surface2 px-3 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-txt-primary truncate">{hook.name}</p>
+                      <code className="t-mono text-txt-muted break-all">{hook.url}</code>
+                      <p className="t-caption text-txt-muted">{hook.events.join(', ')}</p>
+                    </div>
+                    <IconButton icon={Power} size={15} label={hook.is_active ? t('automation.stop') : t('automation.start')} onClick={() => toggleHook(hook)} className={hook.is_active ? '!text-[rgb(var(--success-fg))]' : ''} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+    </section>
+  );
 }
