@@ -29,3 +29,51 @@ export function EmailViewSkeleton() {
     </div>
   );
 }
+
+export function StatsSkeleton({ count = 4 }) {
+  return (
+    <div className={`grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-${Math.min(count, 5)} gap-4`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="card p-4 space-y-3">
+          <SkeletonLine width="45%" height={8} />
+          <SkeletonLine width="30%" height={22} />
+          <SkeletonLine width="60%" height={7} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TableSkeleton({ rows = 6, cols = 5 }) {
+  return (
+    <div className="p-4 space-y-3">
+      <div className="flex gap-4 pb-3 border-b border-brand-border/20">
+        {Array.from({ length: cols }).map((_, i) => <SkeletonLine key={i} width={`${70 / cols}%`} height={8} />)}
+      </div>
+      {Array.from({ length: rows }).map((_, r) => (
+        <div key={r} className="flex gap-4 items-center">
+          {Array.from({ length: cols }).map((_, c) => (
+            <SkeletonLine key={c} width={`${70 / cols}%`} height={c === 0 ? 12 : 8} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function ListSkeleton({ rows = 4 }) {
+  return (
+    <div className="p-4 space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-3 rounded-2xl border border-brand-border/15">
+          <SkeletonLine width={36} height={36} className="rounded-xl shrink-0" />
+          <div className="flex-1 space-y-2">
+            <SkeletonLine width={`${45 + Math.random() * 30}%`} height={9} />
+            <SkeletonLine width={`${25 + Math.random() * 30}%`} height={7} />
+          </div>
+          <SkeletonLine width={56} height={22} className="rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}

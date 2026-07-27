@@ -51,6 +51,8 @@ import {
   Boxes,
 } from 'lucide-react';
 import { AdminPanelCard, AdminStatCard, AdminEmptyState, AdminInfoRow, AdminToolbar } from './admin/AdminPrimitives';
+import { StatusPill, PageHero } from './ui';
+import { StatsSkeleton, TableSkeleton } from './Skeleton';
 import Modal from './Modal';
 import {
   formatAdminDate,
@@ -65,52 +67,15 @@ import { unwrapEnvelope } from '../utils/apiFetch';
 const CHART_COLORS = ['#3B82FF', '#27D59B', '#F5C84C', '#7A63FF', '#34D7FF'];
 const ADDRESS_PAGE_SIZE = 10;
 
-function StatusPill({ label, className }) {
-  return <span className={className}>{label}</span>;
-}
-
 function sanitizeIpInput(value) {
   return value.replace(/[^0-9.]/g, '');
-}
-
-function AdminHero({ title, subtitle, icon: Icon, actions, tabs, activeTab, onTabChange }) {
-  return (
-    <div className="admin-signal-card card relative overflow-hidden p-5 sm:p-7 bg-[radial-gradient(circle_at_top_left,rgba(91,141,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(76,210,235,0.12),transparent_28%)]">
-      <div className="flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-5">
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl border border-accent-cyan/20 bg-accent-cyan/10 flex items-center justify-center shadow-glow-cyan shrink-0">
-            <Icon size={30} className="text-accent-cyan" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-txt-muted">Kontrol merkezi</p>
-            <h2 className="mt-1 text-2xl sm:text-[2rem] font-semibold tracking-tight text-txt-primary">{title}</h2>
-            <p className="text-sm text-txt-secondary mt-1">{subtitle}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-3">{actions}</div>
-      </div>
-      <div className="flex flex-wrap gap-2 mt-6">
-        {tabs.map((item) => {
-          const IconNode = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onTabChange(item.id)}
-              className={activeTab === item.id ? 'nav-pill nav-pill-active' : 'nav-pill'}
-            >
-              <IconNode size={15} /> {item.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 export default function AdminPanel({ api, token, notificationSound = 'classic', notificationSounds = [], onNotificationSoundChange, onPreviewNotificationSound }) {
   const [pw, setPw] = useState(() => localStorage.getItem('tm-admin-pw') || '');
   const [auth, setAuth] = useState(Boolean(token));
   const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState({ addresses: false, emails: false, users: false, bulk: false });
   const [err, setErr] = useState('');
   const [ok, setOk] = useState('');
   const [tab, setTab] = useState('dashboard');
@@ -228,20 +193,35 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   }, [apiRequest]);
 
   const loadAddrs = useCallback(async () => {
-    const data = await apiRequest('/admin/addresses');
-    setAddrs(data.addresses || []);
+    setTableLoading((p) => ({ ...p, addresses: true }));
+    try {
+      const data = await apiRequest('/admin/addresses');
+      setAddrs(data.addresses || []);
+    } finally {
+      setTableLoading((p) => ({ ...p, addresses: false }));
+    }
   }, [apiRequest]);
 
   const loadEmails = useCallback(async (page = 1) => {
-    const data = await apiRequest(`/admin/emails?page=${page}&limit=50`);
-    setEmails(data.emails || []);
-    setEmailsTotal(data.total || 0);
-    setEmailsPage(data.page || page);
+    setTableLoading((p) => ({ ...p, emails: true }));
+    try {
+      const data = await apiRequest(`/admin/emails?page=${page}&limit=50`);
+      setEmails(data.emails || []);
+      setEmailsTotal(data.total || 0);
+      setEmailsPage(data.page || page);
+    } finally {
+      setTableLoading((p) => ({ ...p, emails: false }));
+    }
   }, [apiRequest]);
 
   const loadUsers = useCallback(async () => {
-    const data = await apiRequest('/admin/users');
-    setUsers(data.users || []);
+    setTableLoading((p) => ({ ...p, users: true }));
+    try {
+      const data = await apiRequest('/admin/users');
+      setUsers(data.users || []);
+    } finally {
+      setTableLoading((p) => ({ ...p, users: false }));
+    }
   }, [apiRequest]);
 
   const loadRequests = useCallback(async () => {
@@ -250,8 +230,13 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   }, [apiRequest]);
 
   const loadBulkPools = useCallback(async () => {
-    const data = await apiRequest('/admin/bulk-pools');
-    setBulkPools(data.pools || []);
+    setTableLoading((p) => ({ ...p, bulk: true }));
+    try {
+      const data = await apiRequest('/admin/bulk-pools');
+      setBulkPools(data.pools || []);
+    } finally {
+      setTableLoading((p) => ({ ...p, bulk: false }));
+    }
   }, [apiRequest]);
 
   const refreshAll = useCallback(async () => {
@@ -1204,7 +1189,8 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
   return (
     <div className="space-y-5">
-      <AdminHero
+      <PageHero
+        eyebrow="Kontrol merkezi"
         title="Admin Paneli"
         subtitle="MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları."
         icon={Settings2}
@@ -1428,6 +1414,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       {tab === 'addresses' && (
         <div className="space-y-5">
+          {tableLoading.addresses && addrs.length === 0 ? (
+            <><StatsSkeleton count={4} /><div className="card"><TableSkeleton rows={8} cols={6} /></div></>
+          ) : <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <AdminStatCard title="Toplam Adres" value={addrs.length} subtitle="Tüm mailbox kayıtları" icon={Users} tone="green" />
             <AdminStatCard title="Aktif Adres" value={activeAddressCount} subtitle="Son erişim veya mail var" icon={CheckCircle2} tone="green" />
@@ -1545,6 +1534,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               <AdminEmptyState title="Adres bulunamadı" subtitle="Arama ve filtreleri temizleyip tekrar deneyin." />
             )}
           </AdminPanelCard>
+          </>}
         </div>
       )}
 
@@ -1775,7 +1765,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
       {tab === 'emails' && (
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
           <AdminPanelCard title={`Tüm Mailler (${emailsTotal})`} icon={Mail} className="xl:col-span-8" action={<button onClick={() => loadEmails(1)} className="btn-ghost"><RefreshCw size={14} /></button>}>
-            {emails.length > 0 ? (
+            {tableLoading.emails && emails.length === 0 ? (
+              <TableSkeleton rows={10} cols={6} />
+            ) : emails.length > 0 ? (
               <>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[920px]">
@@ -1857,7 +1849,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       {tab === 'users' && (
         <AdminPanelCard title={`Kullanıcılar (${users.length})`} icon={Users} action={<button onClick={loadUsers} className="btn-ghost"><RefreshCw size={14} /></button>}>
-          {users.length > 0 ? (
+          {tableLoading.users && users.length === 0 ? (
+            <TableSkeleton rows={8} cols={7} />
+          ) : users.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[920px]">
                 <thead className="text-left text-txt-muted">
@@ -1952,7 +1946,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
               <input value={bulkQuery} onChange={(e) => setBulkQuery(e.target.value)} className="input w-full pl-10" placeholder="Kullanıcı, prefix veya domain ara" />
             </div>
-            {bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).length > 0 ? (
+            {tableLoading.bulk && bulkPools.length === 0 ? (
+              <TableSkeleton rows={6} cols={6} />
+            ) : bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).length > 0 ? (
               <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 font-medium">Sahip</th><th className="py-3 font-medium">Paket</th><th className="py-3 font-medium">Havuz</th><th className="py-3 font-medium">Adres</th><th className="py-3 font-medium">Son üretim</th><th className="py-3 font-medium">Yetki</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-accent-cyan">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">Açık</span> : <span className="badge-red">Kapalı</span>}</td></tr>)}</tbody></table></div>
             ) : <AdminEmptyState title="Bulk havuzu bulunamadı" subtitle="Yetki verdiğiniz Pro/Pro+ kullanıcılar burada havuz oluşturabilir." />}
           </AdminPanelCard>
