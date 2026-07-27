@@ -313,7 +313,7 @@ export default function App() {
         body: JSON.stringify(body),
       });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Adres oluşturulamadı');
+      if (!r.ok) throw new Error(d.error || t('errors.addressCreateFailed'));
       if (d.address_token) setAddressToken(d.address, d.address_token);
       setAddr(d);
       setEmails([]);
@@ -346,7 +346,7 @@ export default function App() {
         setLoading(false);
         return;
       }
-      if (!r.ok) throw new Error(d.error || 'İşlem başarısız');
+      if (!r.ok) throw new Error(d.error || t('errors.actionFailed'));
       if (d.address_token) setAddressToken(d.address, d.address_token);
       setAddr(d);
       setEmails(d.emails || []);
@@ -370,7 +370,7 @@ export default function App() {
       });
       const d = await r.json();
       if (!r.ok) {
-        setPwErr(d.error || 'Yanlış şifre');
+        setPwErr(d.error || t('errors.wrongPassword'));
         setLoading(false);
         return;
       }
@@ -572,7 +572,7 @@ export default function App() {
             <button onClick={() => navigate('domains')} className={`nav-pill ${page === 'domains' ? 'nav-pill-active' : ''}`}><Globe size={16} /> {t('app.domains')}</button>
             {!auth.isGuest && <button onClick={() => navigate('bulk')} className={`nav-pill ${page === 'bulk' ? 'nav-pill-active' : ''}`}><Boxes size={16} /> Bulk</button>}
             {!auth.isGuest && <button onClick={() => navigate('automation')} className={`nav-pill ${page === 'automation' ? 'nav-pill-active' : ''}`}><Workflow size={16} /> Otomasyon</button>}
-            <button onClick={() => navigate('docs')} className={`nav-pill ${page === 'docs' ? 'nav-pill-active' : ''}`}><BookOpen size={16} /> Dokümanlar</button>
+            <button onClick={() => navigate('docs')} className={`nav-pill ${page === 'docs' ? 'nav-pill-active' : ''}`}><BookOpen size={16} /> {t('app.docsRail')}</button>
             {auth.isAdmin && <button onClick={() => navigate('admin')} className={`nav-pill ${page === 'admin' ? 'nav-pill-active' : ''}`}><Shield size={16} /> {t('app.admin')}</button>}
           </div>
 
@@ -596,7 +596,7 @@ export default function App() {
                     <p className="text-sm font-semibold text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</p>
                     <p className="text-[11px] text-txt-secondary mt-1 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-accent-green" />
-                      {auth.isAdmin ? 'Admin Kullanıcı' : auth.isProPlus ? 'Pro+ Kullanıcı' : auth.isPro ? 'Pro Kullanıcı' : 'Free Kullanıcı'}
+                      {auth.isAdmin ? t('app.roleAdmin') : auth.isProPlus ? t('app.roleProPlus') : auth.isPro ? t('app.rolePro') : t('app.roleFree')}
                     </p>
                   </div>
                   <ChevronDown size={14} className="text-txt-muted" />
@@ -674,11 +674,11 @@ export default function App() {
           <div className="p-4 rounded-2xl bg-accent-purple/8 border border-accent-purple/15">
             <p className="text-xs font-semibold text-accent-purple mb-2">{t('app.proFeaturesTitle')}</p>
             <ul className="text-[11px] text-txt-muted space-y-1">
-              <li>• Sınırsız adres oluşturma</li>
-              <li>• 5000 mail saklama</li>
-              <li>• 365 gün saklama süresi</li>
-              <li>• Özel domain desteği</li>
-              <li>• Webhook entegrasyonu</li>
+              <li>• {t('app.proFeatureAddresses')}</li>
+              <li>• {t('app.proFeatureMailStorage')}</li>
+              <li>• {t('app.proFeatureRetention')}</li>
+              <li>• {t('app.proFeatureDomains')}</li>
+              <li>• {t('app.proFeatureWebhooks')}</li>
             </ul>
           </div>
           <div>
@@ -703,14 +703,14 @@ export default function App() {
       )}
 
       <div className="workspace-frame relative z-10 max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8">
-        <aside className="workspace-rail hidden lg:flex" aria-label="Çalışma alanı">
+        <aside className="workspace-rail hidden lg:flex" aria-label={t('app.workspaceAria')}>
           <button className={page === 'inbox' ? 'is-active' : ''} onClick={() => navigate('inbox')}><InboxIcon size={18} /><span>Inbox</span></button>
-          <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>Domainler</span></button>
+          <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>{t('app.domainsRail')}</span></button>
           {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk Studio</span></button>}
-          {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>Otomasyon</span></button>}
-          <button className={page === 'docs' ? 'is-active' : ''} onClick={() => navigate('docs')}><BookOpen size={18} /><span>Dokümanlar</span></button>
-          <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>Hesap</span></button>
-          {auth.isAdmin && <><div className="workspace-rail-divider" /><button className={page === 'admin' ? 'is-active' : ''} onClick={() => navigate('admin')}><PanelLeft size={18} /><span>Operasyonlar</span></button><button className={page === 'admin-bulk' ? 'is-active' : ''} onClick={() => navigate('admin-bulk')}><Shield size={18} /><span>Bulk yönetimi</span></button></>}
+          {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>{t('app.automationRail')}</span></button>}
+          <button className={page === 'docs' ? 'is-active' : ''} onClick={() => navigate('docs')}><BookOpen size={18} /><span>{t('app.docsRail')}</span></button>
+          <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>{t('app.accountRail')}</span></button>
+          {auth.isAdmin && <><div className="workspace-rail-divider" /><button className={page === 'admin' ? 'is-active' : ''} onClick={() => navigate('admin')}><PanelLeft size={18} /><span>{t('app.operationsRail')}</span></button><button className={page === 'admin-bulk' ? 'is-active' : ''} onClick={() => navigate('admin-bulk')}><Shield size={18} /><span>{t('app.bulkAdminRail')}</span></button></>}
         </aside>
         <main className="app-main workspace-main">
         {page === 'inbox' ? (
@@ -744,7 +744,7 @@ export default function App() {
               <Globe size={28} className="text-accent-cyan" />
             </div>
             <p className="text-xl font-semibold text-txt-primary">Aktif Domainler</p>
-            <p className="text-sm text-txt-muted mt-2">Şu anda kullanılabilir alan adları aşağıda listeleniyor.</p>
+            <p className="text-sm text-txt-muted mt-2">{t('app.domainsSubtitle')}</p>
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
               {domains.length > 0 ? domains.map((d) => (
                 <div key={d.id} className="panel-soft p-4 rounded-2xl text-left">
@@ -756,7 +756,7 @@ export default function App() {
                     </div>
                   )}
                 </div>
-              )) : <div className="text-sm text-txt-muted col-span-full">Henüz aktif domain yok.</div>}
+              )) : <div className="text-sm text-txt-muted col-span-full">{t('app.noActiveDomains')}</div>}
             </div>
           </div>
         ) : page === 'account' ? (
@@ -786,15 +786,15 @@ export default function App() {
             />
           </div>
         ) : page === 'bulk' ? (
-          <Suspense fallback={<div className="ops-loading">Bulk Studio hazırlanıyor…</div>}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} /></Suspense>
+          <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: 'Bulk Studio' })}</div>}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} /></Suspense>
         ) : page === 'automation' ? (
-          auth.isGuest ? <div className="ops-empty"><Workflow size={30} /><h1>Otomasyon için giriş yapın</h1><p>API anahtarlarını ve webhook’ları kayıtlı hesabınızdan yönetebilirsiniz.</p></div> : <Suspense fallback={<div className="ops-loading">Otomasyon hazırlanıyor…</div>}><AutomationCenter token={auth.token} isAdmin={auth.isAdmin} /></Suspense>
+          auth.isGuest ? <div className="ops-empty"><Workflow size={30} /><h1>{t('app.automationGuestTitle')}</h1><p>{t('app.automationGuestHint')}</p></div> : <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: t('app.automationRail') })}</div>}><AutomationCenter token={auth.token} isAdmin={auth.isAdmin} /></Suspense>
         ) : page === 'docs' ? (
-          <Suspense fallback={<div className="ops-loading">Dokümanlar hazırlanıyor…</div>}><DocumentationCenter /></Suspense>
+          <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: t('app.docsRail') })}</div>}><DocumentationCenter /></Suspense>
         ) : page === 'admin-bulk' && auth.isAdmin ? (
-          <Suspense fallback={<div className="ops-loading">Bulk yönetimi hazırlanıyor…</div>}><AdminBulkStudio token={auth.token} user={auth.user} domains={domains} /></Suspense>
+          <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: t('app.bulkAdminRail') })}</div>}><AdminBulkStudio token={auth.token} user={auth.user} domains={domains} /></Suspense>
         ) : auth.isAdmin ? (
-          <Suspense fallback={<div className="card p-10 text-center text-txt-muted">Admin paneli yükleniyor...</div>}>
+          <Suspense fallback={<div className="card p-10 text-center text-txt-muted">{t('app.preparing', { name: t('app.adminPanel') })}</div>}>
             <AdminPanel
               api={API}
               token={auth.token}
@@ -817,19 +817,19 @@ export default function App() {
         show={Boolean(bulkInboxPool)}
         onClose={() => setBulkInboxPool(null)}
         title={bulkInboxPool ? `${bulkInboxPool.prefix}_*@${bulkInboxPool.domain}` : ''}
-        subtitle="Bulk Inbox · Havuzdaki tüm mailbox'lara gelen mailler ve OTP kodları"
+        subtitle={t('bulkInbox.modalSubtitle')}
         size="full"
       >
-        {bulkInboxPool && <Suspense fallback={<div className="ops-loading">Bulk Inbox hazırlanıyor…</div>}><BulkInbox token={auth.token} pool={bulkInboxPool} /></Suspense>}
+        {bulkInboxPool && <Suspense fallback={<div className="ops-loading">{t('app.preparing', { name: 'Bulk Inbox' })}</div>}><BulkInbox token={auth.token} pool={bulkInboxPool} /></Suspense>}
       </Modal>
 
-      <nav className="mobile-workspace-nav lg:hidden" aria-label="Mobil menü">
+      <nav className="mobile-workspace-nav lg:hidden" aria-label={t('app.mobileNavAria')}>
         <button className={page === 'inbox' ? 'is-active' : ''} onClick={() => navigate('inbox')}><InboxIcon size={18} /><span>Inbox</span></button>
         <button className={page === 'domains' ? 'is-active' : ''} onClick={() => navigate('domains')}><Globe size={18} /><span>Domain</span></button>
         {!auth.isGuest && <button className={page === 'bulk' ? 'is-active' : ''} onClick={() => navigate('bulk')}><Boxes size={18} /><span>Bulk</span></button>}
-        {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>Akış</span></button>}
+        {!auth.isGuest && <button className={page === 'automation' ? 'is-active' : ''} onClick={() => navigate('automation')}><Workflow size={18} /><span>{t('app.automationRail')}</span></button>}
         <button className={page === 'docs' ? 'is-active' : ''} onClick={() => navigate('docs')}><BookOpen size={18} /><span>Docs</span></button>
-        <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>Hesap</span></button>
+        <button className={page === 'account' ? 'is-active' : ''} onClick={() => navigate('account')}><Settings size={18} /><span>{t('app.accountRail')}</span></button>
       </nav>
 
       <footer className="relative z-10 px-5 sm:px-8 pb-8 pt-5 text-center">

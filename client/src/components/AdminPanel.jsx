@@ -63,6 +63,7 @@ import {
   sortAddresses,
 } from './admin/adminUtils';
 import { unwrapEnvelope } from '../utils/apiFetch';
+import { useLocale } from '../i18n';
 
 const CHART_COLORS = ['#3B82FF', '#27D59B', '#F5C84C', '#7A63FF', '#34D7FF'];
 const ADDRESS_PAGE_SIZE = 10;
@@ -72,6 +73,7 @@ function sanitizeIpInput(value) {
 }
 
 export default function AdminPanel({ api, token, notificationSound = 'classic', notificationSounds = [], onNotificationSoundChange, onPreviewNotificationSound }) {
+  const { t } = useLocale();
   const [pw, setPw] = useState(() => localStorage.getItem('tm-admin-pw') || '');
   const [auth, setAuth] = useState(Boolean(token));
   const [loading, setLoading] = useState(false);
@@ -162,14 +164,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
     if (res.status === 401) {
       setAuth(false);
-      throw new Error('Admin yetkisi gerekiyor');
+      throw new Error(t('admin.errors.authRequired'));
     }
 
     if (!res.ok) {
       if (typeof data.message === 'string' && data.message.includes('Cannot ') && data.message.includes('/api/')) {
-        throw new Error('API endpoint bulunamadı. Backend sunucusunu yeniden başlatın.');
+        throw new Error(t('admin.errors.endpointMissing'));
       }
-      throw new Error(data.error || data.message || 'İşlem başarısız');
+      throw new Error(data.error || data.message || t('admin.errors.requestFailed'));
     }
 
     return data;
@@ -274,7 +276,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const openMailDetail = useCallback(async (id, scope = 'address') => {
     try {
       const res = await fetch(`${api}/emails/single/${id}`, { headers: getHeaders() });
-      if (!res.ok) throw new Error('Mail detayı alınamadı');
+      if (!res.ok) throw new Error(t('admin.errors.mailDetailFailed'));
       const mail = unwrapEnvelope(await res.json());
       if (scope === 'global') setSelectedGlobalMail(mail);
       else setSelectedAddressMail(mail);
@@ -292,7 +294,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
       if (data) {
         localStorage.setItem('tm-admin-pw', pw);
         setAuth(true);
-        flash('Admin girişi başarılı');
+        flash(t('admin.flash.loginSuccess'));
       }
     } catch (e2) {
       flash(e2.message, 'error');
@@ -329,7 +331,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
       setNewDom('');
       setNewDomWildcard(false);
       setShowDomainForm(false);
-      flash(`"${data.domain.domain}" eklendi${data.domain.wildcard_subdomains ? ' (subdomain destekli)' : ''}`);
+      flash(t('admin.flash.domainAdded', { domain: data.domain.domain }) + (data.domain.wildcard_subdomains ? t('admin.flash.domainAddedWildcard') : ''));
       await Promise.all([loadDomains(), loadStats()]);
     } catch (e2) {
       flash(e2.message, 'error');
@@ -341,7 +343,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const toggleDom = async (id, active, wildcard) => {
     try {
       await apiRequest(`/admin/domains/${id}`, { method: 'PUT', body: { is_active: !active, wildcard_subdomains: !!wildcard } });
-      flash(active ? 'Domain pasife alındı' : 'Domain aktifleştirildi');
+      flash(active ? t('admin.flash.domainDeactivated') : t('admin.flash.domainActivated'));
       await Promise.all([loadDomains(), loadStats()]);
     } catch (e) {
       flash(e.message, 'error');
@@ -349,10 +351,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   };
 
   const delDom = async (id, name) => {
-    if (!confirm(`"${name}" silinecek. Devam edilsin mi?`)) return;
+    if (!confirm(t('admin.confirm.deleteDomain', { name }))) return;
     try {
       await apiRequest(`/admin/domains/${id}`, { method: 'DELETE', withJson: false });
-      flash(`"${name}" silindi`);
+      flash(t('admin.flash.domainDeleted', { name }));
       await Promise.all([loadDomains(), loadStats()]);
     } catch (e) {
       flash(e.message, 'error');
@@ -394,7 +396,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         body: { subdomain: nextSubdomain },
       });
       setSubdomainDrafts((prev) => ({ ...prev, [domainId]: '' }));
-      flash(`"${data.full_domain}" subdomain eklendi`);
+      flash(t('admin.flash.subdomainAdded', { domain: data.full_domain }));
       await loadSubdomains(domainId);
     } catch (e) {
       flash(e.message, 'error');
@@ -405,10 +407,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   };
 
   const deleteSubdomain = async (domainId, subdomainId, subdomainName) => {
-    if (!confirm(`"${subdomainName}" subdomain'i silinecek. Devam edilsin mi?`)) return;
+    if (!confirm(t('admin.confirm.deleteSubdomain', { name: subdomainName }))) return;
     try {
       await apiRequest(`/admin/domains/${domainId}/subdomains/${subdomainId}`, { method: 'DELETE', withJson: false });
-      flash(`"${subdomainName}" subdomain silindi`);
+      flash(t('admin.flash.subdomainDeleted', { name: subdomainName }));
       await loadSubdomains(domainId);
     } catch (e) {
       flash(e.message, 'error');
@@ -419,7 +421,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     if (!editingDomain) return;
     const ip = editDomainIp.trim();
     if (!ip) {
-      flash('IP adresi gerekli', 'error');
+      flash(t('admin.errors.ipRequired'), 'error');
       return;
     }
     setLoading(true);
@@ -436,7 +438,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         setDocsDomain((prev) => (prev && prev.id === data.domain.id ? data.domain : prev));
         setEditingDomain(data.domain);
       }
-      flash('Domain bilgileri güncellendi');
+      flash(t('admin.flash.domainUpdated'));
       setEditingDomain(null);
       setEditDomainIp('');
       setEditDomainWildcard(false);
@@ -475,7 +477,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         kind: 'A',
         title: 'A (HOST)',
         label: 'A',
-        note: 'Ana sunucu adresi',
+        note: t('admin.dns.noteA'),
         tone: 'blue',
         badge: 'badge-blue',
         fields: [
@@ -490,7 +492,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         kind: 'MX',
         title: 'MX (MAIL EXCHANGE)',
         label: 'MX',
-        note: 'Posta yönlendirme kaydı',
+        note: t('admin.dns.noteMx'),
         tone: 'cyan',
         badge: 'badge-cyan',
         fields: [
@@ -506,7 +508,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         kind: 'TXT',
         title: 'SPF (TXT)',
         label: 'SPF',
-        note: 'Gönderim yetkilendirmesi',
+        note: t('admin.dns.noteSpf'),
         tone: 'purple',
         badge: 'badge-purple',
         fields: [
@@ -521,7 +523,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         kind: 'TXT',
         title: 'Mail Verification (TXT)',
         label: 'TXT',
-        note: 'Alan adı doğrulama kaydı',
+        note: t('admin.dns.noteVerification'),
         tone: 'green',
         badge: 'badge-green',
         fields: [
@@ -536,7 +538,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         kind: 'TXT',
         title: 'DKIM (TXT)',
         label: 'DKIM',
-        note: 'İmza doğrulama kaydı',
+        note: t('admin.dns.noteDkim'),
         tone: 'gold',
         badge: 'badge-gold',
         fields: [
@@ -551,7 +553,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         kind: 'TXT',
         title: 'DMARC (TXT)',
         label: 'DMARC',
-        note: 'Politika ve raporlama kaydı',
+        note: t('admin.dns.noteDmarc'),
         tone: 'red',
         badge: 'badge-red',
         fields: [
@@ -562,7 +564,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         copyText: `TXT | ${dmarcHost} | ${dmarcValue} | TTL ${ttl}`,
       },
     ];
-  }, []);
+  }, [t]);
 
   const getDocsTone = useCallback((row) => {
     if (!row) {
@@ -634,20 +636,20 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const copyText = useCallback(async (text, successMessage) => {
     try {
       await navigator.clipboard.writeText(text);
-      flash(successMessage || 'Kopyalandı', 'success');
+      flash(successMessage || t('admin.flash.copied'), 'success');
     } catch (e) {
-      flash('Kopyalama başarısız', 'error');
+      flash(t('admin.flash.copyFailed'), 'error');
     }
   }, [flash]);
 
   const copyDnsRecord = useCallback(async (row) => {
     if (!row) return;
-    await copyText(row.copyText, `${row.title} kopyalandı`);
+    await copyText(row.copyText, t('admin.flash.recordCopied', { title: row.title }));
   }, [copyText]);
 
   const copyDomainDocs = useCallback(async (domain) => {
     const lines = buildDomainDocs(domain, docsIp).map((row) => row.copyText).join('\n');
-    await copyText(lines, 'Tüm DNS değerleri kopyalandı');
+    await copyText(lines, t('admin.flash.allDnsCopied'));
   }, [buildDomainDocs, copyText, docsIp]);
 
   const refreshDocsDomain = useCallback(async () => {
@@ -660,7 +662,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         setDocsDomain(refreshed);
         setDocsIp(refreshed.server_ip || '');
       }
-      flash('DNS kayıtları yenilendi');
+      flash(t('admin.flash.dnsRefreshed'));
     } catch (e) {
       flash(e.message, 'error');
     } finally {
@@ -669,10 +671,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   }, [docsDomain, flash, loadDomains]);
 
   const cleanupAll = async () => {
-    if (!confirm('Tüm geçici adresler ve mailler için temizlik çalıştırılsın mı?')) return;
+    if (!confirm(t('admin.confirm.cleanupAll'))) return;
     try {
       const data = await apiRequest('/admin/cleanup', { method: 'POST', body: { type: 'all' } });
-      flash(data.message || 'Temizlik tamamlandı');
+      flash(data.message || t('admin.flash.cleanupDone'));
       await Promise.all([refreshAll(), loadEmails(1)]);
     } catch (e) {
       flash(e.message, 'error');
@@ -680,10 +682,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   };
 
   const cleanupAddress = async (addressValue) => {
-    if (!confirm(`"${addressValue}" için tüm mail geçmişi temizlensin mi?`)) return;
+    if (!confirm(t('admin.confirm.cleanupAddress', { address: addressValue }))) return;
     try {
       const data = await apiRequest(`/admin/addresses/${encodeURIComponent(addressValue)}/cleanup`, { method: 'POST', body: {} });
-      flash(data.message || 'Adres geçmişi temizlendi');
+      flash(data.message || t('admin.flash.addressCleaned'));
       await Promise.all([loadAddrs(), loadStats(), loadEmails(1)]);
       if (selectedAddress === addressValue) {
         await loadAddressDetail(addressValue);
@@ -694,10 +696,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   };
 
   const deleteAddress = async (addressValue) => {
-    if (!confirm(`"${addressValue}" tamamen silinecek. Devam edilsin mi?`)) return;
+    if (!confirm(t('admin.confirm.deleteAddress', { address: addressValue }))) return;
     try {
       const data = await apiRequest(`/admin/addresses/${encodeURIComponent(addressValue)}`, { method: 'DELETE', withJson: false });
-      flash(data.message || 'Adres silindi');
+      flash(data.message || t('admin.flash.addressDeleted'));
       await Promise.all([loadAddrs(), loadStats(), loadEmails(1)]);
       setSelectedAddress(null);
       setSelectedAddressDetail(null);
@@ -708,10 +710,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   };
 
   const deleteEmail = async (id, scope = 'global') => {
-    if (!confirm('Bu mail silinsin mi?')) return;
+    if (!confirm(t('admin.confirm.deleteMail'))) return;
     try {
       await apiRequest(`/admin/emails/${id}`, { method: 'DELETE', withJson: false });
-      flash('Mail silindi');
+      flash(t('admin.flash.mailDeleted'));
       await Promise.all([loadStats(), loadEmails(emailsPage), loadAddrs()]);
       if (scope === 'address' && selectedAddress) {
         await loadAddressDetail(selectedAddress);
@@ -727,7 +729,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const updateUserRole = async (id, role) => {
     try {
       await apiRequest(`/admin/users/${id}/role`, { method: 'PUT', body: { role } });
-      flash('Kullanıcı rolü güncellendi');
+      flash(t('admin.flash.roleUpdated'));
       await Promise.all([loadUsers(), loadRequests()]);
     } catch (e) {
       flash(e.message, 'error');
@@ -737,7 +739,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const updateUserPackage = async (id, packageName) => {
     try {
       await apiRequest(`/admin/users/${id}/package`, { method: 'PUT', body: { package_name: packageName } });
-      flash('Kullanıcı paketi güncellendi');
+      flash(t('admin.flash.packageUpdated'));
       await loadUsers();
     } catch (e) {
       flash(e.message, 'error');
@@ -747,7 +749,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const updateUserStatus = async (id, isActive) => {
     try {
       await apiRequest(`/admin/users/${id}/status`, { method: 'PUT', body: { is_active: isActive } });
-      flash(isActive ? 'Kullanıcı aktif edildi' : 'Kullanıcı pasife alındı');
+      flash(isActive ? t('admin.flash.userActivated') : t('admin.flash.userDeactivated'));
       await loadUsers();
     } catch (e) {
       flash(e.message, 'error');
@@ -757,7 +759,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const updateUserBulkAccess = async (id, enabled) => {
     try {
       await apiRequest(`/admin/users/${id}/bulk-access`, { method: 'PUT', body: { enabled } });
-      flash(enabled ? 'Bulk erişimi açıldı' : 'Bulk erişimi kapatıldı');
+      flash(enabled ? t('admin.flash.bulkEnabled') : t('admin.flash.bulkDisabled'));
       await Promise.all([loadUsers(), loadBulkPools()]);
     } catch (e) {
       flash(e.message, 'error');
@@ -767,7 +769,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const handleRequestDecision = async (id, status) => {
     try {
       await apiRequest(`/admin/package-requests/${id}`, { method: 'PUT', body: { status } });
-      flash(status === 'approved' ? 'Pro isteği onaylandı' : 'Pro isteği reddedildi');
+      flash(status === 'approved' ? t('admin.flash.requestApproved') : t('admin.flash.requestRejected'));
       await Promise.all([loadRequests(), loadUsers()]);
     } catch (e) {
       flash(e.message, 'error');
@@ -791,7 +793,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     a.download = `tempmail-admin-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    flash('Admin snapshot dışa aktarıldı');
+    flash(t('admin.flash.exported'));
   };
 
   useEffect(() => {
@@ -867,11 +869,11 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     const attachmentCount = (stats?.latest_emails || []).filter((m) => m.has_attachments).length;
     const normal = Math.max(total - otp, 0);
     return [
-      { name: 'Normal', value: normal },
+      { name: t('admin.mix.normal'), value: normal },
       { name: 'OTP', value: otp },
-      { name: 'Ekli', value: attachmentCount },
+      { name: t('admin.mix.attachment'), value: attachmentCount },
     ].filter((item) => item.value > 0);
-  }, [stats]);
+  }, [stats, t]);
 
   const activities = useMemo(() => {
     const items = [];
@@ -879,7 +881,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     addrs.slice(0, 3).forEach((addr) => {
       items.push({
         key: `addr-${addr.id}`,
-        label: 'Yeni adres oluşturuldu',
+        label: t('admin.activity.addressCreated'),
         detail: addr.address,
         time: addr.created_at,
         tone: 'green',
@@ -889,7 +891,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     domains.slice(0, 2).forEach((domain) => {
       items.push({
         key: `domain-${domain.id}`,
-        label: domain.is_active === 1 ? 'Domain aktif durumda' : 'Domain pasife alındı',
+        label: domain.is_active === 1 ? t('admin.activity.domainActive') : t('admin.activity.domainInactive'),
         detail: domain.domain,
         time: domain.created_at,
         tone: domain.is_active === 1 ? 'cyan' : 'gold',
@@ -899,7 +901,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     requests.slice(0, 2).forEach((request) => {
       items.push({
         key: `req-${request.id}`,
-        label: request.status === 'pending' ? 'Pro isteği bekliyor' : request.status === 'approved' ? 'Pro isteği onaylandı' : 'Pro isteği reddedildi',
+        label: request.status === 'pending' ? t('admin.activity.requestPending') : request.status === 'approved' ? t('admin.activity.requestApproved') : t('admin.activity.requestRejected'),
         detail: request.username,
         time: request.reviewed_at || request.created_at,
         tone: request.status === 'approved' ? 'green' : request.status === 'rejected' ? 'red' : 'purple',
@@ -909,15 +911,15 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     return items
       .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
       .slice(0, 6);
-  }, [addrs, domains, requests]);
+  }, [addrs, domains, requests, t]);
 
   const systemChecks = useMemo(() => ([
-    { label: 'SMTP Akışı', value: activeDomains > 0 ? 'Aktif' : 'Bekliyor', tone: activeDomains > 0 ? 'text-accent-green' : 'text-accent-gold' },
-    { label: 'Admin Oturumu', value: auth ? 'Açık' : 'Kapalı', tone: auth ? 'text-accent-green' : 'text-accent-red' },
-    { label: 'Aktif Domainler', value: `${activeDomains}/${domains.length || 0}`, tone: 'text-accent-cyan' },
-    { label: 'Şifreli Mailbox', value: `${protectedAddresses}`, tone: 'text-accent-purple' },
-    { label: 'Temizlik Politikası', value: '7 gün / yalnızca manuel tetikleme', tone: 'text-txt-primary' },
-  ]), [activeDomains, auth, domains.length, protectedAddresses]);
+    { label: t('admin.system.smtpFlow'), value: activeDomains > 0 ? t('admin.common.active') : t('admin.common.waiting'), tone: activeDomains > 0 ? 'text-accent-green' : 'text-accent-gold' },
+    { label: t('admin.system.adminSession'), value: auth ? t('admin.common.open') : t('admin.common.closed'), tone: auth ? 'text-accent-green' : 'text-accent-red' },
+    { label: t('admin.system.activeDomains'), value: `${activeDomains}/${domains.length || 0}`, tone: 'text-accent-cyan' },
+    { label: t('admin.system.protectedMailbox'), value: `${protectedAddresses}`, tone: 'text-accent-purple' },
+    { label: t('admin.system.cleanupPolicy'), value: t('admin.system.cleanupPolicyValue'), tone: 'text-txt-primary' },
+  ]), [activeDomains, auth, domains.length, protectedAddresses, t]);
 
   const topDomainRows = useMemo(() => domains.slice(0, 5), [domains]);
 
@@ -946,14 +948,14 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   const addressStatus = addressInfo ? getAddressStatus(addressInfo) : null;
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'addresses', label: 'Adresler', icon: Inbox },
-    { id: 'domains', label: 'Domainler', icon: Globe },
-    { id: 'emails', label: 'Mailler', icon: Mail },
-    { id: 'users', label: 'Kullanıcılar', icon: Users },
-    { id: 'bulk', label: 'Bulk Havuzları', icon: Boxes },
-    { id: 'requests', label: 'İstekler', icon: Crown },
-    { id: 'settings', label: 'Ayarlar', icon: Settings2 },
+    { id: 'dashboard', label: t('admin.tabs.dashboard'), icon: LayoutDashboard },
+    { id: 'addresses', label: t('admin.tabs.addresses'), icon: Inbox },
+    { id: 'domains', label: t('admin.tabs.domains'), icon: Globe },
+    { id: 'emails', label: t('admin.tabs.emails'), icon: Mail },
+    { id: 'users', label: t('admin.tabs.users'), icon: Users },
+    { id: 'bulk', label: t('admin.tabs.bulk'), icon: Boxes },
+    { id: 'requests', label: t('admin.tabs.requests'), icon: Crown },
+    { id: 'settings', label: t('admin.tabs.settings'), icon: Settings2 },
   ];
 
   if (!auth) {
@@ -964,12 +966,12 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             <div className="w-16 h-16 rounded-3xl panel-soft flex items-center justify-center mb-5">
               <Shield size={28} className="text-accent-cyan" />
             </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-txt-primary">Admin Paneli</h2>
-            <p className="text-sm text-txt-muted mt-2">Yönetim paneline erişmek için admin parolasını girin.</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-txt-primary">{t('admin.login.title')}</h2>
+            <p className="text-sm text-txt-muted mt-2">{t('admin.login.subtitle')}</p>
           </div>
           <form onSubmit={login} className="p-7 space-y-4">
             <div>
-              <label className="section-title mb-2 block">Admin Şifresi</label>
+              <label className="section-title mb-2 block">{t('admin.login.passwordLabel')}</label>
               <input
                 type="password"
                 value={pw}
@@ -981,9 +983,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             </div>
             {err && <p className="text-sm text-accent-red">{err}</p>}
             <button type="submit" disabled={loading || !pw} className="btn-primary w-full">
-              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+              {loading ? t('admin.login.loading') : t('admin.login.submit')}
             </button>
-            <p className="text-xs text-txt-muted text-center">Varsayılan parola: <code className="bg-brand-surface2 px-1.5 py-0.5 rounded">admin123</code></p>
+            <p className="text-xs text-txt-muted text-center">{t('admin.login.defaultPassword')} <code className="bg-brand-surface2 px-1.5 py-0.5 rounded">admin123</code></p>
           </form>
         </div>
       </div>
@@ -997,93 +999,93 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
             <div className="min-w-0">
               <button onClick={() => { setSelectedAddress(null); setSelectedAddressDetail(null); setSelectedAddressMail(null); }} className="btn-ghost px-0 mb-3">
-                <ArrowLeft size={14} /> Admin / Adresler
+                <ArrowLeft size={14} /> {t('admin.detail.back')}
               </button>
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="text-[2rem] font-semibold tracking-tight text-txt-primary font-mono break-all">{addressInfo.address}</h2>
                 <StatusPill label={addressStatus.label} className={addressStatus.badge} />
               </div>
-              <p className="text-sm text-txt-secondary mt-2">Seçili geçici e-posta adresinin operasyon görünümü ve gelen mail geçmişi.</p>
+              <p className="text-sm text-txt-secondary mt-2">{t('admin.detail.subtitle')}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <button onClick={() => navigator.clipboard.writeText(addressInfo.address)} className="btn-secondary">
-                <Copy size={15} /> Kopyala
+                <Copy size={15} /> {t('admin.common.copy')}
               </button>
               <button onClick={() => cleanupAddress(addressInfo.address)} className="btn-secondary">
-                <ListRestart size={15} /> Geçmişi Temizle
+                <ListRestart size={15} /> {t('admin.detail.clearHistory')}
               </button>
               <button onClick={() => deleteAddress(addressInfo.address)} className="btn-danger">
-                <Trash2 size={15} /> Adresi Sil
+                <Trash2 size={15} /> {t('admin.detail.deleteAddress')}
               </button>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
-          <AdminStatCard title="Durum" value={addressStatus.label} subtitle={addressInfo.has_password ? 'Şifre korumalı' : 'Açık erişim'} icon={addressInfo.has_password ? FolderLock : Shield} tone={addressInfo.has_password ? 'purple' : 'green'} />
-          <AdminStatCard title="Domain" value={addressInfo.domain} subtitle="Bağlı alan adı" icon={Globe} tone="cyan" />
-          <AdminStatCard title="Toplam Mail" value={addressDetailStats?.total_emails || 0} subtitle="Gelen içerik" icon={Mail} tone="blue" />
-          <AdminStatCard title="OTP Kodları" value={addressDetailStats?.otp_count || 0} subtitle="Algılanan doğrulama" icon={KeyRound} tone="purple" />
-          <AdminStatCard title="Son Aktivite" value={formatRelativeTime(addressDetailStats?.last_email_at || addressInfo.last_accessed)} subtitle={formatAdminDate(addressDetailStats?.last_email_at || addressInfo.last_accessed)} icon={Clock3} tone="gold" />
-          <AdminStatCard title="Saklama" value={formatRetention(addressInfo)} subtitle={addressInfo.is_persistent ? 'Persistent mailbox' : 'Otomatik temizlik'} icon={CalendarRange} tone="green" />
+          <AdminStatCard title={t('admin.detail.status')} value={addressStatus.label} subtitle={addressInfo.has_password ? t('admin.detail.passwordProtected') : t('admin.detail.openAccess')} icon={addressInfo.has_password ? FolderLock : Shield} tone={addressInfo.has_password ? 'purple' : 'green'} />
+          <AdminStatCard title="Domain" value={addressInfo.domain} subtitle={t('admin.detail.linkedDomain')} icon={Globe} tone="cyan" />
+          <AdminStatCard title={t('admin.stats.totalMail')} value={addressDetailStats?.total_emails || 0} subtitle={t('admin.detail.incomingContent')} icon={Mail} tone="blue" />
+          <AdminStatCard title={t('admin.detail.otpCodes')} value={addressDetailStats?.otp_count || 0} subtitle={t('admin.detail.detectedVerification')} icon={KeyRound} tone="purple" />
+          <AdminStatCard title={t('admin.detail.lastActivity')} value={formatRelativeTime(addressDetailStats?.last_email_at || addressInfo.last_accessed)} subtitle={formatAdminDate(addressDetailStats?.last_email_at || addressInfo.last_accessed)} icon={Clock3} tone="gold" />
+          <AdminStatCard title={t('admin.detail.retention')} value={formatRetention(addressInfo)} subtitle={addressInfo.is_persistent ? 'Persistent mailbox' : t('admin.detail.autoCleanup')} icon={CalendarRange} tone="green" />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-          <AdminPanelCard title="Genel Bilgiler" icon={Sparkles} className="xl:col-span-4">
+          <AdminPanelCard title={t('admin.detail.generalInfo')} icon={Sparkles} className="xl:col-span-4">
             <div className="panel-soft px-4">
-              <AdminInfoRow label="Adres ID" value={addressInfo.id} valueClassName="font-mono" />
-              <AdminInfoRow label="Kullanıcı adı" value={addressInfo.username || '-'} valueClassName="font-mono" />
+              <AdminInfoRow label={t('admin.detail.addressId')} value={addressInfo.id} valueClassName="font-mono" />
+              <AdminInfoRow label={t('admin.detail.username')} value={addressInfo.username || '-'} valueClassName="font-mono" />
               <AdminInfoRow label="Domain" value={addressInfo.domain} />
-              <AdminInfoRow label="Oluşturulma" value={formatAdminDate(addressInfo.created_at)} />
-              <AdminInfoRow label="Son erişim" value={formatAdminDate(addressInfo.last_accessed)} />
-              <AdminInfoRow label="Saklama süresi" value={formatRetention(addressInfo)} />
+              <AdminInfoRow label={t('admin.detail.created')} value={formatAdminDate(addressInfo.created_at)} />
+              <AdminInfoRow label={t('admin.detail.lastAccess')} value={formatAdminDate(addressInfo.last_accessed)} />
+              <AdminInfoRow label={t('admin.detail.retentionPeriod')} value={formatRetention(addressInfo)} />
             </div>
           </AdminPanelCard>
 
-          <AdminPanelCard title="İstatistikler" icon={Activity} className="xl:col-span-4">
+          <AdminPanelCard title={t('admin.detail.statistics')} icon={Activity} className="xl:col-span-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="panel-soft p-4">
-                <p className="text-xs text-txt-muted">Toplam Mail</p>
+                <p className="text-xs text-txt-muted">{t('admin.stats.totalMail')}</p>
                 <p className="text-3xl font-semibold text-txt-primary mt-2">{addressDetailStats?.total_emails || 0}</p>
               </div>
               <div className="panel-soft p-4">
-                <p className="text-xs text-txt-muted">OTP Sayısı</p>
+                <p className="text-xs text-txt-muted">{t('admin.detail.otpCount')}</p>
                 <p className="text-3xl font-semibold text-txt-primary mt-2">{addressDetailStats?.otp_count || 0}</p>
               </div>
               <div className="panel-soft p-4">
-                <p className="text-xs text-txt-muted">Ekli Mail</p>
+                <p className="text-xs text-txt-muted">{t('admin.detail.attachmentMails')}</p>
                 <p className="text-3xl font-semibold text-txt-primary mt-2">{addressDetailStats?.attachment_count || 0}</p>
               </div>
               <div className="panel-soft p-4">
-                <p className="text-xs text-txt-muted">Güncel Durum</p>
+                <p className="text-xs text-txt-muted">{t('admin.detail.currentStatus')}</p>
                 <p className="text-3xl font-semibold text-txt-primary mt-2">{addressStatus.label}</p>
               </div>
             </div>
           </AdminPanelCard>
 
-          <AdminPanelCard title="Güvenlik ve İşlemler" icon={Lock} className="xl:col-span-4">
+          <AdminPanelCard title={t('admin.detail.securityActions')} icon={Lock} className="xl:col-span-4">
             <div className="panel-soft px-4">
-              <AdminInfoRow label="Şifre koruması" value={addressInfo.has_password ? 'Aktif' : 'Kapalı'} valueClassName={addressInfo.has_password ? 'text-accent-purple' : ''} />
-              <AdminInfoRow label="Persistent mailbox" value={addressInfo.is_persistent ? 'Evet' : 'Hayır'} />
-              <AdminInfoRow label="IP / Oturum bilgisi" value="İzlenmiyor" valueClassName="text-txt-muted" />
-              <AdminInfoRow label="Toplam OTP kaydı" value={addressOtpHistory.length} />
+              <AdminInfoRow label={t('admin.detail.passwordProtection')} value={addressInfo.has_password ? t('admin.common.active') : t('admin.common.closed')} valueClassName={addressInfo.has_password ? 'text-accent-purple' : ''} />
+              <AdminInfoRow label="Persistent mailbox" value={addressInfo.is_persistent ? t('admin.common.yes') : t('admin.common.no')} />
+              <AdminInfoRow label={t('admin.detail.ipSession')} value={t('admin.detail.notTracked')} valueClassName="text-txt-muted" />
+              <AdminInfoRow label={t('admin.detail.totalOtpRecords')} value={addressOtpHistory.length} />
             </div>
             <div className="mt-4 flex flex-col gap-3">
               <button onClick={() => navigator.clipboard.writeText(addressInfo.address)} className="btn-secondary w-full">
-                <Copy size={14} /> Adresi Kopyala
+                <Copy size={14} /> {t('admin.detail.copyAddress')}
               </button>
               <button onClick={() => cleanupAddress(addressInfo.address)} className="btn-secondary w-full">
-                <ListRestart size={14} /> Mail Geçmişini Temizle
+                <ListRestart size={14} /> {t('admin.detail.clearMailHistory')}
               </button>
               <button onClick={() => deleteAddress(addressInfo.address)} className="btn-danger w-full justify-center py-3 text-sm">
-                <Trash2 size={14} /> Adresi Sil
+                <Trash2 size={14} /> {t('admin.detail.deleteAddress')}
               </button>
             </div>
           </AdminPanelCard>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-          <AdminPanelCard title="OTP Geçmişi" icon={KeyRound} className="xl:col-span-4">
+          <AdminPanelCard title={t('admin.detail.otpHistory')} icon={KeyRound} className="xl:col-span-4">
             {addressOtpHistory.length > 0 ? (
               <div className="space-y-2">
                 {addressOtpHistory.slice(0, 8).map((entry) => (
@@ -1092,40 +1094,40 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                       <p className="text-sm text-txt-primary truncate">{entry.sender}</p>
                       <span className="badge-purple font-mono">{entry.otp_code}</span>
                     </div>
-                    <p className="text-xs text-txt-secondary mt-1 truncate">{entry.subject || '(Konu yok)'}</p>
+                    <p className="text-xs text-txt-secondary mt-1 truncate">{entry.subject || t('admin.common.noSubject')}</p>
                     <p className="text-xs text-txt-muted mt-2">{formatAdminDate(entry.received_at)}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <AdminEmptyState title="OTP kaydı yok" subtitle="Bu adrese gelen doğrulama kodları burada listelenir." />
+              <AdminEmptyState title={t('admin.detail.noOtpTitle')} subtitle={t('admin.detail.noOtpSubtitle')} />
             )}
           </AdminPanelCard>
 
-          <AdminPanelCard title="Gelen Mailler" icon={Mail} className="xl:col-span-8">
+          <AdminPanelCard title={t('admin.detail.incomingMails')} icon={Mail} className="xl:col-span-8">
             {addressEmails.length > 0 ? (
               <div className="space-y-4">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 font-medium">Gönderen</th>
-                        <th className="py-3 font-medium">Konu</th>
-                        <th className="py-3 font-medium">Tarih</th>
-                        <th className="py-3 font-medium">Etiket</th>
-                        <th className="py-3 font-medium">İşlem</th>
+                        <th className="py-3 font-medium">{t('admin.table.sender')}</th>
+                        <th className="py-3 font-medium">{t('admin.table.subject')}</th>
+                        <th className="py-3 font-medium">{t('admin.table.date')}</th>
+                        <th className="py-3 font-medium">{t('admin.table.tag')}</th>
+                        <th className="py-3 font-medium">{t('admin.table.action')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {addressEmails.map((mail) => (
                         <tr key={mail.id} className="border-b border-brand-border/10 last:border-0">
                           <td className="py-4 text-txt-primary">{mail.sender}</td>
-                          <td className="py-4 text-txt-secondary">{mail.subject || '(Konu yok)'}</td>
+                          <td className="py-4 text-txt-secondary">{mail.subject || t('admin.common.noSubject')}</td>
                           <td className="py-4 text-txt-muted">{formatAdminDate(mail.received_at)}</td>
                           <td className="py-4">
                             <div className="flex gap-2 flex-wrap">
-                              {mail.otp_code ? <span className="badge-purple">OTP</span> : <span className="badge-green">Normal</span>}
-                              {mail.has_attachments && <span className="badge-cyan">Ekli</span>}
+                              {mail.otp_code ? <span className="badge-purple">OTP</span> : <span className="badge-green">{t('admin.mix.normal')}</span>}
+                              {mail.has_attachments && <span className="badge-cyan">{t('admin.mix.attachment')}</span>}
                             </div>
                           </td>
                           <td className="py-4">
@@ -1145,18 +1147,18 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                     <div className="space-y-4">
                       <div>
                         <p className="text-sm text-txt-secondary">{selectedAddressMail.sender}</p>
-                        <h4 className="text-lg font-semibold text-txt-primary mt-1">{selectedAddressMail.subject || '(Konu yok)'}</h4>
+                        <h4 className="text-lg font-semibold text-txt-primary mt-1">{selectedAddressMail.subject || t('admin.common.noSubject')}</h4>
                         <p className="text-xs text-txt-muted mt-1">{formatAdminDate(selectedAddressMail.received_at)}</p>
                       </div>
                       {selectedAddressMail.otp_code ? (
                         <div className="flex items-center gap-3 flex-wrap">
                           <span className="badge-purple text-sm px-3 py-2 font-mono">{selectedAddressMail.otp_code}</span>
                           <button onClick={() => navigator.clipboard.writeText(selectedAddressMail.otp_code)} className="btn-secondary text-xs px-3 py-2">
-                            <Copy size={12} /> OTP Kopyala
+                            <Copy size={12} /> {t('admin.common.copyOtp')}
                           </button>
                         </div>
                       ) : null}
-                      <pre className="whitespace-pre-wrap text-sm text-txt-secondary font-mono leading-relaxed">{selectedAddressMail.body_text || '(HTML içerik)'}</pre>
+                      <pre className="whitespace-pre-wrap text-sm text-txt-secondary font-mono leading-relaxed">{selectedAddressMail.body_text || t('admin.common.htmlContent')}</pre>
                       {selectedAddressMail.attachments?.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                           {selectedAddressMail.attachments.map((attachment) => (
@@ -1167,19 +1169,19 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                               target="_blank"
                               rel="noreferrer"
                             >
-                              <ExternalLink size={12} /> {attachment.filename || 'Ek'}
+                              <ExternalLink size={12} /> {attachment.filename || t('admin.common.attachment')}
                             </a>
                           ))}
                         </div>
                       ) : null}
                     </div>
                   ) : (
-                    <AdminEmptyState title="Bir mail seçin" subtitle="Detay görmek için tablodan göz ikonuna basın." />
+                    <AdminEmptyState title={t('admin.detail.selectMailTitle')} subtitle={t('admin.detail.selectMailSubtitle')} />
                   )}
                 </div>
               </div>
             ) : (
-              <AdminEmptyState title="Mailbox boş" subtitle="Bu adrese henüz mail gelmedi." />
+              <AdminEmptyState title={t('admin.detail.emptyMailboxTitle')} subtitle={t('admin.detail.emptyMailboxSubtitle')} />
             )}
           </AdminPanelCard>
         </div>
@@ -1190,22 +1192,22 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   return (
     <div className="space-y-5">
       <PageHero
-        eyebrow="Kontrol merkezi"
-        title="Admin Paneli"
-        subtitle="MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları."
+        eyebrow={t('admin.hero.eyebrow')}
+        title={t('admin.hero.title')}
+        subtitle={t('admin.hero.subtitle')}
         icon={Settings2}
         activeTab={tab}
         onTabChange={setTab}
         tabs={tabs}
         actions={[
           <button key="domain" onClick={() => { setTab('domains'); setShowDomainForm(true); }} className="btn-primary">
-            <Plus size={15} /> Yeni Domain Ekle
+            <Plus size={15} /> {t('admin.actions.addDomain')}
           </button>,
           <button key="cleanup" onClick={cleanupAll} className="btn-danger">
-            <Trash2 size={15} /> Temizle
+            <Trash2 size={15} /> {t('admin.actions.cleanup')}
           </button>,
           <button key="export" onClick={exportSnapshot} className="btn-secondary">
-            <Download size={15} /> Dışa Aktar
+            <Download size={15} /> {t('admin.actions.export')}
           </button>,
         ]}
       />
@@ -1219,11 +1221,11 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
       {tab === 'dashboard' && (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-            <AdminStatCard title="Toplam Mail" value={stats?.total_emails || 0} subtitle="Tüm zamanlar" icon={Mail} tone="blue" />
-            <AdminStatCard title="Toplam Adres" value={stats?.total_addresses || 0} subtitle={`Şifreli: ${protectedAddresses}`} icon={Users} tone="green" />
-            <AdminStatCard title="Son 24 Saat" value={stats?.recent_24h || 0} subtitle="Yeni gelen mesaj" icon={Clock3} tone="gold" />
-            <AdminStatCard title="OTP Kodları" value={stats?.otp_count || 0} subtitle="Algılanan doğrulama" icon={KeyRound} tone="purple" />
-            <AdminStatCard title="Aktif Domain" value={activeDomains} subtitle={`${domains.length || 0} toplam domain`} icon={Globe} tone="cyan" />
+            <AdminStatCard title={t('admin.stats.totalMail')} value={stats?.total_emails || 0} subtitle={t('admin.stats.allTime')} icon={Mail} tone="blue" />
+            <AdminStatCard title={t('admin.stats.totalAddresses')} value={stats?.total_addresses || 0} subtitle={t('admin.stats.protectedCount', { count: protectedAddresses })} icon={Users} tone="green" />
+            <AdminStatCard title={t('admin.stats.last24h')} value={stats?.recent_24h || 0} subtitle={t('admin.stats.newMessages')} icon={Clock3} tone="gold" />
+            <AdminStatCard title={t('admin.detail.otpCodes')} value={stats?.otp_count || 0} subtitle={t('admin.detail.detectedVerification')} icon={KeyRound} tone="purple" />
+            <AdminStatCard title={t('admin.stats.activeDomains')} value={activeDomains} subtitle={t('admin.stats.totalDomains', { count: domains.length || 0 })} icon={Globe} tone="cyan" />
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">

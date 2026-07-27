@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { Mail, RefreshCw, Search, Paperclip, KeyRound, Trash2, Inbox as InboxIcon, Filter, Star, Copy } from 'lucide-react';
 import { InboxSkeleton } from './Skeleton';
+import { useLocale } from '../i18n';
 
 export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr, onRefresh, refreshing, live, isLoading }) {
+  const { t, language } = useLocale();
   const [search, setSearch] = useState('');
+  const locale = language === 'en' ? 'en-US' : 'tr-TR';
 
   const fmt = (d) => {
     const dt = new Date(d);
     const now = new Date();
-    if (dt.toDateString() === now.toDateString()) return dt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    if (dt.toDateString() === now.toDateString()) return dt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
     const diff = Math.floor((now - dt) / 86400000);
-    if (diff === 1) return 'Dün';
-    return dt.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+    if (diff === 1) return t('inbox.yesterday');
+    return dt.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
   };
 
   const filtered = search
@@ -23,8 +26,8 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
       <div className="card p-0 overflow-hidden h-full flex items-center justify-center min-h-[430px] xl:min-h-[590px]">
         <div className="text-center px-6">
           <div className="w-16 h-16 rounded-3xl panel-soft flex items-center justify-center mx-auto mb-5"><InboxIcon size={28} className="text-txt-disabled" /></div>
-          <p className="text-lg font-semibold text-txt-secondary">Önce bir adres oluşturun</p>
-          <p className="text-sm text-txt-muted mt-2">Gelen mailler burada görünecek.</p>
+          <p className="text-lg font-semibold text-txt-secondary">{t('inbox.createAddressFirst')}</p>
+          <p className="text-sm text-txt-muted mt-2">{t('inbox.mailsWillAppear')}</p>
         </div>
       </div>
     );
@@ -39,14 +42,14 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
               <Mail size={15} className="text-accent-blue" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-txt-primary">Gelen Kutusu</p>
-              <p className="text-[11px] text-txt-muted">Anlık mesaj akışı</p>
+              <p className="text-[13px] font-semibold text-txt-primary">{t('inbox.title')}</p>
+              <p className="text-[11px] text-txt-muted">{t('inbox.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="badge-green text-[11px] px-2.5 py-1.5">
               <span className={`w-2 h-2 rounded-full ${live ? 'bg-accent-green shadow-[0_0_12px_rgba(39,213,155,0.55)]' : 'bg-txt-disabled'}`} />
-              {live ? 'Canlı' : 'Bekliyor'}
+              {live ? t('inbox.live') : t('inbox.waiting')}
             </div>
             <button onClick={onRefresh} disabled={refreshing} className="btn-ghost px-2.5 py-2">
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
@@ -57,9 +60,9 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
         <div className="flex gap-3">
           <div className="flex-1 relative">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-txt-muted" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ara..." className="input pl-11 py-3 text-sm" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('inbox.searchPlaceholder')} className="input pl-11 py-3 text-sm" />
           </div>
-          <button className="btn-secondary px-4 py-3 min-w-[120px]"><Filter size={14} /> Filtreler</button>
+          <button className="btn-secondary px-4 py-3 min-w-[120px]"><Filter size={14} /> {t('inbox.filters')}</button>
         </div>
       </div>
 
@@ -67,8 +70,8 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
         {isLoading ? <InboxSkeleton /> : filtered.length === 0 ? (
           <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center px-6">
             <Mail size={30} className="mb-3 text-txt-disabled" />
-            <p className="text-sm text-txt-secondary">{search ? 'Sonuç bulunamadı' : 'Henüz mail yok'}</p>
-            {!search && <p className="text-xs text-txt-muted mt-1">Yeni mesajlar anlık olarak burada görünür.</p>}
+            <p className="text-sm text-txt-secondary">{search ? t('inbox.noResults') : t('inbox.noMails')}</p>
+            {!search && <p className="text-xs text-txt-muted mt-1">{t('inbox.noMailsHint')}</p>}
           </div>
         ) : (
           <div className="space-y-2">
@@ -85,9 +88,9 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
                       <p className="text-sm font-semibold text-txt-primary truncate">{m.sender}</p>
                       {m.otp_code && <KeyRound size={12} className="text-accent-purple flex-shrink-0" />}
                       {m.has_attachments === 1 && <Paperclip size={12} className="text-txt-muted flex-shrink-0" />}
-                      {m.otp_code && <span className="badge-purple text-[10px] px-2 py-0.5">Doğrulama</span>}
+                      {m.otp_code && <span className="badge-purple text-[10px] px-2 py-0.5">{t('inbox.otpBadge')}</span>}
                     </div>
-                    <p className="text-sm text-txt-secondary truncate mt-1">{m.subject || '(Konu yok)'}</p>
+                    <p className="text-sm text-txt-secondary truncate mt-1">{m.subject || t('inbox.noSubject')}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     <span className="text-xs text-txt-muted">{fmt(m.received_at)}</span>
@@ -99,7 +102,7 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
                             navigator.clipboard.writeText(m.otp_code);
                           }}
                           className="text-accent-purple hover:text-accent-blue opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="OTP kopyala"
+                          title={t('inbox.copyOtp')}
                         >
                           <Copy size={12} />
                         </button>
@@ -118,8 +121,8 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
       {!isLoading && (
         <div className="px-5 pb-5 pt-3 flex-shrink-0">
           <div className="panel-soft px-4 py-4 rounded-[22px] text-center border border-dashed border-brand-border/55">
-            <p className="text-sm font-medium text-txt-secondary">E-postalarınız burada görünecek</p>
-            <p className="text-xs text-txt-muted mt-1">Yeni e-postalar anında bu listede görüntülenir.</p>
+            <p className="text-sm font-medium text-txt-secondary">{t('inbox.footerTitle')}</p>
+            <p className="text-xs text-txt-muted mt-1">{t('inbox.footerHint')}</p>
           </div>
         </div>
       )}

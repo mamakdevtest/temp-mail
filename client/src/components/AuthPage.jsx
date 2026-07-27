@@ -114,7 +114,7 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
             {error && <p className="text-accent-red text-xs bg-accent-red/5 px-3 py-2 rounded-xl">{error}</p>}
 
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-2.5 text-sm">
-              {loading ? '⏳ İşleniyor...' : mode === 'login' ? t('auth.login') : t('auth.register')}
+              {loading ? t('auth.processing') : mode === 'login' ? t('auth.login') : t('auth.register')}
               {!loading && <ArrowRight size={14} />}
             </button>
 

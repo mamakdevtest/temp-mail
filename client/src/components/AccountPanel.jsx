@@ -155,10 +155,10 @@ const AccountPanel = forwardRef(function AccountPanel({
     }
 
     if (res.status === 401) {
-      throw new Error('Oturum süreniz dolmuş, tekrar giriş yapın');
+      throw new Error(t('errors.sessionExpired'));
     }
     if (!res.ok) {
-      throw new Error(data.error || data.message || 'İşlem başarısız');
+      throw new Error(data.error || data.message || t('errors.actionFailed'));
     }
     return data;
   };
@@ -288,11 +288,11 @@ const AccountPanel = forwardRef(function AccountPanel({
     const nextUsername = profileDraft.username.trim().toLowerCase();
     const nextDisplay = profileDraft.display_name.trim();
     if (!nextUsername) {
-      flash('Kullanıcı adı gerekli', 'error');
+      flash(t('account.flashUsernameRequired'), 'error');
       return;
     }
     if (usernameLocked && nextUsername !== String(currentUser?.username || '').toLowerCase()) {
-      flash('Kullanıcı adı sadece bir kez değiştirilebilir', 'error');
+      flash(t('account.flashUsernameLocked'), 'error');
       return;
     }
     setSaving(true);
@@ -306,7 +306,7 @@ const AccountPanel = forwardRef(function AccountPanel({
         });
       }
       await loadCenter();
-      flash('Profil güncellendi');
+      flash(t('account.flashProfileUpdated'));
     } catch (e) {
       flash(e.message, 'error');
     } finally {
@@ -321,7 +321,7 @@ const AccountPanel = forwardRef(function AccountPanel({
       return;
     }
     if (nextEmail === String(currentUser?.email || '').toLowerCase()) {
-      flash('E-posta değişmedi', 'error');
+      flash(t('account.flashEmailUnchanged'), 'error');
       return;
     }
     setSaving(true);
@@ -335,7 +335,7 @@ const AccountPanel = forwardRef(function AccountPanel({
       setEmailPending(result.pending_email || nextEmail);
       setEmailStep('verify');
       setEmailCode(result.email_sent ? '' : (result.verification_code || ''));
-      flash(result.message || 'Doğrulama kodu hazır');
+      flash(result.message || t('account.flashCodeReady'));
     } catch (e) {
       flash(e.message, 'error');
     } finally {
@@ -346,7 +346,7 @@ const AccountPanel = forwardRef(function AccountPanel({
   const confirmEmailChange = async () => {
     const code = emailCode.trim();
     if (!code) {
-      flash('Doğrulama kodu gerekli', 'error');
+      flash(t('account.flashCodeRequired'), 'error');
       return;
     }
     setSaving(true);
@@ -361,7 +361,7 @@ const AccountPanel = forwardRef(function AccountPanel({
       setEmailCode('');
       setEmailPending('');
       await loadCenter();
-      flash(result.message || 'E-posta güncellendi');
+      flash(result.message || t('account.flashEmailUpdated'));
     } catch (e) {
       flash(e.message, 'error');
     } finally {
@@ -384,7 +384,7 @@ const AccountPanel = forwardRef(function AccountPanel({
           });
         }
         await loadCenter();
-        flash('Profil fotoğrafı güncellendi');
+        flash(t('account.flashAvatarUpdated'));
       } catch (e) {
         flash(e.message, 'error');
       } finally {
@@ -396,11 +396,11 @@ const AccountPanel = forwardRef(function AccountPanel({
 
   const savePassword = async () => {
     if (!passwordDraft.currentPassword || !passwordDraft.newPassword) {
-      flash('Şifre alanlarını doldurun', 'error');
+      flash(t('account.flashPasswordFields'), 'error');
       return;
     }
     if (passwordDraft.newPassword !== passwordDraft.confirmPassword) {
-      flash('Yeni şifreler eşleşmiyor', 'error');
+      flash(t('account.flashPasswordMismatch'), 'error');
       return;
     }
     setSaving(true);
@@ -420,7 +420,7 @@ const AccountPanel = forwardRef(function AccountPanel({
         });
       }
       setPasswordDraft({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      flash('Şifre değiştirildi');
+      flash(t('account.flashPasswordChanged'));
       await loadCenter();
     } catch (e) {
       flash(e.message, 'error');
@@ -449,7 +449,7 @@ const AccountPanel = forwardRef(function AccountPanel({
         await request('/auth/preferences', { method: 'PUT', body: payload });
       }
       onNotificationSoundChange?.(prefDraft.notification_sound);
-      flash('Tercihler güncellendi');
+      flash(t('account.flashPrefsUpdated'));
       await loadCenter();
     } catch (e) {
       flash(e.message, 'error');
@@ -473,7 +473,7 @@ const AccountPanel = forwardRef(function AccountPanel({
           custom_retention_days: draft.custom_retention_days || '',
         },
       });
-      flash('Adres güncellendi');
+      flash(t('account.flashAddressUpdated'));
       await loadCenter();
     } catch (e) {
       flash(e.message, 'error');
@@ -486,7 +486,7 @@ const AccountPanel = forwardRef(function AccountPanel({
     setSaving(true);
     try {
       await request(`/auth/addresses/${addr.id}/renew`, { method: 'POST' });
-      flash('Adres süresi yenilendi');
+      flash(t('account.flashAddressRenewed'));
       await loadCenter();
     } catch (e) {
       flash(e.message, 'error');
@@ -510,11 +510,11 @@ const AccountPanel = forwardRef(function AccountPanel({
   };
 
   const revokeSession = async (session) => {
-    if (!confirm('Bu oturum sonlandırılsın mı?')) return;
+    if (!confirm(t('account.confirmRevokeSession'))) return;
     setSaving(true);
     try {
       await request(`/auth/sessions/${session.id}`, { method: 'DELETE', json: false });
-      flash('Oturum kapatıldı');
+      flash(t('account.flashSessionRevoked'));
       await loadCenter();
     } catch (e) {
       flash(e.message, 'error');
@@ -530,7 +530,7 @@ const AccountPanel = forwardRef(function AccountPanel({
         method: isFavorite ? 'DELETE' : 'POST',
         json: false,
       });
-      flash(isFavorite ? 'Favori domain kaldırıldı' : 'Favori domain eklendi');
+      flash(isFavorite ? t('account.flashFavRemoved') : t('account.flashFavAdded'));
       await loadCenter();
     } catch (e) {
       flash(e.message, 'error');

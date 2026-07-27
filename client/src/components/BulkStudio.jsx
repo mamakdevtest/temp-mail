@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Boxes, CheckCircle2, Clipboard, Download, Inbox, Plus, ShieldAlert, Sparkles } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
+import { useLocale } from '../i18n';
 
 const COUNTS = [5, 10, 25, 50, 100];
 
@@ -15,6 +16,7 @@ function downloadAddresses(addresses, prefix) {
 }
 
 export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool }) {
+  const { t } = useLocale();
   const [pools, setPools] = useState([]);
   const [prefix, setPrefix] = useState('');
   const [domain, setDomain] = useState('');
@@ -36,7 +38,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
     try {
       const response = await apiFetch('/api/addresses/bulk', { headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || data.error || 'Havuzlar alınamadı');
+      if (!response.ok) throw new Error(data.message || data.error || t('bulk.loadPoolsFailed'));
       setPools(data.pools || []);
     } catch (nextError) { setError(nextError.message); }
   };
@@ -53,10 +55,10 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
     setError('');
     setResult(null);
     if (!/^[a-z0-9][a-z0-9._-]{0,39}$/i.test(normalizedPrefix)) {
-      setError('Prefix harf veya rakamla başlamalı; 2–40 karakter kullanabilirsiniz.');
+      setError(t('bulk.prefixInvalid'));
       return;
     }
-    if (!domain) { setError('Bir domain seçin.'); return; }
+    if (!domain) { setError(t('bulk.selectDomain')); return; }
     setLoading(true);
     try {
       const response = await apiFetch('/api/addresses/bulk', {
@@ -65,7 +67,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
         body: JSON.stringify({ prefix: normalizedPrefix, domain, count }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || data.error || 'Adresler oluşturulamadı');
+      if (!response.ok) throw new Error(data.message || data.error || t('bulk.createFailed'));
       setResult(data);
       await loadPools();
     } catch (nextError) { setError(nextError.message); }
@@ -73,36 +75,36 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
   };
 
   if (!canUseBulk) {
-    return <section className="ops-page ops-empty"><ShieldAlert size={30} /><h1>Bulk Studio erişimi kapalı</h1><p>Bulk adres havuzları yalnız bulk yetkisi açılmış Pro ve Pro+ hesaplarda kullanılabilir.</p></section>;
+    return <section className="ops-page ops-empty"><ShieldAlert size={30} /><h1>{t('bulk.accessDeniedTitle')}</h1><p>{t('bulk.accessDeniedBody')}</p></section>;
   }
 
   return (
     <section className="ops-page bulk-studio">
       <header className="ops-page-header">
-        <div><p className="ops-eyebrow"><Boxes size={14} /> BULK STUDIO</p><h1>Adres havuzunu dakikalar değil, saniyeler içinde oluştur.</h1><p>Prefix belirleyin; sistem boş indeksleri güvenle sıraya koyar.</p></div>
-        <div className="ops-stat"><span>Plan</span><strong>{isAdmin ? 'Admin override' : pkg?.display_name || 'Pro'}</strong></div>
+        <div><p className="ops-eyebrow"><Boxes size={14} /> BULK STUDIO</p><h1>{t('bulk.title')}</h1><p>{t('bulk.subtitle')}</p></div>
+        <div className="ops-stat"><span>{t('bulk.plan')}</span><strong>{isAdmin ? t('bulk.adminOverride') : pkg?.display_name || 'Pro'}</strong></div>
       </header>
 
       <div className="bulk-layout">
         <article className="ops-card bulk-builder">
-          <div className="ops-card-heading"><div><span className="ops-step">01</span><h2>Yeni adres serisi</h2></div><Sparkles size={18} /></div>
-          <label className="ops-field"><span>Prefix</span><input className="input font-mono" value={prefix} onChange={(event) => setPrefix(event.target.value)} placeholder="ornek" autoComplete="off" /><small>Adresler <b>{previewStart}</b> ile başlayacak.</small></label>
+          <div className="ops-card-heading"><div><span className="ops-step">01</span><h2>{t('bulk.newSeries')}</h2></div><Sparkles size={18} /></div>
+          <label className="ops-field"><span>Prefix</span><input className="input font-mono" value={prefix} onChange={(event) => setPrefix(event.target.value)} placeholder="ornek" autoComplete="off" /><small>{t('bulk.startWith', { address: previewStart })}</small></label>
           <label className="ops-field"><span>Domain</span><select className="input" value={domain} onChange={(event) => setDomain(event.target.value)}>{activeDomains.map((item) => <option key={item.id || item.domain} value={item.domain}>{item.domain}</option>)}</select></label>
-          <div className="ops-field"><span>Kaç adres?</span><div className="bulk-counts">{COUNTS.map((value) => <button key={value} className={count === value ? 'is-active' : ''} onClick={() => setCount(value)}>{value}</button>)}</div><input className="input mt-3" type="number" min="1" max="100" value={count} onChange={(event) => setCount(Math.min(100, Math.max(1, Number(event.target.value) || 1)))} /></div>
-          <button className="btn-primary w-full mt-6" onClick={createPool} disabled={loading}>{loading ? 'Adresler hazırlanıyor…' : <><Plus size={16} /> Adresleri oluştur</>}</button>
+          <div className="ops-field"><span>{t('bulk.howMany')}</span><div className="bulk-counts">{COUNTS.map((value) => <button key={value} className={count === value ? 'is-active' : ''} onClick={() => setCount(value)}>{value}</button>)}</div><input className="input mt-3" type="number" min="1" max="100" value={count} onChange={(event) => setCount(Math.min(100, Math.max(1, Number(event.target.value) || 1)))} /></div>
+          <button className="btn-primary w-full mt-6" onClick={createPool} disabled={loading}>{loading ? t('bulk.preparing') : <><Plus size={16} /> {t('bulk.createAddresses')}</>}</button>
           {error && <p className="ops-error">{error}</p>}
         </article>
 
         <aside className="ops-card bulk-preview">
-          <div className="ops-card-heading"><div><span className="ops-step">02</span><h2>Canlı önizleme</h2></div></div>
-          <div className="bulk-address-preview"><span>İlk adres</span><code>{previewStart}</code><span>Son adres</span><code>{previewEnd}</code></div>
-          <p className="ops-note">{matchedPool ? `Bu havuz ${matchedPool.next_index}. indeksten devam edecek.` : 'Yeni bir prefix havuzu oluşturulacak.'}</p>
-          {result && <div className="bulk-success"><CheckCircle2 size={20} /><div><strong>{result.addresses?.length || 0} adres hazır</strong><p>{result.pool?.prefix}_* @{result.pool?.domain}</p></div><button className="icon-button" title="Tümünü kopyala" onClick={() => navigator.clipboard.writeText((result.addresses || []).join('\n'))}><Clipboard size={16} /></button><button className="icon-button" title="TXT indir" onClick={() => downloadAddresses(result.addresses || [], result.pool?.prefix)}><Download size={16} /></button></div>}
+          <div className="ops-card-heading"><div><span className="ops-step">02</span><h2>{t('bulk.livePreview')}</h2></div></div>
+          <div className="bulk-address-preview"><span>{t('bulk.firstAddress')}</span><code>{previewStart}</code><span>{t('bulk.lastAddress')}</span><code>{previewEnd}</code></div>
+          <p className="ops-note">{matchedPool ? t('bulk.continueFromIndex', { index: matchedPool.next_index }) : t('bulk.newPoolWillCreate')}</p>
+          {result && <div className="bulk-success"><CheckCircle2 size={20} /><div><strong>{t('bulk.addressesReady', { count: result.addresses?.length || 0 })}</strong><p>{result.pool?.prefix}_* @{result.pool?.domain}</p></div><button className="icon-button" title={t('bulk.copyAll')} onClick={() => navigator.clipboard.writeText((result.addresses || []).join('\n'))}><Clipboard size={16} /></button><button className="icon-button" title={t('bulk.downloadTxt')} onClick={() => downloadAddresses(result.addresses || [], result.pool?.prefix)}><Download size={16} /></button></div>}
         </aside>
       </div>
 
-      <section className="ops-card bulk-pool-list"><div className="ops-card-heading"><div><span className="ops-step">03</span><h2>Havuzların</h2></div><span className="ops-muted">{pools.length} aktif kayıt</span></div>
-        {pools.length ? <div className="bulk-pool-grid">{pools.map((pool) => <article key={pool.id} className="bulk-pool-item"><div><code>{pool.prefix}_* @{pool.domain}</code><p>{pool.address_count} adres · sonraki indeks {pool.next_index}</p></div><div className="bulk-pool-actions"><button className="btn-primary text-xs px-3 py-2" onClick={() => onOpenPool?.(pool)}><Inbox size={14} /> Mailleri aç</button><button className="btn-secondary text-xs" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Devam et</button><button className="icon-button" title="Kopyala" onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)}><Clipboard size={15} /></button></div></article>)}</div> : <div className="ops-empty-inline"><Boxes size={22} /><p>Henüz bir havuz oluşturmadınız.</p></div>}</section>
+      <section className="ops-card bulk-pool-list"><div className="ops-card-heading"><div><span className="ops-step">03</span><h2>{t('bulk.yourPools')}</h2></div><span className="ops-muted">{t('bulk.activeRecords', { count: pools.length })}</span></div>
+        {pools.length ? <div className="bulk-pool-grid">{pools.map((pool) => <article key={pool.id} className="bulk-pool-item"><div><code>{pool.prefix}_* @{pool.domain}</code><p>{t('bulk.poolMeta', { count: pool.address_count, index: pool.next_index })}</p></div><div className="bulk-pool-actions"><button className="btn-primary text-xs px-3 py-2" onClick={() => onOpenPool?.(pool)}><Inbox size={14} /> {t('bulk.openMails')}</button><button className="btn-secondary text-xs" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>{t('bulk.continue')}</button><button className="icon-button" title={t('bulk.copy')} onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)}><Clipboard size={15} /></button></div></article>)}</div> : <div className="ops-empty-inline"><Boxes size={22} /><p>{t('bulk.noPools')}</p></div>}</section>
     </section>
   );
 }
