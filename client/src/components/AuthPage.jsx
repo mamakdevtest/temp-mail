@@ -133,9 +133,9 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
         </div>
 
         {/* User types */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="mt-6 grid grid-cols-3 gap-3 stagger-in">
           {userTypes.map((item) => (
-            <div key={item.title} className="text-center card p-3">
+            <div key={item.title} className="text-center card p-3 hover:-translate-y-1 hover:shadow-lg transition-all">
               <div className={`w-9 h-9 rounded-xl ${item.bg} flex items-center justify-center mx-auto mb-2`}>
                 <item.icon size={14} className={item.tone} />
               </div>

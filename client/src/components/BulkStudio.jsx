@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Boxes, CheckCircle2, Clipboard, Download, Inbox, Plus, ShieldAlert, Sparkles } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
+import { ListSkeleton } from './Skeleton';
 
 const COUNTS = [5, 10, 25, 50, 100];
 
@@ -22,6 +23,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
   const [domain, setDomain] = useState('');
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
+  const [poolsLoading, setPoolsLoading] = useState(true);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
 
@@ -35,12 +37,14 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
 
   const loadPools = async () => {
     if (!token) return;
+    setPoolsLoading(true);
     try {
       const response = await apiFetch('/api/addresses/bulk', { headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || data.error || t('bulk.loadPoolsFailed'));
       setPools(data.pools || []);
     } catch (nextError) { setError(nextError.message); }
+    finally { setPoolsLoading(false); }
   };
 
   useEffect(() => { void loadPools(); }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -104,7 +108,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
       </div>
 
       <section className="ops-card bulk-pool-list"><div className="ops-card-heading"><div><span className="ops-step">03</span><h2>{t('bulk.yourPools')}</h2></div><span className="ops-muted">{t('bulk.activeRecords', { count: pools.length })}</span></div>
-        {pools.length ? <div className="bulk-pool-grid">{pools.map((pool) => <article key={pool.id} className="bulk-pool-item"><div><code>{pool.prefix}_* @{pool.domain}</code><p>{t('bulk.poolMeta', { count: pool.address_count, index: pool.next_index })}</p></div><div className="bulk-pool-actions"><button className="btn-primary text-xs px-3 py-2" onClick={() => onOpenPool?.(pool)}><Inbox size={14} /> {t('bulk.openMails')}</button><button className="btn-secondary text-xs" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>{t('bulk.continue')}</button><button className="icon-button" title={t('bulk.copy')} onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)}><Clipboard size={15} /></button></div></article>)}</div> : <div className="ops-empty-inline"><Boxes size={22} /><p>{t('bulk.noPools')}</p></div>}</section>
+        {poolsLoading ? <ListSkeleton rows={3} /> : pools.length ? <div className="bulk-pool-grid stagger-in">{pools.map((pool) => <article key={pool.id} className="bulk-pool-item"><div><code>{pool.prefix}_* @{pool.domain}</code><p>{t('bulk.poolMeta', { count: pool.address_count, index: pool.next_index })}</p></div><div className="bulk-pool-actions"><button className="btn-primary text-xs px-3 py-2" onClick={() => onOpenPool?.(pool)}><Inbox size={14} /> {t('bulk.openMails')}</button><button className="btn-secondary text-xs" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>{t('bulk.continue')}</button><button className="icon-button active:scale-95 transition-all" title={t('bulk.copy')} onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)}><Clipboard size={15} /></button></div></article>)}</div> : <div className="ops-empty-inline"><Boxes size={22} /><p>{t('bulk.noPools')}</p></div>}</section>
     </section>
   );
 }

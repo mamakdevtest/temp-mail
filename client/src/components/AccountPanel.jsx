@@ -574,7 +574,7 @@ const AccountPanel = forwardRef(function AccountPanel({
                 <span className="badge-blue">{planName}</span>
               </div>
             </div>
-            <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3">
+            <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3 animate-fade-in">
               <div
                 className="relative h-24 w-24 rounded-full"
                 style={{
@@ -590,7 +590,7 @@ const AccountPanel = forwardRef(function AccountPanel({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 stagger-in">
             <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
               <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.address')}</p>
               <p className="text-xl font-semibold text-txt-primary mt-1">{currentStats?.address_count || 0}</p>
@@ -631,7 +631,7 @@ const AccountPanel = forwardRef(function AccountPanel({
             </div>
           </button>
           {showRecentHistory ? (
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-2 animate-slide-down">
               {recentHistory.length > 0 ? recentHistory.map((item) => (
                 <div key={item.address} className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-3 py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -664,7 +664,7 @@ const AccountPanel = forwardRef(function AccountPanel({
             </div>
           </button>
           {showPasswordedHistory ? (
-            <div className="mt-3 space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            <div className="mt-3 space-y-2 max-h-[220px] overflow-y-auto pr-1 animate-slide-down">
               {passwordedHistory.length > 0 ? passwordedHistory.map((item) => (
                 <div key={item.address} className="rounded-2xl border border-accent-purple/15 bg-accent-purple/5 px-3 py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -722,7 +722,7 @@ const AccountPanel = forwardRef(function AccountPanel({
               <span className="badge-green">{t('account.active')}</span>
             </div>
           </div>
-          <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3">
+          <div className="hidden sm:flex shrink-0 flex-col items-center rounded-[24px] border border-brand-border/20 bg-brand-surface2/25 p-3 animate-fade-in">
             <div
               className="relative h-24 w-24 rounded-full"
               style={{
@@ -738,7 +738,7 @@ const AccountPanel = forwardRef(function AccountPanel({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 stagger-in">
           <div className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 p-3">
             <p className="text-[10px] uppercase tracking-[0.2em] text-txt-muted">{t('account.address')}</p>
             <p className="text-xl font-semibold text-txt-primary mt-1">{currentStats?.address_count || 0}</p>
@@ -779,7 +779,7 @@ const AccountPanel = forwardRef(function AccountPanel({
           </div>
         </button>
         {showRecentHistory ? (
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-2 animate-slide-down">
             {recentHistory.length > 0 ? recentHistory.map((item) => (
               <div key={item.address} className="rounded-2xl border border-brand-border/20 bg-brand-surface2/25 px-3 py-2.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -812,7 +812,7 @@ const AccountPanel = forwardRef(function AccountPanel({
           </div>
         </button>
         {showPasswordedHistory ? (
-          <div className="mt-3 space-y-2 max-h-[220px] overflow-y-auto pr-1">
+          <div className="mt-3 space-y-2 max-h-[220px] overflow-y-auto pr-1 animate-slide-down">
             {passwordedHistory.length > 0 ? passwordedHistory.map((item) => (
               <div key={item.address} className="rounded-2xl border border-accent-purple/15 bg-accent-purple/5 px-3 py-2.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">

@@ -795,7 +795,7 @@ export default function AccountEditorModal({
             <div className="flex flex-wrap gap-2">{renderActions()}</div>
           </div>
 
-          <div className="min-h-0 flex-1 py-4">{renderTabContent()}</div>
+          <div className="min-h-0 flex-1 py-4"><div key={activeTab.id} className="animate-fade-in">{renderTabContent()}</div></div>
         </section>
       </div>
     </Modal>

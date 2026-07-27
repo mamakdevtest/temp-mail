@@ -112,7 +112,7 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
         </div>
 
         {email.otp_code && (
-          <div className="mt-4 p-4 rounded-[22px] bg-gradient-to-r from-accent-purple/12 to-accent-blue/10 border border-accent-purple/18 animate-slide-up">
+          <div className="mt-4 p-4 rounded-[22px] bg-gradient-to-r from-accent-purple/14 to-accent-blue/12 border border-accent-purple/22 animate-pop-in" style={{ animation: 'popIn 0.28s cubic-bezier(0.34,1.56,0.64,1) both, pulseGlow 3.2s ease-in-out 0.4s infinite' }}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] text-accent-purple font-medium flex items-center gap-1.5"><KeyRound size={11} /> {t('emailView.otpCode')}</p>
@@ -144,7 +144,7 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
           <p className="section-title mb-3 flex items-center gap-1.5"><Paperclip size={11} /> {t('emailView.attachments', { count: email.attachments.length })}</p>
           <div className="flex flex-wrap gap-2">
             {email.attachments.map((a) => (
-              <button key={a.id} onClick={() => downloadAttachment(a)} disabled={downloading === a.id} className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs bg-brand-surface2 border border-brand-border/35 hover:bg-brand-surface3 transition-colors text-txt-secondary disabled:opacity-50">
+              <button key={a.id} onClick={() => downloadAttachment(a)} disabled={downloading === a.id} className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs bg-brand-surface2 border border-brand-border/35 hover:bg-brand-surface3 hover:-translate-y-px hover:shadow-md transition-all active:scale-95 text-txt-secondary disabled:opacity-50">
                 <Download size={12} /> {a.filename || 'Ek'} {a.size > 0 && <span className="text-txt-muted">({(a.size / 1024).toFixed(1)}KB)</span>}
               </button>
             ))}

@@ -40,13 +40,13 @@ export default function Modal({ show, onClose, title, subtitle, children, footer
   const cardStyle = compact ? { width: 'min(980px, calc(100vw - 1rem))', maxHeight: 'min(800px, calc(100vh - 1rem))' } : undefined;
   return createPortal(
     <div
-      className={`fixed inset-0 bg-brand-bg/82 backdrop-blur-xl z-[1000] flex justify-center overflow-y-auto ${viewportClass}`}
+      className={`fixed inset-0 bg-brand-bg/82 backdrop-blur-xl z-[1000] flex justify-center overflow-y-auto animate-fade-in ${viewportClass}`}
       onClick={onClose}
       role="presentation"
     >
       <div
         style={cardStyle}
-        className={`bg-brand-surface/95 border border-brand-border/55 rounded-none ${compact ? 'rounded-[30px] border-white/8 bg-[#161616]/96 shadow-[0_28px_100px_rgba(0,0,0,0.58)]' : size === 'full' ? 'sm:rounded-none shadow-none w-screen min-h-screen max-h-screen' : 'sm:rounded-[28px] shadow-panel'} w-full ${compact ? 'max-w-none h-full min-h-0 max-h-none' : sizeClass} animate-slide-up overflow-hidden ${compact ? 'flex' : size === 'full' ? 'min-h-screen max-h-screen' : 'min-h-[calc(100vh-1rem)] max-h-[calc(100vh-1rem)] sm:min-h-0 sm:max-h-[calc(100vh-3rem)]'} flex flex-col`}
+        className={`bg-brand-surface/95 border border-brand-border/55 rounded-none ${compact ? 'rounded-[30px] border-white/8 bg-[#161616]/96 shadow-[0_28px_100px_rgba(0,0,0,0.58)]' : size === 'full' ? 'sm:rounded-none shadow-none w-screen min-h-screen max-h-screen' : 'sm:rounded-[28px] shadow-panel'} w-full ${compact ? 'max-w-none h-full min-h-0 max-h-none' : sizeClass} animate-pop-in overflow-hidden ${compact ? 'flex' : size === 'full' ? 'min-h-screen max-h-screen' : 'min-h-[calc(100vh-1rem)] max-h-[calc(100vh-1rem)] sm:min-h-0 sm:max-h-[calc(100vh-3rem)]'} flex flex-col`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

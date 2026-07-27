@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Copy, Filter, Inbox, MailOpen, RefreshCw, Search, ShieldAlert, Sparkles } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
+import { TableSkeleton } from './Skeleton';
 
 function formatTime(value, language) {
   if (!value) return '—';
@@ -67,7 +68,7 @@ export default function BulkInbox({ token, pool }) {
     {error && <div className="ops-error bulk-inbox-error"><ShieldAlert size={16} /> {error}</div>}
     <section className="bulk-mail-table ops-card" aria-live="polite">
       <div className="bulk-mail-table-head"><span>{t('bulkInbox.colRecipient')}</span><span>{t('bulkInbox.colSenderSubject')}</span><span>OTP</span><span>{t('bulkInbox.colTime')}</span></div>
-      {loading ? <div className="bulk-mail-empty"><RefreshCw className="animate-spin" size={22} /><p>{t('bulkInbox.preparing')}</p></div> : emails.length ? emails.map((email) => <article key={email.id} className={`bulk-mail-row ${selected?.id === email.id ? 'is-selected' : ''}`} onClick={() => setSelected(email)}>
+      {loading ? <TableSkeleton rows={8} cols={4} /> : emails.length ? emails.map((email) => <article key={email.id} className={`bulk-mail-row ${selected?.id === email.id ? 'is-selected' : ''}`} onClick={() => setSelected(email)}>
         <div className="bulk-mail-recipient"><code>{email.recipient_address}</code><span>#{email.id}</span></div>
         <div className="bulk-mail-summary"><strong>{email.sender || t('bulkInbox.unknownSender')}</strong><p>{email.subject || t('bulkInbox.noSubject')}</p></div>
         <div className="bulk-mail-otp">{email.otp_code ? <button onClick={(event) => { event.stopPropagation(); copyOtp(email.otp_code); }} title={t('bulkInbox.copyOtp')}><code>{email.otp_code}</code>{copiedOtp === email.otp_code ? <Check size={14} /> : <Copy size={14} />}</button> : <span>—</span>}</div>

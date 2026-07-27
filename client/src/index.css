@@ -25,6 +25,11 @@
   --bg-top: rgba(108, 99, 255, 0.14);
   --bg-right: rgba(52, 215, 255, 0.08);
   --bg-bottom: rgba(39, 213, 155, 0.08);
+  /* motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur-med: 240ms;
 }
 
 html[data-theme="light"] {
@@ -70,21 +75,23 @@ html[data-theme="light"] {
     outline: 2px solid rgba(52, 215, 255, 0.75);
     outline-offset: 2px;
   }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { @apply bg-brand-bg; }
-  ::-webkit-scrollbar-thumb { @apply bg-brand-border rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-brand-border2; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--brand-border) / 0.55); border-radius: 99px; border: 2px solid rgb(var(--brand-bg)); }
+  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--brand-border2) / 0.85); }
+  * { scrollbar-width: thin; scrollbar-color: rgb(var(--brand-border) / 0.55) transparent; }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white border transition-all duration-200 shadow-glow-blue hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white border transition-all duration-200 shadow-glow-blue hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
     border-color: rgba(119, 163, 255, 0.5);
     background-image: linear-gradient(135deg, #4f8dff 0%, #6a69ee 100%);
   }
+  .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 12px 36px rgba(79, 141, 255, 0.38), inset 0 1px 0 rgba(255,255,255,0.18); }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-medium text-txt-secondary hover:text-txt-primary border transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-medium text-txt-secondary hover:text-txt-primary border transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
     border-color: rgb(var(--brand-border) / 0.72);
     background-color: rgb(var(--brand-surface2) / 0.72);
   }
@@ -104,7 +111,7 @@ html[data-theme="light"] {
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-txt-muted hover:text-txt-secondary transition-all duration-200;
+    @apply inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-txt-muted hover:text-txt-secondary transition-all duration-150 active:scale-95;
   }
 
   .btn-ghost:hover {
@@ -122,7 +129,7 @@ html[data-theme="light"] {
   }
 
   .card {
-    @apply border rounded-[22px] shadow-card backdrop-blur-xl;
+    @apply border rounded-[22px] shadow-card backdrop-blur-xl transition-shadow duration-300;
     border-color: rgb(var(--brand-border) / 0.72);
     background-color: rgb(var(--brand-surface) / 0.9);
     box-shadow: 0 18px 52px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255,255,255,0.035);
@@ -146,10 +153,11 @@ html[data-theme="light"] {
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl text-sm text-txt-primary placeholder-txt-muted border focus:ring-2 focus:ring-accent-blue/25 focus:border-accent-blue/50 outline-none transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl text-sm text-txt-primary placeholder-txt-muted border focus:ring-4 focus:ring-accent-blue/15 focus:border-accent-blue/60 outline-none transition-all duration-200;
     background-color: rgb(var(--brand-bg) / 0.58);
     border-color: rgb(var(--brand-border) / 0.78);
   }
+  .input:hover:not(:focus) { border-color: rgb(var(--brand-border2) / 0.75); }
 
   html[data-theme="light"] .input {
     color: rgb(var(--txt-primary));
@@ -504,17 +512,52 @@ html[data-theme="light"] .admin-doc-pre code {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-slide-up { animation: slideUp 0.25s ease-out; }
-.animate-slide-down { animation: slideDown 0.25s ease-out; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(122, 99, 255, 0.35); }
+  50% { box-shadow: 0 0 24px 2px rgba(122, 99, 255, 0.22); }
+}
+
+.animate-slide-up { animation: slideUp 0.3s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+.animate-slide-down { animation: slideDown 0.28s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+.animate-fade-in { animation: fadeIn 0.22s ease-out both; }
+.animate-pop-in { animation: popIn 0.28s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both; }
+.animate-row-in { animation: rowIn 0.24s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+
+/* staggered list entrance — apply to list containers, children get stagger via nth-child */
+.stagger-in > * { animation: rowIn 0.32s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+.stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-in > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-in > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-in > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-in > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-in > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-in > *:nth-child(7) { animation-delay: 240ms; }
+.stagger-in > *:nth-child(8) { animation-delay: 280ms; }
+.stagger-in > *:nth-child(n+9) { animation-delay: 320ms; }
 
 .mail-iframe {
   width: 100%;

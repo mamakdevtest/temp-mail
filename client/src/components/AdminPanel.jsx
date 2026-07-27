@@ -998,7 +998,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
         <div className="card p-6 bg-[radial-gradient(circle_at_top_left,rgba(122,99,255,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(52,215,255,0.1),transparent_26%)]">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
             <div className="min-w-0">
-              <button onClick={() => { setSelectedAddress(null); setSelectedAddressDetail(null); setSelectedAddressMail(null); }} className="btn-ghost px-0 mb-3">
+              <button onClick={() => { setSelectedAddress(null); setSelectedAddressDetail(null); setSelectedAddressMail(null); }} className="btn-ghost px-0 active:scale-95 transition-all mb-3">
                 <ArrowLeft size={14} /> {t('admin.detail.back')}
               </button>
               <div className="flex items-center gap-3 flex-wrap">
@@ -1021,7 +1021,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4 stagger-in">
           <AdminStatCard title={t('admin.detail.status')} value={addressStatus.label} subtitle={addressInfo.has_password ? t('admin.detail.passwordProtected') : t('admin.detail.openAccess')} icon={addressInfo.has_password ? FolderLock : Shield} tone={addressInfo.has_password ? 'purple' : 'green'} />
           <AdminStatCard title="Domain" value={addressInfo.domain} subtitle={t('admin.detail.linkedDomain')} icon={Globe} tone="cyan" />
           <AdminStatCard title={t('admin.stats.totalMail')} value={addressDetailStats?.total_emails || 0} subtitle={t('admin.detail.incomingContent')} icon={Mail} tone="blue" />
@@ -1111,16 +1111,16 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 font-medium">{t('admin.table.sender')}</th>
-                        <th className="py-3 font-medium">{t('admin.table.subject')}</th>
-                        <th className="py-3 font-medium">{t('admin.table.date')}</th>
-                        <th className="py-3 font-medium">{t('admin.table.tag')}</th>
-                        <th className="py-3 font-medium">{t('admin.table.action')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.sender')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.subject')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.date')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.tag')}</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.table.action')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {addressEmails.map((mail) => (
-                        <tr key={mail.id} className="border-b border-brand-border/10 last:border-0">
+                        <tr key={mail.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                           <td className="py-4 text-txt-primary">{mail.sender}</td>
                           <td className="py-4 text-txt-secondary">{mail.subject || t('admin.common.noSubject')}</td>
                           <td className="py-4 text-txt-muted">{formatAdminDate(mail.received_at)}</td>
@@ -1132,8 +1132,8 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           </td>
                           <td className="py-4">
                             <div className="flex flex-wrap gap-2">
-                              <button onClick={() => openMailDetail(mail.id, 'address')} className="btn-ghost text-accent-blue px-0"><Eye size={14} /></button>
-                              <button onClick={() => deleteEmail(mail.id, 'address')} className="btn-ghost text-accent-red px-0"><Trash2 size={14} /></button>
+                              <button onClick={() => openMailDetail(mail.id, 'address')} className="btn-ghost text-accent-blue px-0 active:scale-95 transition-all"><Eye size={14} /></button>
+                              <button onClick={() => deleteEmail(mail.id, 'address')} className="btn-ghost text-accent-red px-0 active:scale-95 transition-all"><Trash2 size={14} /></button>
                             </div>
                           </td>
                         </tr>
@@ -1220,7 +1220,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       {tab === 'dashboard' && (
         <div className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 stagger-in">
             <AdminStatCard title={t('admin.stats.totalMail')} value={stats?.total_emails || 0} subtitle={t('admin.stats.allTime')} icon={Mail} tone="blue" />
             <AdminStatCard title={t('admin.stats.totalAddresses')} value={stats?.total_addresses || 0} subtitle={t('admin.stats.protectedCount', { count: protectedAddresses })} icon={Users} tone="green" />
             <AdminStatCard title={t('admin.stats.last24h')} value={stats?.recent_24h || 0} subtitle={t('admin.stats.newMessages')} icon={Clock3} tone="gold" />
@@ -1231,7 +1231,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
             <AdminPanelCard title="Mail Trafiği" icon={Activity} className="xl:col-span-6">
               {trafficData.some((item) => item.incoming > 0 || item.otp > 0 || item.attachments > 0) ? (
-                <div className="h-[240px]">
+                <div className="h-[240px] animate-fade-in">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trafficData}>
                       <defs>
@@ -1300,15 +1300,15 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 font-medium">Domain</th>
-                        <th className="py-3 font-medium">Durum</th>
-                        <th className="py-3 font-medium">Adres</th>
-                        <th className="py-3 font-medium">Oluşturulma</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Domain</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Adres</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Oluşturulma</th>
                       </tr>
                     </thead>
                     <tbody>
                       {topDomainRows.map((domain) => (
-                        <tr key={domain.id} className="border-b border-brand-border/10 last:border-0">
+                        <tr key={domain.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                           <td className="py-4 text-txt-primary font-medium">{domain.domain}</td>
                           <td className="py-4">{domain.is_active === 1 ? <span className="badge-green">Aktif</span> : <span className="badge-red">Pasif</span>}</td>
                           <td className="py-4 text-txt-secondary">{domain.address_count}</td>
@@ -1355,24 +1355,24 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 font-medium">Gönderen</th>
-                        <th className="py-3 font-medium">Alıcı</th>
-                        <th className="py-3 font-medium">Konu</th>
-                        <th className="py-3 font-medium">Tarih</th>
-                        <th className="py-3 font-medium">Durum</th>
-                        <th className="py-3 font-medium">İşlem</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Gönderen</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Alıcı</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Konu</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Tarih</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlem</th>
                       </tr>
                     </thead>
                     <tbody>
                       {stats.latest_emails.slice(0, 5).map((mail) => (
-                        <tr key={mail.id} className="border-b border-brand-border/10 last:border-0">
+                        <tr key={mail.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                           <td className="py-4 text-txt-primary">{mail.sender}</td>
                           <td className="py-4 text-txt-secondary font-mono">{mail.recipient_address}</td>
                           <td className="py-4 text-txt-secondary">{mail.subject || '(Konu yok)'}</td>
                           <td className="py-4 text-txt-muted">{formatAdminDate(mail.received_at)}</td>
                           <td className="py-4">{mail.otp_code ? <span className="badge-purple">OTP</span> : <span className="badge-green">Gelen</span>}</td>
                           <td className="py-4">
-                            <button onClick={() => openAddressDetail(mail.recipient_address)} className="btn-ghost text-accent-blue px-0">
+                            <button onClick={() => openAddressDetail(mail.recipient_address)} className="btn-ghost text-accent-blue px-0 active:scale-95 transition-all">
                               <Eye size={14} />
                             </button>
                           </td>
@@ -1388,7 +1388,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
             <AdminPanelCard title="Mail Dağılımı" icon={PieChartIcon} className="xl:col-span-4">
               {mailMix.length > 0 ? (
-                <div className="h-[260px]">
+                <div className="h-[260px] animate-fade-in">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
                       <Pie data={mailMix} dataKey="value" innerRadius={55} outerRadius={88} paddingAngle={3}>
@@ -1419,7 +1419,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           {tableLoading.addresses && addrs.length === 0 ? (
             <><StatsSkeleton count={4} /><div className="card"><TableSkeleton rows={8} cols={6} /></div></>
           ) : <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 stagger-in">
             <AdminStatCard title="Toplam Adres" value={addrs.length} subtitle="Tüm mailbox kayıtları" icon={Users} tone="green" />
             <AdminStatCard title="Aktif Adres" value={activeAddressCount} subtitle="Son erişim veya mail var" icon={CheckCircle2} tone="green" />
             <AdminStatCard title="Süresi Dolan" value={expiredAddresses} subtitle="Temizlik bekleyen" icon={Clock3} tone="gold" />
@@ -1482,21 +1482,21 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm min-w-[1120px]">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 font-medium">E-posta Adresi</th>
-                        <th className="py-3 font-medium">Durum</th>
-                        <th className="py-3 font-medium">Oluşturulma</th>
-                        <th className="py-3 font-medium">Son Aktivite</th>
-                        <th className="py-3 font-medium">Mail Sayısı</th>
-                        <th className="py-3 font-medium">Domain</th>
-                        <th className="py-3 font-medium">Saklama</th>
-                        <th className="py-3 font-medium">İşlemler</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">E-posta Adresi</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Oluşturulma</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Son Aktivite</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Mail Sayısı</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Domain</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Saklama</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlemler</th>
                       </tr>
                     </thead>
                     <tbody>
                       {pagedAddresses.map((addr) => {
                         const status = getAddressStatus(addr);
                         return (
-                          <tr key={addr.id} className="border-b border-brand-border/10 last:border-0">
+                          <tr key={addr.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                             <td className="py-4">
                               <p className="text-txt-primary font-medium font-mono">{addr.address}</p>
                             </td>
@@ -1508,10 +1508,10 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                             <td className="py-4 text-txt-secondary">{formatRetention(addr)}</td>
                             <td className="py-4">
                               <div className="flex items-center gap-3">
-                                <button onClick={() => openAddressDetail(addr.address)} className="btn-ghost text-accent-blue px-0"><Eye size={14} /></button>
-                                <button onClick={() => navigator.clipboard.writeText(addr.address)} className="btn-ghost px-0"><Copy size={14} /></button>
-                                <button onClick={() => cleanupAddress(addr.address)} className="btn-ghost text-accent-gold px-0"><ListRestart size={14} /></button>
-                                <button onClick={() => deleteAddress(addr.address)} className="btn-ghost text-accent-red px-0"><Trash2 size={14} /></button>
+                                <button onClick={() => openAddressDetail(addr.address)} className="btn-ghost text-accent-blue px-0 active:scale-95 transition-all"><Eye size={14} /></button>
+                                <button onClick={() => navigator.clipboard.writeText(addr.address)} className="btn-ghost px-0 active:scale-95 transition-all"><Copy size={14} /></button>
+                                <button onClick={() => cleanupAddress(addr.address)} className="btn-ghost text-accent-gold px-0 active:scale-95 transition-all"><ListRestart size={14} /></button>
+                                <button onClick={() => deleteAddress(addr.address)} className="btn-ghost text-accent-red px-0 active:scale-95 transition-all"><Trash2 size={14} /></button>
                               </div>
                             </td>
                           </tr>
@@ -1580,7 +1580,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             ) : null}
 
             {domains.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 stagger-in">
                 {domains.map((domain) => {
                   const rootDomainKey = String(domain.domain || '').toLowerCase();
                   const subdomains = domainSubdomains[domain.id] || [];
@@ -1775,17 +1775,17 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <table className="w-full text-sm min-w-[920px]">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
-                        <th className="py-3 font-medium">Gönderen</th>
-                        <th className="py-3 font-medium">Alıcı</th>
-                        <th className="py-3 font-medium">Konu</th>
-                        <th className="py-3 font-medium">Tarih</th>
-                        <th className="py-3 font-medium">Etiket</th>
-                        <th className="py-3 font-medium">İşlem</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Gönderen</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Alıcı</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Konu</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Tarih</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Etiket</th>
+                        <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlem</th>
                       </tr>
                     </thead>
                     <tbody>
                       {emails.map((mail) => (
-                        <tr key={mail.id} className="border-b border-brand-border/10 last:border-0">
+                        <tr key={mail.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                           <td className="py-4 text-txt-primary">{mail.sender}</td>
                           <td className="py-4 text-txt-secondary font-mono">{mail.recipient_address}</td>
                           <td className="py-4 text-txt-secondary">{mail.subject || '(Konu yok)'}</td>
@@ -1799,9 +1799,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           </td>
                           <td className="py-4">
                             <div className="flex flex-wrap gap-2">
-                              <button onClick={() => openMailDetail(mail.id, 'global')} className="btn-ghost text-accent-blue px-0"><Eye size={14} /></button>
-                              <button onClick={() => openAddressDetail(mail.recipient_address)} className="btn-ghost px-0"><ExternalLink size={14} /></button>
-                              <button onClick={() => deleteEmail(mail.id, 'global')} className="btn-ghost text-accent-red px-0"><Trash2 size={14} /></button>
+                              <button onClick={() => openMailDetail(mail.id, 'global')} className="btn-ghost text-accent-blue px-0 active:scale-95 transition-all"><Eye size={14} /></button>
+                              <button onClick={() => openAddressDetail(mail.recipient_address)} className="btn-ghost px-0 active:scale-95 transition-all"><ExternalLink size={14} /></button>
+                              <button onClick={() => deleteEmail(mail.id, 'global')} className="btn-ghost text-accent-red px-0 active:scale-95 transition-all"><Trash2 size={14} /></button>
                             </div>
                           </td>
                         </tr>
@@ -1858,19 +1858,19 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               <table className="w-full text-sm min-w-[920px]">
                 <thead className="text-left text-txt-muted">
                   <tr className="border-b border-brand-border/20">
-                    <th className="py-3 font-medium">Kullanıcı</th>
-                    <th className="py-3 font-medium">Rol</th>
-                    <th className="py-3 font-medium">Adres</th>
-                    <th className="py-3 font-medium">Mail</th>
-                    <th className="py-3 font-medium">Bulk</th>
-                    <th className="py-3 font-medium">Son giriş</th>
-                    <th className="py-3 font-medium">Durum</th>
-                    <th className="py-3 font-medium">İşlem</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Kullanıcı</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Rol</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Adres</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Mail</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Bulk</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Son giriş</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Durum</th>
+                    <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">İşlem</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user) => (
-                    <tr key={user.id} className="border-b border-brand-border/10 last:border-0">
+                    <tr key={user.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors">
                       <td className="py-4">
                         <p className="text-txt-primary font-medium">{user.username}</p>
                         <p className="text-xs text-txt-muted mt-1">{user.email}</p>
@@ -1938,7 +1938,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       {tab === 'bulk' && (
         <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-in">
             <AdminStatCard title="Aktif Havuz" value={bulkPools.length} subtitle="Kullanıcıya bağlı prefix havuzları" icon={Boxes} tone="purple" />
             <AdminStatCard title="Üretilen Adres" value={bulkPools.reduce((sum, pool) => sum + Number(pool.address_count || 0), 0)} subtitle="Normal paket kotasına dahildir" icon={Inbox} tone="blue" />
             <AdminStatCard title="Yetkili Kullanıcı" value={users.filter((user) => user.bulk_access_enabled).length} subtitle="Yalnız Pro ve Pro+" icon={Users} tone="green" />
@@ -1951,7 +1951,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             {tableLoading.bulk && bulkPools.length === 0 ? (
               <TableSkeleton rows={6} cols={6} />
             ) : bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).length > 0 ? (
-              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 font-medium">Sahip</th><th className="py-3 font-medium">Paket</th><th className="py-3 font-medium">Havuz</th><th className="py-3 font-medium">Adres</th><th className="py-3 font-medium">Son üretim</th><th className="py-3 font-medium">Yetki</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-accent-cyan">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">Açık</span> : <span className="badge-red">Kapalı</span>}</td></tr>)}</tbody></table></div>
+              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Sahip</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Paket</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Havuz</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Adres</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Son üretim</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Yetki</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-accent-cyan">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">Açık</span> : <span className="badge-red">Kapalı</span>}</td></tr>)}</tbody></table></div>
             ) : <AdminEmptyState title="Bulk havuzu bulunamadı" subtitle="Yetki verdiğiniz Pro/Pro+ kullanıcılar burada havuz oluşturabilir." />}
           </AdminPanelCard>
         </div>
@@ -1960,7 +1960,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
       {tab === 'requests' && (
         <AdminPanelCard title={`Pro İstekleri (${requests.length})`} icon={Crown} action={<button onClick={loadRequests} className="btn-ghost"><RefreshCw size={14} /></button>}>
           {requests.length > 0 ? (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 stagger-in">
               {requests.map((request) => (
                 <div key={request.id} className="panel-soft p-5">
                   <div className="flex items-start justify-between gap-4">

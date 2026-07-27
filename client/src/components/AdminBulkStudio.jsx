@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Archive, Boxes, Download, Pause, Play, Search, ShieldCheck, UserRoundPlus } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
+import { ListSkeleton } from './Skeleton';
 
 const COUNTS = [10, 25, 50, 100];
 
@@ -16,10 +17,12 @@ export default function AdminBulkStudio({ token, user, domains = [] }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [poolsLoading, setPoolsLoading] = useState(true);
   const [message, setMessage] = useState('');
   const headers = { Authorization: `Bearer ${token}` };
 
   const load = async () => {
+    setPoolsLoading(true);
     try {
       const [usersResponse, poolsResponse] = await Promise.all([
         apiFetch('/api/admin/users', { headers }),
@@ -30,6 +33,7 @@ export default function AdminBulkStudio({ token, user, domains = [] }) {
       if (usersResponse.ok) setUsers(usersData.users || []);
       if (poolsResponse.ok) setPools(poolsData.pools || []);
     } catch (error) { setMessage(error.message); }
+    finally { setPoolsLoading(false); }
   };
 
   useEffect(() => { if (!domain && domains[0]?.domain) setDomain(domains[0].domain); }, [domain, domains]);
@@ -74,7 +78,7 @@ export default function AdminBulkStudio({ token, user, domains = [] }) {
       <article className="ops-card admin-bulk-guide"><span className="ops-step">CONTROL</span><h2>{t('adminBulk.guideTitle')}</h2><p>{t('adminBulk.guideBody')}</p><ul><li><b>{t('adminBulk.guideActiveLabel')}</b> {t('adminBulk.guideActive')}</li><li><b>{t('adminBulk.guidePauseLabel')}</b> {t('adminBulk.guidePause')}</li><li><b>{t('adminBulk.guideArchiveLabel')}</b> {t('adminBulk.guideArchive')}</li></ul></article>
     </div>
     <section className="ops-card bulk-operations"><div className="ops-card-heading"><div><span className="ops-step">POOLS</span><h2>{t('adminBulk.poolOperations')}</h2></div><div className="admin-bulk-filters"><label><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('adminBulk.searchPlaceholder')} /></label><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">{t('adminBulk.allStatuses')}</option><option value="active">{t('adminBulk.statusActive')}</option><option value="paused">{t('adminBulk.statusPaused')}</option><option value="archived">{t('adminBulk.statusArchived')}</option></select></div></div>
-      <div className="bulk-table">{pools.map((pool) => <article key={pool.id} className="bulk-admin-row"><div><code>{pool.prefix}_*@{pool.domain}</code><p>{pool.username} · {pool.package_name} · {t('adminBulk.addressCount', { count: pool.address_count })}</p></div><span className={`ops-status status-${pool.status}`}>{pool.status}</span><div className="bulk-admin-actions">{pool.status !== 'active' && <button className="icon-button" title={t('adminBulk.activate')} onClick={() => setPoolStatus(pool, 'active')}><Play size={15} /></button>}{pool.status === 'active' && <button className="icon-button" title={t('adminBulk.pause')} onClick={() => setPoolStatus(pool, 'paused')}><Pause size={15} /></button>}<button className="icon-button" title={t('adminBulk.archive')} onClick={() => setPoolStatus(pool, 'archived')}><Archive size={15} /></button><button className="icon-button" title={t('adminBulk.viewForCsv')} onClick={() => window.open(`/api/admin/bulk-pools/${pool.id}/addresses?limit=500`, '_blank')}><Download size={15} /></button></div></article>)}</div>
+      {poolsLoading ? <ListSkeleton rows={4} /> : <div className="bulk-table stagger-in">{pools.map((pool) => <article key={pool.id} className="bulk-admin-row"><div><code>{pool.prefix}_*@{pool.domain}</code><p>{pool.username} · {pool.package_name} · {t('adminBulk.addressCount', { count: pool.address_count })}</p></div><span className={`ops-status status-${pool.status}`}>{pool.status}</span><div className="bulk-admin-actions">{pool.status !== 'active' && <button className="icon-button active:scale-95 transition-all" title={t('adminBulk.activate')} onClick={() => setPoolStatus(pool, 'active')}><Play size={15} /></button>}{pool.status === 'active' && <button className="icon-button active:scale-95 transition-all" title={t('adminBulk.pause')} onClick={() => setPoolStatus(pool, 'paused')}><Pause size={15} /></button>}<button className="icon-button active:scale-95 transition-all" title={t('adminBulk.archive')} onClick={() => setPoolStatus(pool, 'archived')}><Archive size={15} /></button><button className="icon-button active:scale-95 transition-all" title={t('adminBulk.viewForCsv')} onClick={() => window.open(`/api/admin/bulk-pools/${pool.id}/addresses?limit=500`, '_blank')}><Download size={15} /></button></div></article>)}</div>}
     </section>
   </section>;
 }

@@ -74,12 +74,12 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
             {!search && <p className="text-xs text-txt-muted mt-1">{t('inbox.noMailsHint')}</p>}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 stagger-in">
             {filtered.map((m, i) => (
               <div
                 key={m.id}
                 onClick={() => onSelect(m.id)}
-                className={`group relative rounded-[22px] px-4 py-4 cursor-pointer transition-all duration-200 border ${selectedId === m.id ? 'bg-brand-surface2/88 border-accent-blue/35 shadow-[0_12px_24px_rgba(59,130,255,0.08)]' : 'bg-brand-surface/55 border-brand-border/25 hover:bg-brand-surface2/65 hover:border-brand-border/45'}`}
+                className={`group relative rounded-[22px] px-4 py-4 cursor-pointer transition-all duration-200 border active:scale-[0.995] ${selectedId === m.id ? 'bg-brand-surface2/88 border-accent-blue/40 shadow-[0_14px_30px_rgba(59,130,255,0.14)]' : 'bg-brand-surface/55 border-brand-border/25 hover:bg-brand-surface2/70 hover:border-brand-border/50 hover:shadow-[0_8px_22px_rgba(0,0,0,0.18)] hover:-translate-y-px'}`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${selectedId === m.id ? 'bg-accent-blue shadow-[0_0_12px_rgba(59,130,255,0.55)]' : i % 4 === 0 ? 'bg-accent-blue/80' : i % 4 === 1 ? 'bg-accent-purple/80' : i % 4 === 2 ? 'bg-accent-green/80' : 'bg-pink-400/80'}`} />

@@ -90,9 +90,9 @@ export default function DocumentationCenter() {
     <div className="docs-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('docs.searchPlaceholder')} /><kbd>⌘ K</kbd></div>
 
     <div className="docs-layout">
-      <aside className="docs-library" aria-label={t('docs.libraryAria')}>
+      <aside className="docs-library stagger-in" aria-label={t('docs.libraryAria')}>
         <p>{t('docs.topics')}</p>
-        {visibleArticles.map((article) => { const ArticleIcon = article.icon; return <button key={article.id} onClick={() => setActiveId(article.id)} className={active.id === article.id ? 'is-active' : ''}><ArticleIcon size={17} /><span><small>{article.category}</small><strong>{article.title}</strong></span><ChevronRight size={15} /></button>; })}
+        {visibleArticles.map((article) => { const ArticleIcon = article.icon; return <button key={article.id} onClick={() => setActiveId(article.id)} className={`${active.id === article.id ? 'is-active' : ''} active:scale-[0.98] transition-all`}><ArticleIcon size={17} /><span><small>{article.category}</small><strong>{article.title}</strong></span><ChevronRight size={15} /></button>; })}
         {!visibleArticles.length && <div className="docs-no-result"><CircleHelp size={18} />{t('docs.noResult')}</div>}
       </aside>
 
@@ -103,7 +103,7 @@ export default function DocumentationCenter() {
         <div className="docs-note"><Clipboard size={17} /><p><strong>{t('docs.noteLabel')}</strong>{active.note}</p></div>
       </article>
 
-      <aside className="docs-sidecards"><div><Cloud size={18} /><p>{t('docs.sideDeployTitle')}</p><strong>{t('docs.sideDeployStrong')}</strong><span>{t('docs.sideDeployBody')}</span></div><div><Workflow size={18} /><p>{t('docs.sideAutomationTitle')}</p><strong>{t('docs.sideAutomationStrong')}</strong><span>{t('docs.sideAutomationBody')}</span></div><div><Globe2 size={18} /><p>{t('docs.sideDomainTitle')}</p><strong>{t('docs.sideDomainStrong')}</strong><span>{t('docs.sideDomainBody')}</span></div></aside>
+      <aside className="docs-sidecards stagger-in"><div><Cloud size={18} /><p>{t('docs.sideDeployTitle')}</p><strong>{t('docs.sideDeployStrong')}</strong><span>{t('docs.sideDeployBody')}</span></div><div><Workflow size={18} /><p>{t('docs.sideAutomationTitle')}</p><strong>{t('docs.sideAutomationStrong')}</strong><span>{t('docs.sideAutomationBody')}</span></div><div><Globe2 size={18} /><p>{t('docs.sideDomainTitle')}</p><strong>{t('docs.sideDomainStrong')}</strong><span>{t('docs.sideDomainBody')}</span></div></aside>
     </div>
   </section>;
 }

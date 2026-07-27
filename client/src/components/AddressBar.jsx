@@ -237,7 +237,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
                           ref={domainButtonRef}
                           type="button"
                           onClick={() => setShowDomainMenu((v) => !v)}
-                          className="w-full min-w-0 inline-flex items-center gap-2 rounded-2xl border border-brand-border/50 bg-brand-surface2/45 px-3 py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] hover:bg-brand-surface2/65 transition-colors"
+                          className="w-full min-w-0 inline-flex items-center gap-2 rounded-2xl border border-brand-border/50 bg-brand-surface2/45 px-3 py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] hover:bg-brand-surface2/65 hover:-translate-y-px transition-all"
                         >
                         <Globe2 size={16} className="shrink-0 text-accent-cyan" />
                         <span className="min-w-0 flex-1 truncate text-xl sm:text-[2.15rem] font-bold tracking-tight text-accent-cyan">
@@ -251,7 +251,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
                           <div
                             ref={domainMenuRef}
                             onClick={(e) => e.stopPropagation()}
-                            className="card p-2 animate-slide-down shadow-panel"
+                            className="card p-2 animate-pop-in shadow-panel"
                             style={{
                               position: 'fixed',
                               top: `${domainMenuLayout.top}px`,
@@ -345,7 +345,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
                   </div>
                 </form>
 
-                <button onClick={handleCopy} className={`relative z-0 h-[72px] rounded-[22px] panel-soft border-brand-border/70 flex items-center justify-center transition-all ${copied ? 'text-accent-green' : 'text-txt-secondary hover:text-txt-primary'}`}>
+                <button onClick={handleCopy} className={`relative z-0 h-[72px] rounded-[22px] panel-soft border-brand-border/70 flex items-center justify-center transition-all active:scale-95 ${copied ? 'text-accent-green border-accent-green/40' : 'text-txt-secondary hover:text-txt-primary'}`}>
                   {copied ? <CheckCircle2 size={24} /> : <Copy size={22} />}
                 </button>
               </div>
@@ -404,7 +404,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
               </button>
               {showHistory && (
                 <div className="absolute right-0 bottom-[calc(100%+8px)] w-full card p-2 z-[80] animate-slide-down shadow-panel">
-                  <div className="max-h-[280px] overflow-y-auto space-y-1">
+                  <div className="max-h-[280px] overflow-y-auto space-y-1 stagger-in">
                     {history.map((h) => (
                       <button key={h.address} onClick={() => selectHistory(h)} className="w-full px-3 py-3 flex items-center gap-3 hover:bg-brand-surface2/70 rounded-2xl transition-colors text-left">
                         <div className="w-9 h-9 rounded-2xl bg-accent-blue/10 flex items-center justify-center flex-shrink-0 text-accent-blue font-mono text-xs font-bold">{h.address[0].toUpperCase()}</div>
