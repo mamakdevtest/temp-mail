@@ -1,13 +1,13 @@
 import { lazy, Suspense, startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, BookOpen, Menu, Search, Command, LogOut, Plus, Moon, Sun } from 'lucide-react';
+import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, BookOpen, Search, Command, LogOut, Plus, Moon, Sun } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 import AddressBar from './components/AddressBar';
 import Inbox from './components/Inbox';
 import EmailView from './components/EmailView';
 import AccountPanel from './components/AccountPanel';
 import Modal from './components/Modal';
-import { Drawer, CommandPalette, Avatar, EmptyState, Loading } from './components/ui';
+import { Drawer, CommandPalette, Avatar, EmptyState, Loading, ConfirmationDialog } from './components/ui';
 import { playNotificationSound, NOTIFICATION_SOUNDS } from './utils/notificationSound';
 import { apiFetch } from './utils/apiFetch';
 import { addressTokenHeader, setAddressToken } from './utils/addressToken';
@@ -61,7 +61,12 @@ function useBeep(soundId) {
 
 export default function App() {
   const auth = useAuth();
-  const theme = auth.preferences?.theme || auth.user?.theme || 'system';
+  const [guestTheme, setGuestTheme] = useState(() => {
+    try { return localStorage.getItem('tm-theme') || null; } catch (e) { return null; }
+  });
+  const theme = auth.isGuest
+    ? (guestTheme || 'system')
+    : (auth.preferences?.theme || auth.user?.theme || 'system');
   const language = normalizeLanguage(auth.preferences?.language || auth.user?.language || 'tr');
   const t = useMemo(() => createTranslator(language), [language]);
   const [notificationSound, setNotificationSound] = useState(() => {
@@ -97,7 +102,6 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [cmdkOpen, setCmdkOpen] = useState(false);
-  const [mobileNav, setMobileNav] = useState(false);
   const authHeaders = useMemo(() => (auth.token ? { Authorization: `Bearer ${auth.token}` } : {}), [auth.token]);
 
   const userMenuRef = useRef(null);
@@ -467,9 +471,16 @@ export default function App() {
     }
   }, [authHeaders, addr]);
 
-  const delEmail = useCallback(async (id, e) => {
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const delEmail = useCallback((id, e) => {
     if (e) e.stopPropagation();
-    if (!confirm(t('inbox.confirmDelete'))) return;
+    setPendingDelete(id);
+  }, []);
+
+  const confirmDeleteEmail = useCallback(async () => {
+    const id = pendingDelete;
+    setPendingDelete(null);
+    if (!id) return;
     try {
       const r = await apiFetch(`${API}/emails/${id}`, { method: 'DELETE', headers: { ...authHeaders, ...addressTokenHeader(addr?.address) } });
       if (r.ok) {
@@ -480,7 +491,7 @@ export default function App() {
     } catch (err) {
       toast(err.message, 'error');
     }
-  }, [selected, toast, t]);
+  }, [pendingDelete, authHeaders, addr, selected, toast, t]);
 
   const sendMail = useCallback(async () => {
     if (!compose.to || !compose.subject || !compose.body || !addr) return;
@@ -565,9 +576,17 @@ export default function App() {
 
   const activeDomain = addr?.address?.split('@')[1] || (domains[0]?.domain || '');
 
+  const resolvedTheme = theme === 'system'
+    ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+    : theme;
+
   const setTheme = useCallback((next) => {
-    if (auth.isGuest) { document.documentElement.dataset.theme = next; document.documentElement.style.colorScheme = next; }
-    else auth.updatePreferences?.({ theme: next }).catch(() => {});
+    if (auth.isGuest) {
+      setGuestTheme(next);
+      try { localStorage.setItem('tm-theme', next); } catch (e) { /* private mode */ }
+    } else {
+      auth.updatePreferences?.({ theme: next }).catch(() => {});
+    }
   }, [auth]);
 
   // Role-aware navigation model — single source of truth for rail + mobile nav.
@@ -618,99 +637,89 @@ export default function App() {
 
   return (
     <LocaleProvider language={language}>
-    <div className="app-shell min-h-screen bg-brand-bg relative">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 right-[-6rem] h-96 w-96 rounded-full bg-[rgb(var(--brand)/0.08)] blur-[130px]" />
-      </div>
-
-      <div className="relative z-10 flex min-h-screen">
-        {/* Rail — single source of navigation (lg+) */}
-        <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-brand-border/60 bg-brand-surface/40 backdrop-blur-xl" aria-label={t('app.workspaceAria')}>
-          <div className="flex items-center gap-2.5 px-5 h-16 border-b border-brand-border/60">
-            <div className="w-8 h-8 rounded-[var(--r-md)] bg-[rgb(var(--brand))] flex items-center justify-center">
-              <Mail size={17} className="text-[rgb(var(--on-brand))]" />
+    <div className="app-shell min-h-screen bg-brand-bg relative flex flex-col">
+      {/* Top header — single navigation surface */}
+      <header className="sticky top-0 z-40 border-b border-brand-border/60 bg-brand-bg/85 backdrop-blur-xl">
+        <div className="mx-auto max-w-[1400px] h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
+          {/* Brand — click returns to inbox home */}
+          <button
+            type="button"
+            onClick={() => navigate('inbox')}
+            className="flex items-center gap-2.5 min-w-0 rounded-[var(--r-md)] px-1 py-0.5 -ml-1 hover:bg-brand-surface2 transition-colors"
+            aria-label={t('app.inbox')}
+          >
+            <div className="w-9 h-9 rounded-[var(--r-lg)] bg-[rgb(var(--brand))] flex items-center justify-center shrink-0">
+              <Mail size={18} className="text-[rgb(var(--on-brand))]" />
             </div>
-            <div className="min-w-0">
+            <div className="hidden sm:block min-w-0 text-left">
               <p className="text-sm font-bold tracking-tight text-txt-primary leading-none">MS Temp Mail</p>
               <p className="text-[10px] text-txt-muted mt-0.5">{t('app.brandSubtitle')}</p>
             </div>
-          </div>
-          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
-            {navGroups.map((g) => (
-              <div key={g.label}>
-                <p className="section-title px-2 mb-1.5">{g.label}</p>
-                <div className="space-y-0.5">
-                  {g.items.map((it) => (
-                    <button key={it.id} onClick={() => navigate(it.id)} className={`w-full flex items-center gap-3 rounded-[var(--r-md)] px-2.5 py-2 text-sm font-medium transition-colors ${page === it.id ? 'bg-[rgb(var(--brand)/0.1)] text-txt-primary' : 'text-txt-secondary hover:bg-brand-surface2 hover:text-txt-primary'}`}>
-                      <it.icon size={17} className={page === it.id ? 'text-[rgb(var(--brand))]' : 'text-txt-muted'} />
-                      {it.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </nav>
-          <div className="px-3 py-3 border-t border-brand-border/60">
-            <button onClick={() => setCmdkOpen(true)} className="w-full flex items-center gap-2.5 rounded-[var(--r-md)] border border-brand-border bg-brand-surface2/60 px-2.5 py-2 text-txt-muted hover:text-txt-secondary transition-colors">
-              <Search size={15} /> <span className="text-[13px] flex-1 text-left">{t('cmdk.search')}</span>
-              <kbd className="text-[10px] border border-brand-border rounded px-1.5 py-0.5">⌘K</kbd>
-            </button>
-          </div>
-        </aside>
+          </button>
 
-        <div className="flex-1 min-w-0 flex flex-col">
-          {/* Top bar */}
-          <header className="sticky top-0 z-40 border-b border-brand-border/60 bg-brand-bg/85 backdrop-blur-xl">
-            <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <button className="lg:hidden -ml-1 p-2 text-txt-secondary hover:text-txt-primary" onClick={() => setMobileNav(true)} aria-label={t('app.mobileNavAria')}><Menu size={20} /></button>
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <pageTitle.icon size={18} className="text-[rgb(var(--brand))] shrink-0" />
-                  <h1 className="t-section text-txt-primary truncate">{pageTitle.label}</h1>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                {addr && (
-                  <span className="badge-green hidden sm:inline-flex">
-                    <span className={`w-1.5 h-1.5 rounded-full ${sockOn ? 'bg-[rgb(var(--success))]' : 'bg-txt-disabled'}`} />
-                    {sockOn ? t('inbox.live') : t('inbox.waiting')}
+          {/* Center command search (desktop) */}
+          <button
+            type="button"
+            onClick={() => setCmdkOpen(true)}
+            className="hidden md:flex flex-1 max-w-md items-center gap-2 rounded-[var(--r-md)] border border-brand-border bg-brand-bg/60 px-3 py-2 text-txt-muted hover:text-txt-secondary transition-colors"
+            aria-label={t('cmdk.search')}
+          >
+            <Search size={15} />
+            <span className="text-sm flex-1 text-left">{t('cmdk.search')}</span>
+            <kbd className="text-[10px] border border-brand-border rounded px-1.5 py-0.5">⌘K</kbd>
+          </button>
+
+          {/* Right cluster */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {addr && (
+              <span className="badge-green hidden sm:inline-flex">
+                <span className={`w-1.5 h-1.5 rounded-full ${sockOn ? 'bg-[rgb(var(--success))]' : 'bg-txt-disabled'}`} />
+                {sockOn ? t('inbox.live') : t('inbox.waiting')}
+              </span>
+            )}
+            <button onClick={() => setCmdkOpen(true)} className="md:hidden p-2 text-txt-secondary hover:text-txt-primary" aria-label={t('cmdk.search')}><Command size={18} /></button>
+            <button
+              type="button"
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-[var(--r-md)] text-txt-secondary hover:text-txt-primary hover:bg-brand-surface2 transition-colors"
+              aria-label={resolvedTheme === 'dark' ? t('cmdk.themeLight') : t('cmdk.themeDark')}
+            >
+              {resolvedTheme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+            {auth.isGuest ? (
+              <>
+                <button onClick={() => openAuth('login')} className="btn-ghost">{t('app.signIn')}</button>
+                <button onClick={() => openAuth('register')} className="btn-primary" size="sm">{t('app.signUp')}</button>
+              </>
+            ) : (
+              <div className="relative" ref={userMenuRef}>
+                <button onClick={() => setShowUserMenu((v) => !v)} className="flex items-center gap-2.5 rounded-[var(--r-md)] px-1.5 py-1.5 hover:bg-brand-surface2 transition-colors" aria-haspopup="menu" aria-expanded={showUserMenu}>
+                  <Avatar src={auth.user?.avatar_url} fallback={(auth.user?.username || 'U')[0].toUpperCase()} size="sm" />
+                  <span className="hidden sm:block text-left">
+                    <span className="block text-sm font-medium text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</span>
+                    <span className="block text-[11px] text-txt-muted mt-1">{auth.isAdmin ? t('app.roleAdmin') : auth.isProPlus ? t('app.roleProPlus') : auth.isPro ? t('app.rolePro') : t('app.roleFree')}</span>
                   </span>
-                )}
-                <button onClick={() => setCmdkOpen(true)} className="lg:hidden p-2 text-txt-secondary hover:text-txt-primary" aria-label={t('cmdk.search')}><Command size={18} /></button>
-                {auth.isGuest ? (
-                  <>
-                    <button onClick={() => openAuth('login')} className="btn-ghost">{t('app.signIn')}</button>
-                    <button onClick={() => openAuth('register')} className="btn-primary" size="sm">{t('app.signUp')}</button>
-                  </>
-                ) : (
-                  <div className="relative" ref={userMenuRef}>
-                    <button onClick={() => setShowUserMenu((v) => !v)} className="flex items-center gap-2.5 rounded-[var(--r-md)] px-1.5 py-1.5 hover:bg-brand-surface2 transition-colors" aria-haspopup="menu" aria-expanded={showUserMenu}>
-                      <Avatar src={auth.user?.avatar_url} fallback={(auth.user?.username || 'U')[0].toUpperCase()} size="sm" />
-                      <span className="hidden sm:block text-left">
-                        <span className="block text-sm font-medium text-txt-primary leading-none">{auth.user?.display_name || auth.user?.username}</span>
-                        <span className="block text-[11px] text-txt-muted mt-1">{auth.isAdmin ? t('app.roleAdmin') : auth.isProPlus ? t('app.roleProPlus') : auth.isPro ? t('app.rolePro') : t('app.roleFree')}</span>
-                      </span>
-                      <ChevronDown size={14} className="text-txt-muted" />
-                    </button>
-                    {showUserMenu && (
-                      <div className="absolute right-0 top-full mt-2 w-56 card p-1.5 z-50 animate-slide-down" role="menu">
-                        <div className="px-2.5 py-2.5 border-b border-brand-border/50 mb-1">
-                          <p className="text-sm font-medium text-txt-primary truncate">{auth.user?.display_name || auth.user?.username}</p>
-                          <p className="text-[12px] text-txt-muted truncate">{auth.user?.email}</p>
-                        </div>
-                        <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={15} /> {t('app.accountSettings')}</button>
-                        {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Shield size={15} /> {t('app.adminPanel')}</button>}
-                        {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--otp))] hover:bg-[rgb(var(--otp)/0.08)] transition-colors"><Crown size={15} /> {t('app.proUpgrade')}</button>}
-                        <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--danger-fg))] hover:bg-[rgb(var(--danger)/0.08)] transition-colors"><LogOut size={15} /> {t('app.logout')}</button>
-                      </div>
-                    )}
+                  <ChevronDown size={14} className="text-txt-muted" />
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-56 card p-1.5 z-50 animate-slide-down" role="menu">
+                    <div className="px-2.5 py-2.5 border-b border-brand-border/50 mb-1">
+                      <p className="text-sm font-medium text-txt-primary truncate">{auth.user?.display_name || auth.user?.username}</p>
+                      <p className="text-[12px] text-txt-muted truncate">{auth.user?.email}</p>
+                    </div>
+                    <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={15} /> {t('app.accountSettings')}</button>
+                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Shield size={15} /> {t('app.adminPanel')}</button>}
+                    {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--otp))] hover:bg-[rgb(var(--otp)/0.08)] transition-colors"><Crown size={15} /> {t('app.proUpgrade')}</button>}
+                    <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--danger-fg))] hover:bg-[rgb(var(--danger)/0.08)] transition-colors"><LogOut size={15} /> {t('app.logout')}</button>
                   </div>
                 )}
               </div>
-            </div>
-          </header>
+            )}
+          </div>
+        </div>
+      </header>
 
-          <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
 
       <Modal
         show={pwModal.show}
@@ -790,10 +799,11 @@ export default function App() {
               isPro={auth.isPro}
             />
             <div className="inbox-workspace grid grid-cols-1 xl:grid-cols-[minmax(320px,0.82fr)_minmax(0,1.7fr)] gap-5">
-              <div className="min-h-[430px] xl:min-h-[590px]">
+              {/* Mobile: show Inbox OR detail (not both stacked); Desktop: split view */}
+              <div className={`min-h-[380px] xl:min-h-[590px] ${selected ? 'hidden xl:block' : ''}`}>
                 <Inbox emails={emails} selectedId={selected?.id} onSelect={loadDetail} onDelete={delEmail} hasAddr={!!addr} onRefresh={refresh} refreshing={refreshing} live={sockOn} />
               </div>
-              <div className="min-h-[430px] xl:min-h-[590px]">
+              <div className={`min-h-[380px] xl:min-h-[590px] ${selected ? '' : 'hidden xl:block'}`}>
                 <EmailView email={selected} onClose={() => setSelected(null)} api={API} onReply={handleReply} onCopyOtp={copyOtp} />
               </div>
             </div>
@@ -872,26 +882,36 @@ export default function App() {
           <footer className="border-t border-brand-border/60 px-4 sm:px-6 py-5 text-center">
             <p className="t-body-sm text-txt-muted">MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio</p>
           </footer>
-        </div>
-      </div>
 
-      {/* Mobile navigation drawer */}
-      <Drawer show={mobileNav} onClose={() => setMobileNav(false)} side="left" width="max-w-[80vw]" title="MS Temp Mail" closeLabel={t('app.close')}>
-        <nav className="space-y-5">
-          {navGroups.map((g) => (
-            <div key={g.label}>
-              <p className="section-title mb-1.5">{g.label}</p>
-              <div className="space-y-0.5">
-                {g.items.map((it) => (
-                  <button key={it.id} onClick={() => { navigate(it.id); setMobileNav(false); }} className={`w-full flex items-center gap-3 rounded-[var(--r-md)] px-2.5 py-2.5 text-sm font-medium transition-colors ${page === it.id ? 'bg-[rgb(var(--brand)/0.1)] text-txt-primary' : 'text-txt-secondary hover:bg-brand-surface2'}`}>
-                    <it.icon size={17} className={page === it.id ? 'text-[rgb(var(--brand))]' : 'text-txt-muted'} /> {it.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
-      </Drawer>
+      {/* Mobile bottom tab bar (replaces left rail / mobile drawer) */}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-brand-border bg-brand-bg/95 backdrop-blur-xl" aria-label={t('app.mobileNavAria')}>
+        <div className="grid grid-flow-col auto-cols-fr">
+          {navGroups.flatMap((g) => g.items).slice(0, 5).map((it) => {
+            const active = page === it.id;
+            return (
+              <button
+                key={it.id}
+                type="button"
+                onClick={() => navigate(it.id)}
+                aria-current={active ? 'page' : undefined}
+                className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-semibold transition-colors ${active ? 'text-[rgb(var(--brand))]' : 'text-txt-muted hover:text-txt-secondary'}`}
+              >
+                <it.icon size={20} className={active ? 'text-[rgb(var(--brand))]' : 'text-txt-muted'} />
+                {it.label}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      <ConfirmationDialog
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDeleteEmail}
+        title={t('inbox.confirmDelete')}
+        cancelLabel={t('app.cancel')}
+        confirmLabel={t('app.continue')}
+      />
 
       {/* Command palette */}
       <CommandPalette open={cmdkOpen} onClose={() => setCmdkOpen(false)} items={commandItems} placeholder={t('cmdk.search')} emptyLabel={t('cmdk.empty')} />

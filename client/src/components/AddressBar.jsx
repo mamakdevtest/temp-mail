@@ -239,10 +239,6 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
               {copied ? <CheckCircle2 size={18} /> : <Copy size={17} />}
             </button>
           </div>
-          {/* Hairline live scan line */}
-          <div className="h-px bg-brand-border/60 overflow-hidden">
-            {currentAddress && <div className="h-px w-1/3 bg-[rgb(var(--brand))]" style={{ animation: 'scanLine 2.4s var(--ease) infinite' }} />}
-          </div>
         </form>
 
         {/* Actions */}

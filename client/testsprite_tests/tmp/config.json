@@ -1,0 +1,13 @@
+{
+  "status": "init",
+  "executionArgs": {
+    "projectName": "temp-mail-client",
+    "projectPath": "f:\\_Work\\_MamakGames\\MamakHub\\projects\\Web\\temp-mail\\client",
+    "testIds": [],
+    "additionalInstruction": "Frontend UI redesign smoke test: (1) Page loads without console errors, (2) new indigo color palette visible (top header with brand color), (3) mobile bottom tab bar present on small screens, (4) inbox area renders, (5) address composer with username@domain visible, (6) dark/light theme toggle works. Guest mode (no login).",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-44MNx4XpEzfwB9KqznbXcc4_PaonEViWJJJLNQKw0oeIMeH1Vka6cdUIZVVIkwgV7R6lv6sbWGR9_Mxeg4RSmkEeftbImzjB_wufDV0g_L2h1pMAj67OuevvKva_ds1fCbA"
+    }
+  }
+}

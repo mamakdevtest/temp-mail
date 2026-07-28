@@ -40,9 +40,9 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
   };
 
   const userTypes = [
-    { icon: User, title: t('auth.guestMode'), text: t('auth.guestModeDesc'), tone: 'text-accent-green', bg: 'bg-accent-green/10' },
-    { icon: Shield, title: t('auth.freePlan'), text: t('auth.freePlanDesc'), tone: 'text-accent-blue', bg: 'bg-accent-blue/10' },
-    { icon: Crown, title: t('auth.proPlan'), text: t('auth.proPlanDesc'), tone: 'text-accent-purple', bg: 'bg-accent-purple/10' },
+    { icon: User, title: t('auth.guestMode'), text: t('auth.guestModeDesc'), tone: 'text-[rgb(var(--success-fg))]', bg: 'bg-[rgb(var(--success)/0.1)]' },
+    { icon: Shield, title: t('auth.freePlan'), text: t('auth.freePlanDesc'), tone: 'text-[rgb(var(--brand))]', bg: 'bg-[rgb(var(--brand)/0.1)]' },
+    { icon: Crown, title: t('auth.proPlan'), text: t('auth.proPlanDesc'), tone: 'text-[rgb(var(--otp))]', bg: 'bg-[rgb(var(--otp)/0.1)]' },
   ];
 
   return (
@@ -61,22 +61,22 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl border border-accent-cyan/25 bg-gradient-to-br from-accent-blue to-accent-cyan flex items-center justify-center mx-auto mb-5 shadow-glow-blue">
+          <div className="w-16 h-16 rounded-2xl border border-[rgb(var(--otp)/0.3)] bg-gradient-to-br from-[rgb(var(--brand))] to-[rgb(var(--otp))] flex items-center justify-center mx-auto mb-5 shadow-glow-blue">
             <Mail size={24} className="text-white" />
           </div>
-          <h1 className="text-xl font-bold"><span className="text-txt-primary">Temp</span><span className="text-accent-cyan">Mail</span></h1>
+          <h1 className="text-xl font-bold"><span className="text-txt-primary">Temp</span><span className="text-[rgb(var(--brand))]">Mail</span></h1>
           <p className="text-xs text-txt-muted mt-1">{t('auth.title')}</p>
           <p className="text-[10px] text-txt-disabled mt-1">{t('auth.subtitle')}</p>
         </div>
 
         {/* Card */}
-        <div className="admin-signal-card card relative overflow-hidden p-5 sm:p-7">
+        <div className="card relative overflow-hidden p-5 sm:p-7">
           {/* Tab */}
           <div className="flex gap-1 mb-7 p-1 rounded-xl border border-brand-border/50 bg-brand-bg/45">
-            <button onClick={() => { setMode('login'); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${mode === 'login' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
+            <button onClick={() => { setMode('login'); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${mode === 'login' ? 'bg-[rgb(var(--brand))] text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
               {t('auth.login')}
             </button>
-            <button onClick={() => { setMode('register'); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${mode === 'register' ? 'bg-accent-blue text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
+            <button onClick={() => { setMode('register'); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${mode === 'register' ? 'bg-[rgb(var(--brand))] text-white shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}>
               {t('auth.register')}
             </button>
           </div>
@@ -111,7 +111,7 @@ export default function AuthPage({ onLogin, onRegister, onClose, onGuestContinue
               </div>
             </div>
 
-            {error && <p className="text-accent-red text-xs bg-accent-red/5 px-3 py-2 rounded-xl">{error}</p>}
+            {error && <p className="text-[rgb(var(--danger-fg))] text-xs bg-[rgb(var(--danger)/0.08)] px-3 py-2 rounded-xl">{error}</p>}
 
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-2.5 text-sm">
               {loading ? t('auth.processing') : mode === 'login' ? t('auth.login') : t('auth.register')}

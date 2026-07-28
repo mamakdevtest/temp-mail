@@ -33,10 +33,10 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        md: '8px',
-        lg: '12px',
-        xl: '16px',
-        '2xl': '16px',
+        md: '10px',
+        lg: '14px',
+        xl: '20px',
+        '2xl': '24px',
       },
       boxShadow: {
         'glow-blue': 'var(--shadow-glow)',

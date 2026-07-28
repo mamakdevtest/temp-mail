@@ -51,7 +51,7 @@ import {
   Boxes,
 } from 'lucide-react';
 import { AdminPanelCard, AdminStatCard, AdminEmptyState, AdminInfoRow, AdminToolbar } from './admin/AdminPrimitives';
-import { StatusPill, PageHero } from './ui';
+import { StatusPill, PageHero, Pagination } from './ui';
 import { StatsSkeleton, TableSkeleton } from './Skeleton';
 import Modal from './Modal';
 import {
@@ -974,7 +974,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     return (
       <div className="max-w-md mx-auto mt-10">
         <div className="card overflow-hidden">
-          <div className="px-7 py-8 border-b border-brand-border/30 bg-[radial-gradient(circle_at_top_left,rgba(122,99,255,0.18),transparent_32%),linear-gradient(180deg,rgba(10,19,41,0.94),rgba(10,19,41,0.82))]">
+          <div className="px-7 py-8 border-b border-brand-border/30 bg-[rgb(var(--brand)/0.06)]">
             <div className="w-16 h-16 rounded-3xl panel-soft flex items-center justify-center mb-5">
               <Shield size={28} className="text-accent-cyan" />
             </div>
@@ -1007,7 +1007,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
   if (selectedAddressDetail && addressInfo) {
     return (
       <div className="space-y-5">
-        <div className="card p-6 bg-[radial-gradient(circle_at_top_left,rgba(122,99,255,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(52,215,255,0.1),transparent_26%)]">
+        <div className="card p-6 bg-[rgb(var(--brand)/0.05)]">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
             <div className="min-w-0">
               <button onClick={() => { setSelectedAddress(null); setSelectedAddressDetail(null); setSelectedAddressMail(null); }} className="btn-ghost px-0 active:scale-95 transition-all mb-3">
@@ -1537,11 +1537,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                   <p className="text-sm text-txt-muted">
                     {t('admin.ui.addr.showingRange', { total: filteredAddresses.length, from: (addressPage - 1) * ADDRESS_PAGE_SIZE + 1, to: Math.min(addressPage * ADDRESS_PAGE_SIZE, filteredAddresses.length) })}
                   </p>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setAddressPage((prev) => Math.max(1, prev - 1))} disabled={addressPage <= 1} className="btn-secondary text-xs px-4 py-2">{t('admin.ui.addr.prev')}</button>
-                    <span className="text-sm text-txt-secondary">{t('admin.ui.addr.page', { page: addressPage, total: addressTotalPages })}</span>
-                    <button onClick={() => setAddressPage((prev) => Math.min(addressTotalPages, prev + 1))} disabled={addressPage >= addressTotalPages} className="btn-secondary text-xs px-4 py-2">{t('admin.ui.addr.next')}</button>
-                  </div>
+                  <Pagination page={addressPage} totalPages={addressTotalPages} onChange={setAddressPage} />
                 </div>
               </>
             ) : (

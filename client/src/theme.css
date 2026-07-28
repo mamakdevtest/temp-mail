@@ -1,75 +1,75 @@
 /* =========================================================================
-   MS Temp Mail — V2.0 Design System (Precision tooling)
+   MS Temp Mail — V3.0 Design System (Premium Indigo)
    Single source of design tokens. Imported before index.css in main.jsx.
    Token names bridge the existing Tailwind mapping (--brand-*, --txt-*,
-   --accent-*) so every current utility class inherits the new palette,
-   plus new semantic tokens for the V2 primitives.
+   --accent-*) so every current utility class inherits the new palette.
+   V2 (blue #3D7BFF + graphite) replaced by V3 (indigo #6366F1 + violet).
    ========================================================================= */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
 :root {
-  /* ---- Neutrals (dark) — cool graphite, low chroma ---- */
-  --bg: 8 10 15;             /* app background */
-  --bg-subtle: 12 15 22;
-  --surface: 17 21 30;       /* --brand-surface bridge */
-  --surface-2: 24 30 42;     /* --brand-surface2 */
-  --surface-3: 33 41 56;     /* --brand-surface3 */
-  --border: 42 52 70;        /* --brand-border */
-  --border-strong: 66 80 105;/* --brand-border2 */
-  --text: 237 241 247;       /* --txt-primary */
-  --text-2: 168 179 197;     /* --txt-secondary */
-  --text-3: 117 130 152;     /* --txt-muted */
-  --text-disabled: 74 88 112;
-  --overlay: 4 6 11;
+  /* ---- Neutrals (dark) — deep indigo, cool violet undertone ---- */
+  --bg: 11 10 24;             /* app background — deep indigo-black */
+  --bg-subtle: 16 14 32;
+  --surface: 22 19 43;        /* primary card surface — indigo-tinted */
+  --surface-2: 31 27 58;      /* hover / elevated */
+  --surface-3: 44 38 78;      /* active / pressed */
+  --border: 53 46 92;         /* indigo border */
+  --border-strong: 78 68 128;
+  --text: 241 240 255;        /* warm white */
+  --text-2: 173 169 209;      /* indigo-muted secondary */
+  --text-3: 122 116 168;
+  --text-disabled: 80 74 120;
+  --overlay: 6 5 16;
 
-  /* ---- Brand (single sharp accent) ---- */
-  --brand: 61 123 255;       /* #3D7BFF */
-  --brand-hover: 88 143 255;
-  --brand-pressed: 44 102 230;
-  --brand-subtle: 61 123 255; /* used at low alpha for tint fills */
+  /* ---- Brand — NEW indigo primary ---- */
+  --brand: 99 102 241;        /* #6366F1 indigo-500 */
+  --brand-hover: 114 117 247; /* indigo-400 */
+  --brand-pressed: 79 70 229; /* indigo-600 */
+  --brand-subtle: 99 102 241; /* used at low alpha for tint fills */
   --on-brand: 255 255 255;
 
   /* ---- Semantic ---- */
-  --success: 45 199 143;
-  --success-fg: 82 224 172;
-  --warning: 235 176 52;
-  --warning-fg: 245 196 88;
-  --danger: 244 92 104;
-  --danger-fg: 255 122 132;
-  --info: 76 190 235;
-  --info-fg: 110 206 244;
+  --success: 52 211 153;
+  --success-fg: 110 231 183;
+  --warning: 245 158 11;
+  --warning-fg: 251 191 36;
+  --danger: 248 113 113;
+  --danger-fg: 252 165 165;
+  --info: 56 189 248;
+  --info-fg: 125 211 252;
 
   /* ---- Accent roles (semantic-only) ---- */
-  --otp: 138 116 255;        /* OTP / premium purple */
-  --pro: 240 190 72;         /* PRO / admin gold */
+  --otp: 167 139 250;         /* violet-400 — OTP highlight */
+  --pro: 245 197 24;          /* warm gold — PRO / admin */
 
-  --ring: 61 123 255;        /* focus ring (brand) */
+  --ring: 99 102 241;         /* focus ring (brand) */
 
   /* ---- Chart (derived from tokens) ---- */
-  --chart-1: 61 123 255;
-  --chart-2: 45 199 143;
-  --chart-3: 240 190 72;
-  --chart-4: 138 116 255;
-  --chart-5: 76 190 235;
+  --chart-1: 99 102 241;      /* indigo */
+  --chart-2: 52 211 153;      /* emerald */
+  --chart-3: 245 197 24;      /* gold */
+  --chart-4: 167 139 250;     /* violet */
+  --chart-5: 56 189 248;      /* sky */
 
   /* ---- Radius ---- */
-  --r-sm: 6px;
-  --r-md: 8px;
-  --r-lg: 12px;
-  --r-xl: 16px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
 
-  /* ---- Elevation (low-spread, low-opacity) ---- */
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28), 0 1px 1px rgb(0 0 0 / 0.20);
-  --shadow-md: 0 6px 20px rgb(0 0 0 / 0.30);
-  --shadow-lg: 0 16px 44px rgb(0 0 0 / 0.42);
-  --shadow-glow: 0 8px 24px rgb(var(--brand) / 0.30);
+  /* ---- Elevation (flatter, lower opacity than V2) ---- */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.20), 0 1px 3px rgb(0 0 0 / 0.14);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.22), 0 2px 4px rgb(0 0 0 / 0.16);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.32), 0 4px 12px rgb(0 0 0 / 0.20);
+  --shadow-glow: 0 8px 28px rgb(var(--brand) / 0.28);
 
   /* ---- Motion ---- */
-  --ease: cubic-bezier(0.2, 0, 0, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-1: 120ms;
-  --dur-2: 200ms;
-  --dur-3: 320ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-1: 100ms;
+  --dur-2: 180ms;
+  --dur-3: 280ms;
 
   /* ---- Icon sizing ---- */
   --icon-sm: 14px;
@@ -103,47 +103,47 @@
 }
 
 html[data-theme="light"] {
-  --bg: 247 249 252;
-  --bg-subtle: 240 244 250;
+  --bg: 250 249 255;          /* indigo-50 tinted white */
+  --bg-subtle: 243 242 255;
   --surface: 255 255 255;
-  --surface-2: 245 248 252;
-  --surface-3: 234 239 246;
-  --border: 223 229 238;
-  --border-strong: 197 206 220;
-  --text: 17 24 39;
-  --text-2: 71 84 105;
-  --text-3: 110 123 143;
-  --text-disabled: 156 168 186;
-  --overlay: 15 23 42;
+  --surface-2: 248 247 255;
+  --surface-3: 238 236 252;
+  --border: 226 223 247;
+  --border-strong: 197 192 232;
+  --text: 30 27 75;           /* indigo-950 */
+  --text-2: 79 70 229;        /* indigo-600 muted */
+  --text-3: 107 98 156;
+  --text-disabled: 165 158 199;
+  --overlay: 15 12 41;
 
-  --brand: 44 108 240;       /* slightly deeper for AA on white */
-  --brand-hover: 33 96 224;
-  --brand-pressed: 26 84 205;
+  --brand: 79 70 229;         /* indigo-600 — deeper for AA on white */
+  --brand-hover: 67 56 202;   /* indigo-700 */
+  --brand-pressed: 55 48 163;
   --on-brand: 255 255 255;
 
-  --success: 20 160 110;
-  --success-fg: 15 138 94;
-  --warning: 197 138 12;
-  --warning-fg: 168 116 6;
-  --danger: 220 62 74;
-  --danger-fg: 200 48 60;
-  --info: 30 148 200;
-  --info-fg: 22 128 176;
+  --success: 16 152 110;
+  --success-fg: 4 120 87;
+  --warning: 180 83 9;
+  --warning-fg: 146 64 14;
+  --danger: 200 40 40;
+  --danger-fg: 153 27 27;
+  --info: 2 132 199;
+  --info-fg: 1 97 122;
 
-  --otp: 110 88 232;
-  --pro: 192 142 20;
+  --otp: 124 58 237;          /* violet-600 */
+  --pro: 161 98 7;            /* amber-700 for AA */
 
-  --ring: 44 108 240;
+  --ring: 79 70 229;
 
-  --chart-1: 44 108 240;
-  --chart-2: 20 160 110;
-  --chart-3: 197 138 12;
-  --chart-4: 110 88 232;
-  --chart-5: 30 148 200;
+  --chart-1: 79 70 229;
+  --chart-2: 16 152 110;
+  --chart-3: 161 98 7;
+  --chart-4: 124 58 237;
+  --chart-5: 2 132 199;
 
-  --shadow-sm: 0 1px 2px rgb(148 163 184 / 0.16), 0 1px 1px rgb(148 163 184 / 0.10);
-  --shadow-md: 0 6px 20px rgb(100 116 139 / 0.14);
-  --shadow-lg: 0 16px 44px rgb(100 116 139 / 0.18);
+  --shadow-sm: 0 1px 2px rgb(148 163 184 / 0.14), 0 1px 3px rgb(148 163 184 / 0.10);
+  --shadow-md: 0 4px 12px rgb(100 116 139 / 0.12), 0 2px 4px rgb(100 116 139 / 0.08);
+  --shadow-lg: 0 16px 40px rgb(100 116 139 / 0.16), 0 4px 12px rgb(100 116 139 / 0.10);
   --shadow-glow: 0 8px 24px rgb(var(--brand) / 0.22);
 
   --accent-teal: 20 160 130;

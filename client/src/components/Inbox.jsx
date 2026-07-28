@@ -24,14 +24,14 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
 
   if (!hasAddr) {
     return (
-      <div className="card h-full flex items-center justify-center min-h-[430px] xl:min-h-[590px]">
+      <div className="card h-full flex items-center justify-center min-h-[380px] xl:min-h-[590px]">
         <EmptyState icon={InboxIcon} title={t('inbox.createAddressFirst')} description={t('inbox.mailsWillAppear')} />
       </div>
     );
   }
 
   return (
-    <div className="card p-0 overflow-hidden h-full flex flex-col min-h-[430px] xl:min-h-[590px]">
+    <div className="card p-0 overflow-hidden h-full flex flex-col min-h-[380px] xl:min-h-[590px]">
       <div className="px-4 py-3.5 border-b border-brand-border/60 flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
@@ -64,7 +64,7 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
                 <div
                   key={m.id}
                   onClick={() => onSelect(m.id)}
-                  className={`group relative rounded-[var(--r-md)] px-3 py-2.5 cursor-pointer transition-colors border ${active ? 'bg-[rgb(var(--brand)/0.1)] border-[rgb(var(--brand)/0.3)]' : 'border-transparent hover:bg-brand-surface2'}`}
+                  className={`group relative rounded-[var(--r-md)] px-3 py-2.5 cursor-pointer transition-colors border-l-2 ${active ? 'bg-[rgb(var(--brand)/0.08)] border-[rgb(var(--brand))]' : 'border-transparent hover:bg-brand-surface2'}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-[var(--r-md)] bg-brand-surface2 border border-brand-border flex items-center justify-center shrink-0 text-[11px] font-semibold text-txt-secondary">{initial}</div>

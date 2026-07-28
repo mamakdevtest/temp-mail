@@ -4,7 +4,7 @@ export function AdminPanelCard({ title, icon: Icon, action, children, className 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div className="flex items-center gap-3 min-w-0">
           {Icon ? (
-            <div className="w-9 h-9 rounded-[var(--r-md)] border border-brand-border bg-brand-surface2 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-[var(--r-md)] border border-[rgb(var(--brand)/0.2)] bg-[rgb(var(--brand)/0.08)] flex items-center justify-center shrink-0">
               <Icon size={16} className="text-[rgb(var(--brand))]" />
             </div>
           ) : null}

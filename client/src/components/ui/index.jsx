@@ -4,7 +4,8 @@
  * no hardcoded hex. Dark/light adapt automatically.
  */
 import { forwardRef } from 'react';
-import { Loader2, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import Modal from '../Modal';
 
 /* ---------- Button ---------- */
 const BTN_VARIANT = {
@@ -214,6 +215,56 @@ export function Avatar({ src, fallback, size = 'md', error, onError, alt = '' })
   );
 }
 
+/* ---------- Tabs ---------- */
+export function Tabs({ items, activeTab, onTabChange, variant = 'underline', className = '' }) {
+  if (variant === 'pills') {
+    return (
+      <div className={`inline-flex items-center gap-1 rounded-[var(--r-md)] border border-brand-border/50 bg-brand-bg-subtle/45 p-1 ${className}`} role="tablist">
+        {items.map((item) => {
+          const IconNode = item.icon;
+          const active = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => onTabChange?.(item.id)}
+              className={`inline-flex items-center gap-2 rounded-[var(--r-sm)] px-3 py-2 text-xs font-semibold transition-colors ${active ? 'bg-[rgb(var(--brand))] text-[rgb(var(--on-brand))] shadow-sm' : 'text-txt-muted hover:text-txt-secondary'}`}
+            >
+              {IconNode ? <IconNode size={15} /> : null} {item.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+  return (
+    <div className={`flex flex-wrap gap-1.5 border-b border-brand-border/60 -mb-px ${className}`} role="tablist">
+      {items.map((item) => {
+        const IconNode = item.icon;
+        const active = activeTab === item.id;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onTabChange?.(item.id)}
+            className={`inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              active
+                ? 'border-[rgb(var(--brand))] text-txt-primary'
+                : 'border-transparent text-txt-muted hover:text-txt-secondary'
+            }`}
+          >
+            {IconNode ? <IconNode size={15} /> : null} {item.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ---------- PageHeader ---------- */
 export function PageHeader({ title, subtitle, icon: Icon, actions, tabs, activeTab, onTabChange, eyebrow }) {
   return (
@@ -221,7 +272,7 @@ export function PageHeader({ title, subtitle, icon: Icon, actions, tabs, activeT
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5 min-w-0">
           {Icon ? (
-            <div className="w-11 h-11 rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2 flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-[var(--r-lg)] border border-[rgb(var(--brand)/0.2)] bg-[rgb(var(--brand)/0.08)] flex items-center justify-center shrink-0">
               <Icon size={20} className="text-[rgb(var(--brand))]" />
             </div>
           ) : null}
@@ -233,32 +284,69 @@ export function PageHeader({ title, subtitle, icon: Icon, actions, tabs, activeT
         </div>
         {actions ? <div className="flex flex-wrap gap-2 shrink-0">{actions}</div> : null}
       </div>
-      {tabs?.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5 border-b border-brand-border/60 -mb-px">
-          {tabs.map((item) => {
-            const IconNode = item.icon;
-            const active = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onTabChange?.(item.id)}
-                className={`inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                  active
-                    ? 'border-[rgb(var(--brand))] text-txt-primary'
-                    : 'border-transparent text-txt-muted hover:text-txt-secondary'
-                }`}
-              >
-                {IconNode ? <IconNode size={15} /> : null} {item.label}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+      {tabs?.length > 0 ? <Tabs items={tabs} activeTab={activeTab} onTabChange={onTabChange} /> : null}
     </div>
   );
 }
 export const PageHero = PageHeader; // legacy alias
+
+/* ---------- Pagination ---------- */
+export function Pagination({ page, totalPages, onChange, className = '' }) {
+  const pages = [];
+  const max = 7;
+  if (totalPages <= max) {
+    for (let i = 1; i <= totalPages; i += 1) pages.push(i);
+  } else {
+    const start = Math.max(2, Math.min(page - 2, totalPages - 5));
+    const end = Math.min(totalPages - 1, start + 3);
+    pages.push(1);
+    if (start > 2) pages.push('…');
+    for (let i = start; i <= end; i += 1) pages.push(i);
+    if (end < totalPages - 1) pages.push('…');
+    pages.push(totalPages);
+  }
+  return (
+    <nav aria-label="Pagination" className={`inline-flex items-center gap-1 ${className}`}>
+      <button type="button" disabled={page <= 1} onClick={() => onChange(page - 1)} className="btn-ghost px-2" aria-label="Previous page"><ChevronLeft size={15} /></button>
+      {pages.map((p, idx) => p === '…' ? (
+        <span key={`gap-${idx}`} className="px-2 text-txt-muted">…</span>
+      ) : (
+        <button
+          key={p}
+          type="button"
+          aria-current={p === page ? 'page' : undefined}
+          onClick={() => onChange(p)}
+          className={`min-w-[2rem] px-2 py-1.5 rounded-[var(--r-sm)] text-xs font-semibold transition-colors ${p === page ? 'bg-[rgb(var(--brand))] text-[rgb(var(--on-brand))]' : 'text-txt-secondary hover:bg-brand-surface2'}`}
+        >
+          {p}
+        </button>
+      ))}
+      <button type="button" disabled={page >= totalPages} onClick={() => onChange(page + 1)} className="btn-ghost px-2" aria-label="Next page"><ChevronRight size={15} /></button>
+    </nav>
+  );
+}
+
+/* ---------- ConfirmationDialog (replaces native confirm()) ---------- */
+export function ConfirmationDialog({ open, onClose, onConfirm, title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', tone = 'danger', loading = false }) {
+  return (
+    <Modal
+      show={open}
+      onClose={onClose}
+      title={title}
+      subtitle={message}
+      size="sm"
+      closeLabel={cancelLabel}
+      footer={(
+        <>
+          <Button variant="secondary" onClick={onClose}>{cancelLabel}</Button>
+          <Button variant={tone === 'danger' ? 'danger' : 'primary'} onClick={onConfirm} loading={loading}>{confirmLabel}</Button>
+        </>
+      )}
+    >
+      <p className="sr-only">{message}</p>
+    </Modal>
+  );
+}
 
 /* ---------- EmptyState ---------- */
 export function EmptyState({ icon: Icon, title, description, action, className = '' }) {
@@ -331,7 +419,7 @@ export function SettingRow({ label, description, children, stacked = false }) {
   );
 }
 
-export { Modal } from '../Modal';
+export { Modal };
 export { Drawer } from './Drawer';
 export { Table } from './Table';
 export { CommandPalette } from './CommandPalette';

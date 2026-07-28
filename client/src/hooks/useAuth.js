@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../utils/apiFetch';
 
 const API = '/api';
@@ -34,6 +34,8 @@ export default function useAuth() {
     notification_sound: 'chime',
   });
   const [loading, setLoading] = useState(!!initialToken);
+  const userRef = useRef(user);
+  useEffect(() => { userRef.current = user; }, [user]);
 
   const setGuestSession = useCallback(() => {
     localStorage.removeItem('tm-token');
@@ -51,7 +53,10 @@ export default function useAuth() {
       return;
     }
 
-    setLoading(true);
+    // Only show the full-screen splash on the very first load (no user yet).
+    // After login/register the user is already set — refresh silently in the
+    // background so the UI doesn't flash "loading" and look stuck.
+    setLoading((prev) => (userRef.current ? prev : true));
     try {
       const r = await apiFetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
       if (r.ok) {
