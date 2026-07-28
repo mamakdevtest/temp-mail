@@ -65,13 +65,19 @@ export default function useAuth() {
         setPkg(d.package);
         setStats(d.stats);
         setPreferences(d.preferences || null);
-      } else {
-        // Token geçersiz
+      } else if (r.status === 401) {
+        // Token explicitly invalid/expired — drop to guest.
         setGuestSession();
+      } else {
+        // 5xx / network blip: keep the existing session instead of logging
+        // the user out. They stay logged in; next load will retry.
+        if (!userRef.current) setGuestSession();
       }
     } catch (e) {
+      // Network error (backend down/restarting) — don't evict a logged-in
+      // user. Only fall back to guest if we never had a user.
       console.warn('Auth me hatası:', e);
-      setGuestSession();
+      if (!userRef.current) setGuestSession();
     } finally {
       setLoading(false);
     }

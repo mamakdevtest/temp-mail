@@ -1,0 +1,56 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Bandeja" [ref=e180] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Espacio de trabajo de correo temporal de Mamak Studio
+      - button "Buscar o ejecutar un comando…" [ref=e181] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e21]: En vivo
+        - generic [ref=e182]:
+          - button "admin Usuario administrador" [expanded] [active] [ref=e183] [cursor=pointer]:
+            - generic [ref=e185]:
+              - generic [ref=e186]: admin
+              - generic [ref=e187]: Usuario administrador
+          - menu [ref=e213]:
+            - generic [ref=e214]:
+              - paragraph [ref=e215]: admin
+              - paragraph [ref=e216]: admin@tempmail.local
+            - button "Ajustes de cuenta" [ref=e217] [cursor=pointer]
+            - button "Panel de administrador" [ref=e221] [cursor=pointer]
+            - button "Cerrar sesión" [ref=e224] [cursor=pointer]
+  - main [ref=e25]:
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - paragraph [ref=e31]: Tu dirección de correo temporal
+              - paragraph [ref=e32]: Tu dirección se activa al instante y los mensajes llegan a la bandeja de abajo.
+            - generic [ref=e33]: La dirección está activa y lista para usar
+          - generic [ref=e36]:
+            - textbox "username" [ref=e37]: brazier5801
+            - generic [ref=e38]: "@"
+            - button "set.mmkgams.space" [ref=e40] [cursor=pointer]
+            - button "Copiar" [ref=e190] [cursor=pointer]
+          - generic [ref=e48]:
+            - button "Copiar" [ref=e191] [cursor=pointer]
+            - button "Actualizar" [ref=e192] [cursor=pointer]
+            - button "Aleatorio" [ref=e193] [cursor=pointer]
+            - button "Proteger" [ref=e194] [cursor=pointer]
+        - button [ref=e195] [cursor=pointer]
+      - generic [ref=e81]:
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - paragraph [ref=e88]: Bandeja
+              - generic [ref=e89]: En vivo
+            - button "Actualizar" [ref=e196] [cursor=pointer]
+          - textbox "Buscar..." [ref=e197]
+        - generic [ref=e103]:
+          - paragraph [ref=e108]: Aún no hay correo
+          - paragraph [ref=e109]: Los mensajes nuevos aparecen aquí en tiempo real.
+  - contentinfo [ref=e110]:
+    - paragraph [ref=e111]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

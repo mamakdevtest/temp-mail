@@ -1,0 +1,1629 @@
+[   83485ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:21550
+[   83639ms] [ERROR] Warning: React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+%s App 1. useState                   useState
+2. useState                   useState
+3. useState                   useState
+4. useState                   useState
+5. useState                   useState
+6. useState                   useState
+7. useRef                     useRef
+8. useEffect                  useEffect
+9. useCallback                useCallback
+10. useCallback               useCallback
+11. useEffect                 useEffect
+12. useState                  useState
+13. useState                  useState
+14. useCallback               useCallback
+15. useMemo                   useMemo
+16. useState                  useState
+17. useRef                    useRef
+18. useCallback               useCallback
+19. useCallback               useCallback
+20. useCallback               useCallback
+21. useCallback               useCallback
+22. useState                  useState
+23. useState                  useState
+24. useState                  useState
+25. useState                  useState
+26. useState                  useState
+27. useState                  useState
+28. useState                  useState
+29. useState                  useState
+30. useState                  useState
+31. useState                  useState
+32. useState                  useState
+33. useState                  useState
+34. useState                  useState
+35. useState                  useState
+36. useState                  useState
+37. useState                  useState
+38. useState                  useState
+39. useState                  useState
+40. useState                  useState
+41. useState                  useState
+42. useState                  useState
+43. useState                  useState
+44. useState                  useState
+45. useState                  useState
+46. useState                  useState
+47. useState                  useState
+48. useMemo                   useMemo
+49. useRef                    useRef
+50. useRef                    useRef
+51. useRef                    useRef
+52. useRef                    useRef
+53. useRef                    useRef
+54. useRef                    useRef
+55. useRef                    useRef
+56. useCallback               useCallback
+57. useEffect                 useEffect
+58. useEffect                 useEffect
+59. useEffect                 useEffect
+60. useEffect                 useEffect
+61. useEffect                 useEffect
+62. useEffect                 useEffect
+63. useEffect                 useEffect
+64. useEffect                 useEffect
+65. useEffect                 useEffect
+66. useEffect                 useEffect
+67. useCallback               useCallback
+68. useCallback               useCallback
+69. useCallback               useCallback
+70. useCallback               useCallback
+71. useCallback               useCallback
+72. useCallback               useCallback
+73. useCallback               useCallback
+74. useEffect                 useEffect
+75. useEffect                 useEffect
+76. useEffect                 useEffect
+77. useCallback               useCallback
+78. useCallback               useCallback
+79. useCallback               useCallback
+80. useCallback               useCallback
+81. useCallback               useCallback
+82. useCallback               useCallback
+83. useCallback               useCallback
+84. useCallback               useCallback
+85. useCallback               useCallback
+86. useCallback               useCallback
+87. useState                  useState
+88. useCallback               useCallback
+89. useCallback               useCallback
+90. useCallback               useCallback
+91. useCallback               useCallback
+92. useEffect                 useEffect
+93. useEffect                 useEffect
+94. useEffect                 useEffect
+95. useEffect                 useEffect
+96. undefined                 useCallback
+ 
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   83641ms] Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:11678:21)
+    at updateCallback (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:12177:22)
+    at Object.useCallback (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:12693:22)
+    at useCallback (http://localhost:3000/node_modules/.vite/deps/chunk-RLJ2RCJQ.js?v=64beea69:1090:29)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:583:20)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:11548:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14582:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:3699:24)
+[   83644ms] Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:11678:21)
+    at updateCallback (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:12177:22)
+    at Object.useCallback (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:12693:22)
+    at useCallback (http://localhost:3000/node_modules/.vite/deps/chunk-RLJ2RCJQ.js?v=64beea69:1090:29)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:583:20)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:11548:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14582:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:3699:24)
+[   83646ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14031
+[   83646ms] [ERROR] Uygulama hatası: Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:11678:21)
+    at updateCallback (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:12177:22)
+    at Object.useCallback (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:12693:22)
+    at useCallback (http://localhost:3000/node_modules/.vite/deps/chunk-RLJ2RCJQ.js?v=64beea69:1090:29)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:583:20)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:11548:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14582:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:15924:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:19753:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:19198:20) {componentStack: 
+    at App (http://localhost:3000/src/App.jsx?t=1…localhost:3000/src/main.jsx?t=1785267660708:12:5)} @ http://localhost:3000/src/main.jsx?t=1785267660708:18
+[   84685ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:21550
+[   84766ms] [WARNING] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1499
+[   87266ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:21550
+[   87304ms] [WARNING] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1499
+[   89454ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89493ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89534ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89570ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89601ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89633ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89661ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89687ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89713ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89740ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89766ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89790ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89813ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89838ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89862ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89888ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89917ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89942ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89966ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   89995ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90026ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90053ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90077ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90100ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90125ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90151ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90176ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90198ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90221ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90245ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90269ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90293ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90314ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90339ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90361ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90384ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90407ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90432ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90453ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90475ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90500ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90528ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90552ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90576ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90599ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90624ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90647ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90669ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90691ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90715ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90736ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90759ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90782ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90808ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90829ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90850ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90872ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90896ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90920ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90941ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90966ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   90988ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91010ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91034ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91056ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91080ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91101ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91124ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91147ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91171ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91194ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91216ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91239ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91261ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91286ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91307ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91329ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91352ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91375ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91397ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91420ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91443ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91465ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91486ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91510ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91535ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91560ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91582ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91603ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91625ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91648ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91668ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91691ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91713ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91736ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91759ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91781ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91803ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91826ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91849ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91873ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91893ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91916ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91938ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91961ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   91987ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92012ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92036ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92061ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92083ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92107ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92128ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92152ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92173ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92195ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92217ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92240ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92261ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92283ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92307ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92331ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92353ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92379ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92400ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92420ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92440ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92465ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92490ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92515ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92542ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92566ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92589ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92612ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92636ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92661ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92683ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92704ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92727ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92750ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92773ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92794ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92815ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92839ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92861ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92881ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92905ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92928ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92950ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   92973ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93002ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93029ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93054ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93075ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93097ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93123ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93143ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93166ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93188ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93210ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93233ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93258ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93281ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93303ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93324ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93346ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93369ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93391ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93413ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93436ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93457ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93480ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93501ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93525ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93547ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93569ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93592ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93615ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93642ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93666ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93692ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93719ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93743ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93770ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93797ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[   93822ms] [ERROR] Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s 
+    at AddressBar (http://localhost:3000/src/components/AddressBar.jsx?t=1785267392110:23:38)
+    at div
+    at main
+    at div
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785267660708:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785267660708:12:5) @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520

@@ -697,9 +697,11 @@ router.put('/preferences', authMiddleware, (req, res) => {
     ensureUserPreferences(db, req.user.id);
 
     const safeTheme = ['light', 'dark', 'system'].includes(theme) ? theme : undefined;
-    const safeLanguage = ['tr', 'en'].includes(language) ? language : undefined;
+    const safeLanguage = ['tr', 'en', 'es', 'fr', 'de', 'ru', 'pt'].includes(language) ? language : undefined;
     const safeDays = Number.isFinite(Number(mail_retention_days)) ? Math.max(1, Math.min(365, Number(mail_retention_days))) : undefined;
-    const safeDefaultDomain = Number.isFinite(Number(default_domain_id)) ? Number(default_domain_id) : null;
+    const safeDefaultDomain = (default_domain_id === '' || default_domain_id === null || default_domain_id === undefined)
+      ? null
+      : (Number.isFinite(Number(default_domain_id)) ? Number(default_domain_id) : null);
 
     db.run(`
       UPDATE user_preferences

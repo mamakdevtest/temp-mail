@@ -52,7 +52,10 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
     const preferred = preferredDomainId ? domains.find((d) => String(d.id) === String(preferredDomainId)) : null;
     const nextDomain = preferred?.domain || domains[0]?.domain || '';
     if (nextDomain && nextDomain !== selectedFullDomain) setSelectedFullDomain(nextDomain);
-  }, [currentAddress?.address, domains, preferredDomainId, selectedFullDomain]);
+    // ponytail: selectedFullDomain intentionally excluded from deps — including it
+    // re-triggers this effect after the set, and since domains is a new array
+    // reference on some parent renders, it caused Maximum update depth exceeded.
+  }, [currentAddress?.address, domains, preferredDomainId]);
 
   useEffect(() => {
     const handler = (e) => {

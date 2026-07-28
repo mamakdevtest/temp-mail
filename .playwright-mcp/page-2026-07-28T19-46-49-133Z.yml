@@ -1,0 +1,128 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e450] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e451] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e21]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e452] [cursor=pointer]:
+          - generic [ref=e185]:
+            - generic [ref=e186]: admin
+            - generic [ref=e187]: Admin Kullanıcı
+  - main [ref=e25]:
+    - generic [ref=e760]:
+      - generic [ref=e761]:
+        - generic [ref=e762]:
+          - generic [ref=e768]:
+            - paragraph [ref=e769]: Kontrol merkezi
+            - heading "Admin Paneli" [level=1] [ref=e770]
+            - paragraph [ref=e771]: MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları.
+          - generic [ref=e772]:
+            - button "Yeni Domain Ekle" [ref=e773] [cursor=pointer]
+            - button "Temizle" [ref=e775] [cursor=pointer]
+            - button "Dışa Aktar" [ref=e779] [cursor=pointer]
+        - tablist [ref=e783]:
+          - tab "Dashboard" [selected] [ref=e784] [cursor=pointer]
+          - tab "Adresler" [ref=e790] [cursor=pointer]
+          - tab "Domainler" [ref=e794] [cursor=pointer]
+          - tab "Mailler" [ref=e798] [cursor=pointer]
+          - tab "Kullanıcılar" [ref=e802] [cursor=pointer]
+          - tab "Bulk Havuzları" [ref=e808] [cursor=pointer]
+          - tab "İstekler" [ref=e819] [cursor=pointer]
+          - tab "Ayarlar" [ref=e822] [cursor=pointer]
+      - generic [ref=e826]:
+        - generic [ref=e827]:
+          - generic [ref=e830]:
+            - paragraph [ref=e831]: Toplam Mail
+            - paragraph [ref=e832]: "0"
+            - paragraph [ref=e833]: Tüm zamanlar
+          - generic [ref=e839]:
+            - paragraph [ref=e840]: Toplam Adres
+            - paragraph [ref=e841]: "0"
+            - paragraph [ref=e842]: "Şifreli: 0"
+          - generic [ref=e850]:
+            - paragraph [ref=e851]: Son 24 Saat
+            - paragraph [ref=e852]: "0"
+            - paragraph [ref=e853]: Yeni gelen mesaj
+          - generic [ref=e859]:
+            - paragraph [ref=e860]: OTP Kodları
+            - paragraph [ref=e861]: "0"
+            - paragraph [ref=e862]: Algılanan doğrulama
+          - generic [ref=e868]:
+            - paragraph [ref=e869]: Aktif Domain
+            - paragraph [ref=e870]: "0"
+            - paragraph [ref=e871]: "Toplam: 0"
+        - generic [ref=e875]:
+          - generic [ref=e876]:
+            - heading "Mail Trafiği" [level=3] [ref=e883]
+            - generic [ref=e884]:
+              - paragraph [ref=e885]: Grafik için veri yok
+              - paragraph [ref=e886]: Mail geldikçe trafik burada belirecek.
+          - generic [ref=e887]:
+            - generic [ref=e888]:
+              - heading "Sistem Durumu" [level=3] [ref=e894]
+              - generic [ref=e895]: Operasyon özeti
+            - generic [ref=e897]:
+              - generic [ref=e898]:
+                - generic [ref=e899]: SMTP akışı
+                - generic [ref=e901]: Bekliyor
+              - generic [ref=e902]:
+                - generic [ref=e903]: Admin oturumu
+                - generic [ref=e905]: Açık
+              - generic [ref=e906]:
+                - generic [ref=e907]: Aktif domainler
+                - generic [ref=e909]: 0/0
+              - generic [ref=e910]:
+                - generic [ref=e911]: Şifreli mailbox
+                - generic [ref=e913]: "0"
+              - generic [ref=e914]:
+                - generic [ref=e915]: Temizlik politikası
+                - generic [ref=e917]: Otomatik + manuel
+          - generic [ref=e918]:
+            - heading "Son Aktiviteler" [level=3] [ref=e928]
+            - generic [ref=e929]:
+              - paragraph [ref=e930]: Henüz aktivite yok
+              - paragraph [ref=e931]: Yeni işlemler burada görünecek.
+        - generic [ref=e932]:
+          - generic [ref=e933]:
+            - generic [ref=e934]:
+              - heading "Domain Yönetimi" [level=3] [ref=e941]
+              - button "Tümünü Gör" [ref=e943] [cursor=pointer]
+            - generic [ref=e944]:
+              - paragraph [ref=e945]: Henüz domain eklenmedi
+              - paragraph [ref=e946]: Üstteki hızlı aksiyonla yeni domain ekleyin.
+          - generic [ref=e947]:
+            - heading "Güvenlik ve Temizlik" [level=3] [ref=e955]
+            - generic [ref=e956]:
+              - generic [ref=e957]:
+                - generic [ref=e958]: Bekleyen Pro İsteği
+                - generic [ref=e959]: "0"
+              - generic [ref=e960]:
+                - generic [ref=e961]: Pasif Kullanıcı
+                - generic [ref=e962]: "0"
+              - generic [ref=e963]:
+                - generic [ref=e964]: Şifreli Adres
+                - generic [ref=e965]: "0"
+              - generic [ref=e966]:
+                - generic [ref=e967]: Süresi Dolan Adres
+                - generic [ref=e968]: "0"
+              - button "İstekleri Yönet" [ref=e969] [cursor=pointer]
+        - generic [ref=e973]:
+          - generic [ref=e974]:
+            - generic [ref=e975]:
+              - heading "Son Mailler" [level=3] [ref=e982]
+              - button "Tüm mailleri görüntüle" [ref=e984] [cursor=pointer]
+            - generic [ref=e985]:
+              - paragraph [ref=e986]: Henüz mail yok
+              - paragraph [ref=e987]: Yeni mesajlar geldiğinde burada listelenecek.
+          - generic [ref=e988]:
+            - heading "Mail Dağılımı" [level=3] [ref=e996]
+            - generic [ref=e997]:
+              - paragraph [ref=e998]: Dağılım verisi yok
+              - paragraph [ref=e999]: Mail geldikçe pasta grafik dolacak.
+  - contentinfo [ref=e110]:
+    - paragraph [ref=e111]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

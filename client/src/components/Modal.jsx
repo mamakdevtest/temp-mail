@@ -46,7 +46,10 @@ export default function Modal({ show, onClose, title, subtitle, children, footer
       window.removeEventListener('keydown', onKey);
       prevFocus?.focus?.();
     };
-  }, [show, onClose]);
+    // ponytail: deps intentionally only [show] — onClose is often an inline
+    // arrow in callers; including it re-runs this effect on every parent
+    // render and re-focuses the first input mid-typing, dropping the caret.
+  }, [show]);
 
   if (!show) return null;
   const full = size === 'full';

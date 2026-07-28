@@ -1,0 +1,54 @@
+- generic [ref=f4e3]:
+  - banner [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - button "Inbox" [ref=f4e6] [cursor=pointer]:
+        - generic [ref=f4e11]:
+          - paragraph [ref=f4e12]: MS Temp Mail
+          - paragraph [ref=f4e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=f4e14] [cursor=pointer]:
+        - generic [ref=f4e19]: ⌘K
+      - generic [ref=f4e20]:
+        - generic [ref=f4e21]: Canlı
+        - button "Giriş Yap" [ref=f4e23] [cursor=pointer]
+        - button "Kayıt Ol" [ref=f4e24] [cursor=pointer]
+  - main [ref=f4e25]:
+    - paragraph [ref=f4e30]: Admin yetkisi gerekiyor
+  - contentinfo [ref=f4e31]:
+    - paragraph [ref=f4e32]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - generic [ref=f4e34]:
+    - button "Kapat" [ref=f4e35] [cursor=pointer]
+    - generic [ref=f4e39]:
+      - generic [ref=f4e40]:
+        - heading "TempMail" [level=1] [ref=f4e45]
+        - paragraph [ref=f4e46]: Geçici e-posta, daha az spam.
+        - paragraph [ref=f4e47]: Hesapsız kalabilir, ücretsiz hesap açabilir veya Pro'ya yükseltebilirsin.
+      - generic [ref=f4e48]:
+        - generic [ref=f4e49]:
+          - button "Giriş Yap" [ref=f4e50] [cursor=pointer]
+          - button "Kayıt Ol" [ref=f4e51] [cursor=pointer]
+        - generic [ref=f4e52]:
+          - generic [ref=f4e53]:
+            - generic [ref=f4e54]: Kullanıcı Adı
+            - textbox "kullaniciadi" [active] [ref=f4e59]
+          - generic [ref=f4e60]:
+            - generic [ref=f4e61]: Şifre
+            - generic [ref=f4e62]:
+              - textbox "••••••" [ref=f4e66]
+              - button [ref=f4e67] [cursor=pointer]
+          - button "Giriş Yap" [ref=f4e71] [cursor=pointer]
+          - button "Hesapsız devam et" [ref=f4e74] [cursor=pointer]
+        - paragraph [ref=f4e75]:
+          - text: "Admin:"
+          - code [ref=f4e76]: admin
+          - text: /
+          - code [ref=f4e77]: admin123
+      - generic [ref=f4e78]:
+        - generic [ref=f4e79]:
+          - paragraph [ref=f4e84]: Hesapsız
+          - paragraph [ref=f4e85]: Giriş yapmadan başla
+        - generic [ref=f4e86]:
+          - paragraph [ref=f4e90]: Free
+          - paragraph [ref=f4e91]: Ücretsiz hesap aç
+        - generic [ref=f4e92]:
+          - paragraph [ref=f4e96]: Pro
+          - paragraph [ref=f4e97]: Yükseltilmiş hesap

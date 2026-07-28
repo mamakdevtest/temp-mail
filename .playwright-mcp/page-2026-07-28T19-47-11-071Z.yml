@@ -1,0 +1,128 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e450] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e451] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e21]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e452] [cursor=pointer]:
+          - generic [ref=e185]:
+            - generic [ref=e186]: admin
+            - generic [ref=e187]: Admin Kullanıcı
+  - main [ref=e25]:
+    - generic [ref=e760]:
+      - generic [ref=e761]:
+        - generic [ref=e762]:
+          - generic [ref=e768]:
+            - paragraph [ref=e769]: Kontrol merkezi
+            - heading "Admin Paneli" [level=1] [ref=e770]
+            - paragraph [ref=e771]: MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları.
+          - generic [ref=e772]:
+            - button "Yeni Domain Ekle" [ref=e773] [cursor=pointer]
+            - button "Temizle" [ref=e775] [cursor=pointer]
+            - button "Dışa Aktar" [ref=e779] [cursor=pointer]
+        - tablist [ref=e783]:
+          - tab "Dashboard" [ref=e784] [cursor=pointer]
+          - tab "Adresler" [ref=e790] [cursor=pointer]
+          - tab "Domainler" [active] [selected] [ref=e794] [cursor=pointer]
+          - tab "Mailler" [ref=e798] [cursor=pointer]
+          - tab "Kullanıcılar" [ref=e802] [cursor=pointer]
+          - tab "Bulk Havuzları" [ref=e808] [cursor=pointer]
+          - tab "İstekler" [ref=e819] [cursor=pointer]
+          - tab "Ayarlar" [ref=e822] [cursor=pointer]
+      - generic [ref=e1035]:
+        - heading "Domain Yönetimi" [level=3] [ref=e1043]
+        - generic [ref=e1044]:
+          - generic [ref=e1045]:
+            - button "Yeni Domain Ekle" [ref=e1046] [cursor=pointer]
+            - button "Yenile" [ref=e1048] [cursor=pointer]
+          - generic [ref=e1054]: 1 aktif / 1 toplam
+        - generic [ref=e1056]:
+          - generic [ref=e1057]:
+            - generic [ref=e1058]:
+              - generic [ref=e1059]:
+                - paragraph [ref=e1060]: mmkgams.space
+                - generic [ref=e1061]: Aktif
+                - generic [ref=e1062]: Wildcard Aktif
+              - paragraph [ref=e1063]: Sistemdeki root domainleri yönetin ve alt domainleri tek panelden düzenleyin.
+            - generic [ref=e1064]:
+              - button "Düzenle" [ref=e1065] [cursor=pointer]
+              - button "Domain Docs" [ref=e1069] [cursor=pointer]
+              - button "Pasifleştir" [ref=e1073] [cursor=pointer]
+              - button "Daralt" [ref=e1074] [cursor=pointer]
+              - button "Sil" [ref=e1077] [cursor=pointer]
+          - generic [ref=e1078]:
+            - generic [ref=e1079]:
+              - generic [ref=e1080]: Sunucu IP
+              - paragraph [ref=e1085]: 127.0.0.1
+            - generic [ref=e1086]:
+              - generic [ref=e1087]: MX Kaydı
+              - paragraph [ref=e1092]: mail.mmkgams.space
+            - generic [ref=e1093]:
+              - generic [ref=e1094]: Oluşturulma Tarihi
+              - paragraph [ref=e1098]: 07 Tem 2026 12:47
+            - generic [ref=e1099]:
+              - generic [ref=e1100]: Wildcard Desteği
+              - paragraph [ref=e1104]: Aktif edildi
+            - generic [ref=e1105]:
+              - generic [ref=e1106]: Toplam Aktif Adres
+              - paragraph [ref=e1113]: 84 adres
+          - generic [ref=e1114]:
+            - generic [ref=e1115]:
+              - generic [ref=e1116]:
+                - generic [ref=e1117]:
+                  - heading "Alt Domainler" [level=4] [ref=e1118]
+                  - generic [ref=e1119]: 4 aktif
+                - paragraph [ref=e1120]: Bu root domain altında alt domainler oluşturabilir ve yönetebilirsiniz.
+              - generic [ref=e1121]:
+                - generic [ref=e1122]:
+                  - 'textbox "Yeni subdomain ekle (örn: mail, gmail, temp)" [ref=e1123]'
+                  - generic [ref=e1124]: .mmkgams.space
+                - button "Ekle" [disabled]
+            - generic [ref=e1125]:
+              - generic [ref=e1127]:
+                - generic [ref=e1133]:
+                  - generic [ref=e1134]:
+                    - paragraph [ref=e1135]: hjh.mmkgams.space
+                    - generic [ref=e1136]: Aktif
+                  - paragraph [ref=e1137]: "Ornek: demo@hjh.mmkgams.space"
+                - generic [ref=e1138]:
+                  - generic [ref=e1139]: 0 aktif adres
+                  - button "Kopyala" [ref=e1140] [cursor=pointer]
+                  - button "Sil" [ref=e1144] [cursor=pointer]
+              - generic [ref=e1149]:
+                - generic [ref=e1155]:
+                  - generic [ref=e1156]:
+                    - paragraph [ref=e1157]: e.mmkgams.space
+                    - generic [ref=e1158]: Aktif
+                  - paragraph [ref=e1159]: "Ornek: demo@e.mmkgams.space"
+                - generic [ref=e1160]:
+                  - generic [ref=e1161]: 0 aktif adres
+                  - button "Kopyala" [ref=e1162] [cursor=pointer]
+                  - button "Sil" [ref=e1166] [cursor=pointer]
+              - generic [ref=e1171]:
+                - generic [ref=e1177]:
+                  - generic [ref=e1178]:
+                    - paragraph [ref=e1179]: set.mmkgams.space
+                    - generic [ref=e1180]: Aktif
+                  - paragraph [ref=e1181]: "Ornek: demo@set.mmkgams.space"
+                - generic [ref=e1182]:
+                  - generic [ref=e1183]: 0 aktif adres
+                  - button "Kopyala" [ref=e1184] [cursor=pointer]
+                  - button "Sil" [ref=e1188] [cursor=pointer]
+              - generic [ref=e1193]:
+                - generic [ref=e1199]:
+                  - generic [ref=e1200]:
+                    - paragraph [ref=e1201]: ehm.mmkgams.space
+                    - generic [ref=e1202]: Aktif
+                  - paragraph [ref=e1203]: "Ornek: demo@ehm.mmkgams.space"
+                - generic [ref=e1204]:
+                  - generic [ref=e1205]: 0 aktif adres
+                  - button "Kopyala" [ref=e1206] [cursor=pointer]
+                  - button "Sil" [ref=e1210] [cursor=pointer]
+  - contentinfo [ref=e110]:
+    - paragraph [ref=e111]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

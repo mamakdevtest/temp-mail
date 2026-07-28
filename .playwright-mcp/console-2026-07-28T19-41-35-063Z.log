@@ -1,0 +1,9 @@
+[     969ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:21550
+[    1126ms] [WARNING] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1499
+[   30024ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/:0
+[  144648ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/#/account:0
+[  144648ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/#/account:0
+[  144648ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/#/account:0
+[  158377ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/#/account:0
+[  158378ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/#/account:0
+[  158378ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/#/account:0
