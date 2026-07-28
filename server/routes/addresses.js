@@ -147,13 +147,24 @@ router.post('/random', requireApiScope('addresses:write'), (req, res) => {
 
     const domain = domains[Math.floor(Math.random() * domains.length)];
 
+    // Randomly pick a subdomain when the domain has any (50% chance)
+    let subdomain = null;
+    if (domain.wildcard_subdomains === 1) {
+      const subdomains = db.all('SELECT subdomain FROM subdomains WHERE domain_id = ? AND is_active = 1', [domain.id]);
+      if (subdomains.length > 0 && Math.random() < 0.5) {
+        subdomain = subdomains[Math.floor(Math.random() * subdomains.length)].subdomain;
+      }
+    }
+
+    const fullDomain = subdomain ? `${subdomain}.${domain.domain}` : domain.domain;
+
     let username;
     let address;
     let attempts = 0;
 
     do {
-      username = generateUsername(8);
-      address = `${username}@${domain.domain}`;
+      username = generateUsername();
+      address = `${username}@${fullDomain}`;
       attempts++;
 
       if (attempts > 10) {

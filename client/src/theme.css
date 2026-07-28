@@ -102,6 +102,29 @@
   --dur-med: var(--dur-2);
 }
 
+/* ---- Accent themes — [data-accent] overrides brand color family ---- */
+/* Default is indigo (no attribute needed). Each accent works in both dark and light. */
+[data-accent="violet"]  { --brand: 139 92 246;  --brand-hover: 154 110 255; --brand-pressed: 124 58 237; --ring: 139 92 246;  --chart-1: 139 92 246; }
+[data-accent="blue"]    { --brand: 59 130 246;  --brand-hover: 74 144 255;  --brand-pressed: 37 99 235;  --ring: 59 130 246;  --chart-1: 59 130 246; }
+[data-accent="emerald"] { --brand: 16 185 129;  --brand-hover: 31 200 145;  --brand-pressed: 5 150 105;  --ring: 16 185 129;  --chart-1: 16 185 129; }
+[data-accent="teal"]    { --brand: 20 184 166;  --brand-hover: 35 198 180;  --brand-pressed: 13 148 136; --ring: 20 184 166;  --chart-1: 20 184 166; }
+[data-accent="amber"]   { --brand: 245 158 11;  --brand-hover: 255 173 30;  --brand-pressed: 217 119 6;  --ring: 245 158 11;  --chart-1: 245 158 11; }
+[data-accent="rose"]    { --brand: 244 63 94;   --brand-hover: 255 82 112;  --brand-pressed: 225 29 72;  --ring: 244 63 94;   --chart-1: 244 63 94; }
+[data-accent="orange"]  { --brand: 249 115 22;  --brand-hover: 255 132 40;  --brand-pressed: 234 88 12;  --ring: 249 115 22;  --chart-1: 249 115 22; }
+[data-accent="cyan"]    { --brand: 6 182 212;   --brand-hover: 22 196 226;  --brand-pressed: 8 145 178;  --ring: 6 182 212;   --chart-1: 6 182 212; }
+[data-accent="fuchsia"] { --brand: 217 70 239;  --brand-hover: 230 86 250;  --brand-pressed: 192 38 211; --ring: 217 70 239;  --chart-1: 217 70 239; }
+
+/* Light-theme accent overrides — deeper for AA on white */
+html[data-theme="light"][data-accent="violet"]  { --brand: 124 58 237; --brand-hover: 109 40 217; --brand-pressed: 91 33 182; --ring: 124 58 237; --chart-1: 124 58 237; }
+html[data-theme="light"][data-accent="blue"]    { --brand: 37 99 235;  --brand-hover: 29 78 216;  --brand-pressed: 30 64 175;  --ring: 37 99 235;  --chart-1: 37 99 235; }
+html[data-theme="light"][data-accent="emerald"] { --brand: 5 150 105;  --brand-hover: 4 120 87;   --brand-pressed: 6 95 70;    --ring: 5 150 105;  --chart-1: 5 150 105; }
+html[data-theme="light"][data-accent="teal"]    { --brand: 13 148 136; --brand-hover: 15 118 110; --brand-pressed: 17 94 89;   --ring: 13 148 136; --chart-1: 13 148 136; }
+html[data-theme="light"][data-accent="amber"]   { --brand: 217 119 6;  --brand-hover: 180 83 9;   --brand-pressed: 146 64 14;  --ring: 217 119 6;  --chart-1: 217 119 6; }
+html[data-theme="light"][data-accent="rose"]    { --brand: 225 29 72;  --brand-hover: 190 18 60;  --brand-pressed: 159 18 57;  --ring: 225 29 72;  --chart-1: 225 29 72; }
+html[data-theme="light"][data-accent="orange"]  { --brand: 234 88 12;  --brand-hover: 194 65 12;  --brand-pressed: 154 52 18;  --ring: 234 88 12;  --chart-1: 234 88 12; }
+html[data-theme="light"][data-accent="cyan"]    { --brand: 8 145 178;  --brand-hover: 14 116 144; --brand-pressed: 21 94 117;  --ring: 8 145 178;  --chart-1: 8 145 178; }
+html[data-theme="light"][data-accent="fuchsia"] { --brand: 192 38 211; --brand-hover: 162 28 175; --brand-pressed: 134 25 143; --ring: 192 38 211; --chart-1: 192 38 211; }
+
 html[data-theme="light"] {
   --bg: 250 249 255;          /* indigo-50 tinted white */
   --bg-subtle: 243 242 255;

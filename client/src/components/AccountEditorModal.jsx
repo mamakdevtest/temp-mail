@@ -23,8 +23,19 @@ import {
   X,
 } from 'lucide-react';
 import Modal from './Modal';
-import { useLocale } from '../i18n';
+import { useLocale, LANGS } from '../i18n';
 import { SidebarNavButton, SettingRow, SmallSelect, ToggleSwitch, StatTile, Avatar } from './ui';
+
+// Display name for each language code, shown in its own language.
+const LANGUAGE_LABELS = {
+  tr: 'Türkçe',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  ru: 'Русский',
+  pt: 'Português',
+};
 
 function buildTabs(t) {
   return [
@@ -78,6 +89,8 @@ export default function AccountEditorModal({
   formatAdminDate,
   prefDraft,
   setPrefDraft,
+  accent = 'indigo',
+  onAccentChange,
   domains,
   toggleFavoriteDomain,
   notificationSounds,
@@ -99,6 +112,7 @@ export default function AccountEditorModal({
 }) {
   const { t } = useLocale();
   const tabs = useMemo(() => buildTabs(t), [t]);
+
   const activeTab = tabs.find((item) => item.id === tab) || tabs[0];
   const usagePercent = useMemo(() => {
     const limit = currentPkg?.max_addresses || 3;
@@ -194,16 +208,44 @@ export default function AccountEditorModal({
 
         <div className="mt-5 divide-y divide-brand-border/50">
           <SettingRow label={t('accountModal.appearance')} description={t('accountModal.generalTitle')}>
-            <SmallSelect value={prefDraft.theme || 'system'} onChange={(e) => setPrefDraft((p) => ({ ...p, theme: e.target.value }))}>
-              <option value="system">{t('accountModal.themeSystem')}</option>
-              <option value="light">{t('accountModal.themeLight')}</option>
-              <option value="dark">{t('accountModal.themeDark')}</option>
-            </SmallSelect>
+            <div className="flex flex-col gap-2.5">
+              <SmallSelect value={prefDraft.theme || 'system'} onChange={(e) => setPrefDraft((p) => ({ ...p, theme: e.target.value }))}>
+                <option value="system">{t('accountModal.themeSystem')}</option>
+                <option value="light">{t('accountModal.themeLight')}</option>
+                <option value="dark">{t('accountModal.themeDark')}</option>
+              </SmallSelect>
+              {/* 10 Accent colors swatch picker */}
+              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-[var(--r-md)] border border-brand-border bg-brand-bg-subtle" role="radiogroup" aria-label="Accent color">
+                {[
+                  { id: 'indigo',  color: 'rgb(99 102 241)' },
+                  { id: 'violet',  color: 'rgb(139 92 246)' },
+                  { id: 'blue',    color: 'rgb(59 130 246)' },
+                  { id: 'emerald', color: 'rgb(16 185 129)' },
+                  { id: 'teal',    color: 'rgb(20 184 166)' },
+                  { id: 'amber',   color: 'rgb(245 158 11)' },
+                  { id: 'rose',    color: 'rgb(244 63 94)' },
+                  { id: 'orange',  color: 'rgb(249 115 22)' },
+                  { id: 'cyan',    color: 'rgb(6 182 212)' },
+                  { id: 'fuchsia', color: 'rgb(217 70 239)' },
+                ].map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={accent === a.id}
+                    onClick={() => onAccentChange?.(a.id)}
+                    className={`w-4 h-4 rounded-full transition-transform hover:scale-110 ${accent === a.id ? 'ring-2 ring-offset-1 ring-offset-brand-surface ring-[rgb(var(--brand))]' : ''}`}
+                    style={{ backgroundColor: a.color }}
+                  />
+                ))}
+              </div>
+            </div>
           </SettingRow>
           <SettingRow label={t('accountModal.language')} description={t('accountModal.language')}>
             <SmallSelect value={prefDraft.language || 'tr'} onChange={(e) => setPrefDraft((p) => ({ ...p, language: e.target.value }))}>
-              <option value="tr">Türkçe</option>
-              <option value="en">English</option>
+              {LANGS.map((code) => (
+                <option key={code} value={code}>{LANGUAGE_LABELS[code] || code}</option>
+              ))}
             </SmallSelect>
           </SettingRow>
           <SettingRow label={t('accountModal.defaultDomain')} description={t('accountModal.defaultDomain')}>

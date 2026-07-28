@@ -72,6 +72,8 @@ const AccountPanel = forwardRef(function AccountPanel({
   notificationSounds = [],
   onNotificationSoundChange,
   onPreviewNotificationSound,
+  accent = 'indigo',
+  onAccentChange,
   onRequestPro,
   onLogout,
   onAdmin,
@@ -866,6 +868,8 @@ const AccountPanel = forwardRef(function AccountPanel({
         toggleFavoriteDomain={toggleFavoriteDomain}
         notificationSounds={notificationSounds}
         onPreviewNotificationSound={onPreviewNotificationSound}
+        accent={accent}
+        onAccentChange={onAccentChange}
         savePreferences={savePreferences}
         onRequestPro={onRequestPro}
         isAdmin={isAdmin}

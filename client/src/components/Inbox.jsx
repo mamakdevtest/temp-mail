@@ -24,14 +24,14 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
 
   if (!hasAddr) {
     return (
-      <div className="card h-full flex items-center justify-center min-h-[380px] xl:min-h-[590px]">
+      <div className="card h-full flex items-center justify-center min-h-[300px] sm:min-h-[380px] xl:min-h-[590px]">
         <EmptyState icon={InboxIcon} title={t('inbox.createAddressFirst')} description={t('inbox.mailsWillAppear')} />
       </div>
     );
   }
 
   return (
-    <div className="card p-0 overflow-hidden h-full flex flex-col min-h-[380px] xl:min-h-[590px]">
+    <div className="card p-0 overflow-hidden h-full flex flex-col min-h-[300px] sm:min-h-[380px] xl:min-h-[590px]">
       <div className="px-4 py-3.5 border-b border-brand-border/60 flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">

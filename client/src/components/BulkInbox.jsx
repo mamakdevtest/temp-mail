@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Copy, Filter, MailOpen, RefreshCw, Search } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import { useLocale } from '../i18n';
-import { Button, Input, Table, EmptyState, ErrorState, Loading } from './ui';
+import { Button, Input, Table, EmptyState, ErrorState, Loading, Modal } from './ui';
 
 function formatTime(value, language) {
   if (!value) return '—';
@@ -16,6 +16,7 @@ export default function BulkInbox({ token, pool }) {
   const [data, setData] = useState(null);
   const [query, setQuery] = useState('');
   const [otpOnly, setOtpOnly] = useState(false);
+  const [limit, setLimit] = useState(25);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
@@ -27,7 +28,7 @@ export default function BulkInbox({ token, pool }) {
     append ? setLoadingMore(true) : setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams({ limit: '100' });
+      const params = new URLSearchParams({ limit: String(limit) });
       if (query.trim()) params.set('q', query.trim());
       if (otpOnly) params.set('otp_only', '1');
       if (cursor) params.set('cursor', String(cursor));
@@ -37,7 +38,7 @@ export default function BulkInbox({ token, pool }) {
       setData((previous) => append ? { ...payload, emails: [...(previous?.emails || []), ...(payload.emails || [])] } : payload);
     } catch (nextError) { setError(nextError.message); }
     finally { append ? setLoadingMore(false) : setLoading(false); }
-  }, [otpOnly, pool?.id, query, token]);
+  }, [otpOnly, limit, pool?.id, query, token]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 220);
@@ -113,6 +114,16 @@ export default function BulkInbox({ token, pool }) {
         >
           {t('bulkInbox.otpOnly')}
         </Button>
+        <select
+          value={limit}
+          onChange={(e) => setLimit(Number(e.target.value))}
+          className="input w-auto"
+          aria-label="Limit"
+        >
+          {[5, 10, 25, 50, 100].map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
       </div>
       <p className="t-caption text-txt-muted">{t('bulkInbox.toolbarHint')}</p>
 
@@ -136,6 +147,42 @@ export default function BulkInbox({ token, pool }) {
           </Button>
         )}
       </div>
+
+      {selected && (
+        <Modal
+          show
+          onClose={() => setSelected(null)}
+          title={selected.subject || t('bulkInbox.noSubject')}
+          subtitle={selected.sender || t('bulkInbox.unknownSender')}
+          size="2xl"
+        >
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2 t-caption text-txt-muted">
+              <code className="t-mono text-txt-secondary">{selected.recipient_address}</code>
+              <time>· {formatTime(selected.received_at, language)}</time>
+            </div>
+            {selected.otp_code && (
+              <div className="rounded-[var(--r-md)] border border-[rgb(var(--otp)/0.3)] bg-[rgb(var(--otp)/0.08)] px-3 py-2 flex items-center gap-2">
+                <span className="text-xs text-txt-muted">OTP</span>
+                <code className="t-mono text-lg font-semibold text-[rgb(var(--otp))]">{selected.otp_code}</code>
+                <button type="button" onClick={() => copyOtp(selected.otp_code)} className="ml-auto btn-ghost px-2 py-1">
+                  {copiedOtp === selected.otp_code ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+              </div>
+            )}
+            {selected.body_html ? (
+              <iframe
+                title="mail-html"
+                sandbox=""
+                srcDoc={selected.body_html}
+                className="w-full min-h-[300px] rounded-[var(--r-md)] border border-brand-border bg-white"
+              />
+            ) : (
+              <pre className="whitespace-pre-wrap text-sm text-txt-primary t-body">{selected.body_text || t('bulkInbox.noSubject')}</pre>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -163,7 +163,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
               value={username}
               onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9._-]/g, ''))}
               placeholder="username"
-              className="min-w-0 flex-[1_1_140px] bg-transparent text-right font-mono text-lg sm:text-2xl font-semibold text-txt-primary outline-none placeholder:text-txt-disabled truncate"
+              className="min-w-0 flex-[1_1_140px] bg-transparent text-right font-mono text-base sm:text-xl font-semibold text-txt-primary outline-none placeholder:text-txt-disabled truncate"
               spellCheck={false}
               autoComplete="off"
               aria-label="username"
@@ -178,7 +178,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
                 aria-haspopup="listbox"
                 aria-expanded={showDomainMenu}
               >
-                <span className="min-w-0 flex-1 truncate font-mono text-lg sm:text-2xl font-semibold text-[rgb(var(--brand))]">{displayDomain || 'domain'}</span>
+                <span className="min-w-0 flex-1 truncate font-mono text-base sm:text-xl font-semibold text-[rgb(var(--brand))]">{displayDomain || 'domain'}</span>
                 <ChevronDown size={16} className={`shrink-0 text-txt-muted transition-transform ${showDomainMenu ? 'rotate-180' : ''}`} />
               </button>
 
@@ -254,8 +254,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
           <button onClick={() => requestGenerate('random')} disabled={loading} className="btn-secondary"><Shuffle size={15} /> {t('addressBar.random')}</button>
           {currentAddress && !currentAddress.has_password && (
             <button onClick={onSetPassword} className="btn-secondary relative">
-              <Lock size={15} className="text-[rgb(var(--pro))]" /> {t('addressBar.protect')}
-              {!isPro && <span className="badge-gold text-[8px] absolute -top-2 -right-1 px-1.5 py-0">PRO</span>}
+              <Lock size={15} className="text-[rgb(var(--otp))]" /> {t('addressBar.protect')}
             </button>
           )}
           {currentAddress?.has_password && <span className="badge-purple ml-1"><Lock size={11} /> {t('addressBar.passwordedBadge')}</span>}

@@ -86,6 +86,7 @@ function sanitizeIpInput(value) {
 export default function AdminPanel({ api, token, notificationSound = 'classic', notificationSounds = [], onNotificationSoundChange, onPreviewNotificationSound }) {
   const { t } = useLocale();
   const chart = readChartColors(); // ponytail: read at render; refreshes on next re-render after theme flip
+  const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const [pw, setPw] = useState(() => localStorage.getItem('tm-admin-pw') || '');
   const [auth, setAuth] = useState(Boolean(token));
   const [loading, setLoading] = useState(false);
@@ -1245,24 +1246,24 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               {trafficData.some((item) => item.incoming > 0 || item.otp > 0 || item.attachments > 0) ? (
                 <div className="h-[240px] animate-fade-in">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={trafficData}>
+                    <AreaChart data={trafficData} isAnimationActive={reducedMotion ? false : true} animationDuration={900} animationEasing="ease-out">
                       <defs>
                         <linearGradient id="incomingFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={chart.palette[0]} stopOpacity={0.35} />
-                          <stop offset="95%" stopColor={chart.palette[0]} stopOpacity={0} />
+                          <stop offset="5%" stopColor={chart.palette[0]} stopOpacity={0.4} />
+                          <stop offset="95%" stopColor={chart.palette[0]} stopOpacity={0.05} />
                         </linearGradient>
                         <linearGradient id="otpFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={chart.palette[3]} stopOpacity={0.28} />
-                          <stop offset="95%" stopColor={chart.palette[3]} stopOpacity={0} />
+                          <stop offset="5%" stopColor={chart.palette[3]} stopOpacity={0.32} />
+                          <stop offset="95%" stopColor={chart.palette[3]} stopOpacity={0.04} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid stroke={chart.grid} vertical={false} />
                       <XAxis dataKey="hour" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ background: chart.surface, border: `1px solid ${chart.grid}`, borderRadius: '12px', color: chart.text }} />
-                      <Area type="monotone" dataKey="incoming" stroke={chart.palette[0]} fill="url(#incomingFill)" strokeWidth={2.5} />
-                      <Area type="monotone" dataKey="otp" stroke={chart.palette[3]} fill="url(#otpFill)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="attachments" stroke={chart.palette[2]} fill="transparent" strokeWidth={1.6} />
+                      <Tooltip contentStyle={{ background: chart.surface, border: `1px solid ${chart.grid}`, borderRadius: '12px', color: chart.text }} isAnimationActive={reducedMotion ? false : true} />
+                      <Area type="monotone" dataKey="incoming" stroke={chart.palette[0]} fill="url(#incomingFill)" strokeWidth={2.5} isAnimationActive={reducedMotion ? false : true} animationDuration={900} />
+                      <Area type="monotone" dataKey="otp" stroke={chart.palette[3]} fill="url(#otpFill)" strokeWidth={2} isAnimationActive={reducedMotion ? false : true} animationDuration={900} animationBegin={120} />
+                      <Area type="monotone" dataKey="attachments" stroke={chart.palette[2]} fill="transparent" strokeWidth={1.6} isAnimationActive={reducedMotion ? false : true} animationDuration={900} animationBegin={240} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -1400,15 +1401,19 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
             <AdminPanelCard title={t('admin.ui.dash.mailMix')} icon={PieChartIcon} className="xl:col-span-4">
               {mailMix.length > 0 ? (
-                <div className="h-[260px] animate-fade-in">
+                <div className="h-[260px] animate-fade-in relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
-                      <Pie data={mailMix} dataKey="value" innerRadius={55} outerRadius={88} paddingAngle={3}>
+                      <Pie data={mailMix} dataKey="value" innerRadius={55} outerRadius={88} paddingAngle={3} isAnimationActive={reducedMotion ? false : true} animationDuration={800} animationEasing="ease-out" label>
                         {mailMix.map((entry, index) => <Cell key={entry.name} fill={chart.palette[index % chart.palette.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ background: chart.surface, border: `1px solid ${chart.grid}`, borderRadius: '12px', color: chart.text }} />
+                      <Tooltip contentStyle={{ background: chart.surface, border: `1px solid ${chart.grid}`, borderRadius: '12px', color: chart.text }} isAnimationActive={reducedMotion ? false : true} />
                     </RechartsPieChart>
                   </ResponsiveContainer>
+                  <p className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-2xl font-semibold tabular-nums text-txt-primary">{mailMix.reduce((s, e) => s + e.value, 0)}</span>
+                    <span className="text-[10px] text-txt-muted mt-0.5">{t('admin.stats.totalMail')}</span>
+                  </p>
                   <div className="flex flex-wrap justify-center gap-3 mt-2">
                     {mailMix.map((entry, index) => (
                       <span key={entry.name} className="text-xs text-txt-secondary inline-flex items-center gap-2">

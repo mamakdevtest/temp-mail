@@ -65,18 +65,18 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 
-  if (isLoading) return <div className="card p-0 overflow-hidden h-full min-h-[380px] xl:min-h-[590px]"><EmailViewSkeleton /></div>;
+  if (isLoading) return <div className="card p-0 overflow-hidden h-full min-h-[300px] sm:min-h-[380px] xl:min-h-[590px]"><EmailViewSkeleton /></div>;
 
   if (!email) {
     return (
-      <div className="card h-full min-h-[380px] xl:min-h-[590px] flex items-center justify-center">
+      <div className="card h-full min-h-[300px] sm:min-h-[380px] xl:min-h-[590px] flex items-center justify-center">
         <EmptyState icon={Mail} title={t('emailView.selectMail')} description={t('emailView.selectMailHint')} />
       </div>
     );
   }
 
   return (
-    <div className="card p-0 overflow-hidden h-full min-h-[380px] xl:min-h-[590px] flex flex-col">
+    <div className="card p-0 overflow-hidden h-full min-h-[300px] sm:min-h-[380px] xl:min-h-[590px] flex flex-col">
       <div className="px-4 py-3.5 border-b border-brand-border/60 flex-shrink-0 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">

@@ -1,4 +1,4 @@
-import { lazy, Suspense, startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import { startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, BookOpen, Search, Command, LogOut, Plus, Moon, Sun } from 'lucide-react';
 import useAuth from './hooks/useAuth';
@@ -7,19 +7,22 @@ import Inbox from './components/Inbox';
 import EmailView from './components/EmailView';
 import AccountPanel from './components/AccountPanel';
 import Modal from './components/Modal';
-import { Drawer, CommandPalette, Avatar, EmptyState, Loading, ConfirmationDialog } from './components/ui';
+import { Drawer, CommandPalette, Avatar, EmptyState, ConfirmationDialog } from './components/ui';
 import { playNotificationSound, NOTIFICATION_SOUNDS } from './utils/notificationSound';
 import { apiFetch } from './utils/apiFetch';
 import { addressTokenHeader, setAddressToken } from './utils/addressToken';
 import { LocaleProvider, createTranslator, normalizeLanguage } from './i18n';
 
-const AuthPage = lazy(() => import('./components/AuthPage'));
-const AdminPanel = lazy(() => import('./components/AdminPanel'));
-const BulkStudio = lazy(() => import('./components/BulkStudio'));
-const BulkInbox = lazy(() => import('./components/BulkInbox'));
-const AdminBulkStudio = lazy(() => import('./components/AdminBulkStudio'));
-const AutomationCenter = lazy(() => import('./components/AutomationCenter'));
-const DocumentationCenter = lazy(() => import('./components/DocumentationCenter'));
+// ponytail: eager imports for all panels — lazy chunks kept crashing after HMR
+// ("Failed to fetch dynamically imported module"). Internal tool; bundle size
+// tradeoff is acceptable to eliminate this crash class entirely.
+import AuthPage from './components/AuthPage';
+import AdminPanel from './components/AdminPanel';
+import BulkStudio from './components/BulkStudio';
+import BulkInbox from './components/BulkInbox';
+import AdminBulkStudio from './components/AdminBulkStudio';
+import AutomationCenter from './components/AutomationCenter';
+import DocumentationCenter from './components/DocumentationCenter';
 
 const API = '/api';
 const DEFAULT_NOTIFICATION_SOUND = NOTIFICATION_SOUNDS.find((sound) => sound.id === 'chime')?.id || 'classic';
@@ -64,6 +67,10 @@ export default function App() {
   const [guestTheme, setGuestTheme] = useState(() => {
     try { return localStorage.getItem('tm-theme') || null; } catch (e) { return null; }
   });
+  const [accent, setAccentState] = useState(() => {
+    try { return localStorage.getItem('tm-accent') || 'indigo'; } catch (e) { return 'indigo'; }
+  });
+  const setAccent = useCallback((next) => setAccentState(next), []);
   const theme = auth.isGuest
     ? (guestTheme || 'system')
     : (auth.preferences?.theme || auth.user?.theme || 'system');
@@ -130,6 +137,15 @@ export default function App() {
   useEffect(() => {
     if (page === 'bulk-inbox') navigate('bulk');
   }, [navigate, page]);
+
+  useEffect(() => {
+    if (accent === 'indigo') {
+      delete document.documentElement.dataset.accent;
+    } else {
+      document.documentElement.dataset.accent = accent;
+    }
+    try { localStorage.setItem('tm-accent', accent); } catch (e) { /* private mode */ }
+  }, [accent]);
 
   useEffect(() => {
     const resolvedTheme = theme === 'system'
@@ -211,9 +227,8 @@ export default function App() {
       openAuth('register');
       return;
     }
-    if (auth.isPro) setSpwShow(true);
-    else setProReqShow(true);
-  }, [auth.isGuest, auth.isPro, openAuth]);
+    setSpwShow(true);
+  }, [auth.isGuest, openAuth]);
 
   const handleReply = useCallback((pre = {}) => {
     if (auth.isGuest) {
@@ -678,14 +693,6 @@ export default function App() {
               </span>
             )}
             <button onClick={() => setCmdkOpen(true)} className="md:hidden p-2 text-txt-secondary hover:text-txt-primary" aria-label={t('cmdk.search')}><Command size={18} /></button>
-            <button
-              type="button"
-              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-[var(--r-md)] text-txt-secondary hover:text-txt-primary hover:bg-brand-surface2 transition-colors"
-              aria-label={resolvedTheme === 'dark' ? t('cmdk.themeLight') : t('cmdk.themeDark')}
-            >
-              {resolvedTheme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-            </button>
             {auth.isGuest ? (
               <>
                 <button onClick={() => openAuth('login')} className="btn-ghost">{t('app.signIn')}</button>
@@ -848,6 +855,8 @@ export default function App() {
               notificationSounds={NOTIFICATION_SOUNDS}
               onNotificationSoundChange={setNotificationSound}
               onPreviewNotificationSound={handlePreviewNotificationSound}
+              accent={accent}
+              onAccentChange={setAccent}
               onRequestPro={handleRequestPro}
               onLogin={() => openAuth('login')}
               onRegister={() => openAuth('register')}
@@ -856,24 +865,22 @@ export default function App() {
             />
           </div>
         ) : page === 'bulk' ? (
-          <Suspense fallback={<Loading label={t('app.preparing', { name: 'Bulk Studio' })} />}><BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} /></Suspense>
+          <BulkStudio token={auth.token} user={auth.user} pkg={auth.pkg} domains={domains} onOpenPool={setBulkInboxPool} />
         ) : page === 'automation' ? (
-          auth.isGuest ? <EmptyState icon={Workflow} title={t('app.automationGuestTitle')} description={t('app.automationGuestHint')} action={<button className="btn-primary" onClick={() => openAuth('register')}>{t('app.signUp')}</button>} /> : <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.automationRail') })} />}><AutomationCenter token={auth.token} isAdmin={auth.isAdmin} /></Suspense>
+          auth.isGuest ? <EmptyState icon={Workflow} title={t('app.automationGuestTitle')} description={t('app.automationGuestHint')} action={<button className="btn-primary" onClick={() => openAuth('register')}>{t('app.signUp')}</button>} /> : <AutomationCenter token={auth.token} isAdmin={auth.isAdmin} />
         ) : page === 'docs' ? (
-          <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.docsRail') })} />}><DocumentationCenter /></Suspense>
+          <DocumentationCenter />
         ) : page === 'admin-bulk' && auth.isAdmin ? (
-          <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.bulkAdminRail') })} />}><AdminBulkStudio token={auth.token} user={auth.user} domains={domains} /></Suspense>
+          <AdminBulkStudio token={auth.token} user={auth.user} domains={domains} />
         ) : auth.isAdmin ? (
-          <Suspense fallback={<Loading label={t('app.preparing', { name: t('app.adminPanel') })} />}>
-            <AdminPanel
-              api={API}
-              token={auth.token}
-              notificationSound={notificationSound}
-              notificationSounds={NOTIFICATION_SOUNDS}
-              onNotificationSoundChange={setNotificationSound}
-              onPreviewNotificationSound={handlePreviewNotificationSound}
-            />
-          </Suspense>
+          <AdminPanel
+            api={API}
+            token={auth.token}
+            notificationSound={notificationSound}
+            notificationSounds={NOTIFICATION_SOUNDS}
+            onNotificationSoundChange={setNotificationSound}
+            onPreviewNotificationSound={handlePreviewNotificationSound}
+          />
         ) : (
           <EmptyState icon={Shield} title={t('app.adminRequired')} />
         )}
@@ -925,7 +932,7 @@ export default function App() {
         width="max-w-2xl"
         closeLabel={t('app.close')}
       >
-        {bulkInboxPool && <Suspense fallback={<Loading label={t('app.preparing', { name: 'Bulk Inbox' })} />}><BulkInbox token={auth.token} pool={bulkInboxPool} /></Suspense>}
+        {bulkInboxPool && <BulkInbox token={auth.token} pool={bulkInboxPool} />}
       </Drawer>
 
       {/* Toast */}
@@ -938,15 +945,13 @@ export default function App() {
 
       {showAuth && (
         <div className="fixed inset-0 z-[200] overflow-y-auto bg-brand-bg/92 backdrop-blur-xl">
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-txt-muted">{t('app.loading')}</div>}>
-            <AuthPage
-              defaultMode={authMode}
-              onLogin={auth.login}
-              onRegister={auth.register}
-              onClose={() => setShowAuth(false)}
-              onGuestContinue={() => setShowAuth(false)}
-            />
-          </Suspense>
+          <AuthPage
+            defaultMode={authMode}
+            onLogin={auth.login}
+            onRegister={auth.register}
+            onClose={() => setShowAuth(false)}
+            onGuestContinue={() => setShowAuth(false)}
+          />
         </div>
       )}
     </div>
