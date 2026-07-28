@@ -1,0 +1,64 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - banner [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - button "Inbox" [ref=f1e6] [cursor=pointer]:
+          - generic [ref=f1e11]:
+            - paragraph [ref=f1e12]: MS Temp Mail
+            - paragraph [ref=f1e13]: Mamak Studio temporary mail workspace
+        - button "Ara veya komut çalıştır…" [ref=f1e14] [cursor=pointer]:
+          - generic [ref=f1e19]: ⌘K
+        - generic [ref=f1e20]:
+          - generic [ref=f1e21]: Canlı
+          - button "Giriş Yap" [ref=f1e23] [cursor=pointer]
+          - button "Kayıt Ol" [ref=f1e24] [cursor=pointer]
+    - main [ref=f1e25]:
+      - generic [ref=f1e26]:
+        - generic [ref=f1e27]:
+          - generic [ref=f1e28]:
+            - generic [ref=f1e29]:
+              - generic [ref=f1e30]:
+                - paragraph [ref=f1e31]: Geçici E-Posta Adresiniz
+                - paragraph [ref=f1e32]: Adresiniz anında aktif olur, mailler aşağıdaki gelen kutusuna düşer.
+              - generic [ref=f1e33]: Adres aktif ve kullanıma hazır
+            - generic [ref=f1e36]:
+              - textbox "username" [ref=f1e37]: iris54
+              - generic [ref=f1e38]: "@"
+              - button "e.mmkgams.space" [expanded] [active] [ref=f1e40] [cursor=pointer]
+              - button "Kopyala" [ref=f1e44] [cursor=pointer]
+            - generic [ref=f1e48]:
+              - button "Kopyala" [ref=f1e49] [cursor=pointer]
+              - button "Yenile" [ref=f1e53] [cursor=pointer]
+              - button "Rastgele" [ref=f1e59] [cursor=pointer]
+              - button "Şifre Koru" [ref=f1e66] [cursor=pointer]
+          - button [ref=f1e72] [cursor=pointer]
+        - generic [ref=f1e79]:
+          - generic [ref=f1e81]:
+            - generic [ref=f1e82]:
+              - generic [ref=f1e83]:
+                - generic [ref=f1e84]:
+                  - paragraph [ref=f1e88]: Gelen Kutusu
+                  - generic [ref=f1e89]: Canlı
+                - button "Yenile" [ref=f1e91] [cursor=pointer]
+              - textbox "Ara..." [ref=f1e101]
+            - generic [ref=f1e103]:
+              - paragraph [ref=f1e108]: Henüz mail yok
+              - paragraph [ref=f1e109]: Yeni mesajlar anlık olarak burada görünür.
+          - generic [ref=f1e112]:
+            - paragraph [ref=f1e117]: Bir e-posta seçin
+            - paragraph [ref=f1e118]: Lütfen soldaki listeden bir e-posta seçerek içeriğini görüntüleyin.
+    - contentinfo [ref=f1e119]:
+      - paragraph [ref=f1e120]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - listbox [ref=f1e121]:
+    - paragraph [ref=f1e122]: Domain Seçin
+    - generic [ref=f1e123]:
+      - generic [ref=f1e124]:
+        - generic [ref=f1e125]:
+          - button "toggle" [ref=f1e126] [cursor=pointer]
+          - button "mmkgams.space" [ref=f1e129] [cursor=pointer]
+        - generic [ref=f1e132]:
+          - button "e.mmkgams.space" [ref=f1e133] [cursor=pointer]
+          - button "ehm.mmkgams.space" [ref=f1e135] [cursor=pointer]
+          - button "hjh.mmkgams.space" [ref=f1e137] [cursor=pointer]
+          - button "set.mmkgams.space" [ref=f1e139] [cursor=pointer]
+      - button "testaudit123.com" [ref=f1e143] [cursor=pointer]

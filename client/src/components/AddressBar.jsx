@@ -83,7 +83,13 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
       const top = openAbove ? Math.max(16, rect.top - gap - 300) : Math.min(belowTop, Math.max(16, vh - 316));
       const left = Math.min(Math.max(inset, rect.left), Math.max(inset, vw - width - inset));
       const maxHeight = openAbove ? Math.max(200, Math.min(340, rect.top - gap - 24)) : Math.max(200, Math.min(340, vh - belowTop - 24));
-      setDomainMenuLayout({ top, left, width, maxHeight });
+      // ponytail: only set when a value actually changed — otherwise this
+      // layout effect re-runs every render (new object ref) and hits
+      // Maximum update depth exceeded when the dropdown is open.
+      setDomainMenuLayout((prev) => {
+        if (prev && prev.top === top && prev.left === left && prev.width === width && prev.maxHeight === maxHeight) return prev;
+        return { top, left, width, maxHeight };
+      });
     };
     updateLayout();
     window.addEventListener('resize', updateLayout);

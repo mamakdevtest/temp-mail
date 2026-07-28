@@ -733,6 +733,7 @@ export default function App() {
         onClose={() => { setPwModal({ show: false, username: '', domain: '' }); setLoading(false); }}
         title={t('app.passwordRequiredTitle')}
         subtitle={t('app.passwordRequiredSubtitle', { address: `${pwModal.username}@${pwModal.domain}` })}
+        closeLabel={t('app.close')}
         footer={<><button onClick={() => { setPwModal({ show: false, username: '', domain: '' }); setLoading(false); }} className="btn-secondary">{t('app.cancel')}</button><button onClick={pwSubmit} disabled={!pwInput || loading} className="btn-primary"><KeyRound size={12} /> {t('app.signIn')}</button></>}
       >
         <input type="password" value={pwInput} onChange={(e) => { setPwInput(e.target.value); setPwErr(''); }} onKeyDown={(e) => e.key === 'Enter' && pwSubmit()} placeholder={t('app.passwordPlaceholder')} className="input" autoFocus />
@@ -744,6 +745,7 @@ export default function App() {
         onClose={() => { setSpwShow(false); setSpwVal(''); }}
         title={t('app.setPasswordTitle')}
         subtitle={t('app.setPasswordSubtitle')}
+        closeLabel={t('app.close')}
         footer={<><button onClick={() => { setSpwShow(false); setSpwVal(''); }} className="btn-secondary">{t('app.cancel')}</button><button onClick={doSetPw} disabled={!spwVal} className="btn-primary"><Lock size={12} /> {t('app.save')}</button></>}
       >
         <input type="password" value={spwVal} onChange={(e) => setSpwVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSetPw()} placeholder={t('app.passwordPlaceholder')} className="input" autoFocus />
@@ -753,6 +755,7 @@ export default function App() {
         show={compose.open}
         onClose={() => setCompose({ ...compose, open: false })}
         title={t('app.composeTitle')}
+        closeLabel={t('app.close')}
         wide
         footer={<><button onClick={() => setCompose({ ...compose, open: false })} className="btn-secondary">{t('app.cancel')}</button><button onClick={sendMail} disabled={sending} className="btn-primary">{sending ? '⏳' : <Send size={12} />} {t('app.send')}</button></>}
       >
@@ -768,6 +771,7 @@ export default function App() {
         show={proReqShow}
         onClose={() => { setProReqShow(false); setProReqMsg(''); }}
         title={t('app.proRequestTitle')}
+        closeLabel={t('app.close')}
         subtitle={t('app.proRequestSubtitle')}
         footer={<><button onClick={() => setProReqShow(false)} className="btn-secondary">{t('app.cancel')}</button><button onClick={doRequestPro} className="btn-primary"><Crown size={12} /> {t('app.send')}</button></>}
       >

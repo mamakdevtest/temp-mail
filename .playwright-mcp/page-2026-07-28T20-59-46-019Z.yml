@@ -1,0 +1,68 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e1553]:
+      - generic [ref=e1555]:
+        - generic [ref=e1568]:
+          - paragraph [ref=e1569]: BULK STUDIO
+          - heading "Bulk Studio" [level=1] [ref=e1570]
+          - paragraph [ref=e1571]: Prefix tabanlı adres havuzları oluştur ve yönet.
+        - generic [ref=e1575]:
+          - paragraph [ref=e1576]: Plan
+          - paragraph [ref=e1577]: admin override
+      - generic [ref=e1578]:
+        - generic [ref=e1579]:
+          - generic [ref=e1580]:
+            - generic [ref=e1581]: "01"
+            - heading "Yeni adres serisi" [level=2] [ref=e1582]
+          - generic [ref=e1583]:
+            - generic [ref=e1584]: Prefix
+            - textbox "ornek" [ref=e1585]
+            - paragraph [ref=e1586]: Prefix ile başla
+          - generic [ref=e1587]:
+            - generic [ref=e1588]: Domain
+            - combobox [ref=e1590] [cursor=pointer]:
+              - option "mmkgams.space" [selected]
+              - option "testaudit123.com"
+          - generic [ref=e1591]:
+            - generic [ref=e1592]: Kaç adres?
+            - generic [ref=e1593]:
+              - button "5" [ref=e1594] [cursor=pointer]
+              - button "10" [ref=e1595] [cursor=pointer]
+              - button "25" [ref=e1596] [cursor=pointer]
+              - button "50" [ref=e1597] [cursor=pointer]
+              - button "100" [ref=e1598] [cursor=pointer]
+            - spinbutton [ref=e1599]: "10"
+          - button "Adresleri oluştur" [ref=e1600] [cursor=pointer]
+        - complementary [ref=e1602]:
+          - generic [ref=e1603]:
+            - generic [ref=e1604]: "02"
+            - heading "Canlı önizleme" [level=2] [ref=e1605]
+          - generic [ref=e1606]:
+            - generic [ref=e1607]:
+              - paragraph [ref=e1608]: İlk adres
+              - code [ref=e1609]: prefix_0@domain
+            - generic [ref=e1610]:
+              - paragraph [ref=e1611]: Son adres
+              - code [ref=e1612]: prefix_n@domain
+          - paragraph [ref=e1613]: Yeni havuz 10 adres üretecek
+      - generic [ref=e1615]:
+        - generic [ref=e1616]:
+          - generic [ref=e1617]: "03"
+          - heading "Havuzların" [level=2] [ref=e1618]
+        - generic [ref=e1619]: aktif kayıt
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

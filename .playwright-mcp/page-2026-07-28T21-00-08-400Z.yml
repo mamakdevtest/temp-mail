@@ -1,0 +1,96 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e1765]:
+      - generic [ref=e1767]:
+        - generic [ref=e1772]:
+          - paragraph [ref=e1773]: OPERATIONS HANDBOOK
+          - heading "İşi yap, yolu ara." [level=1] [ref=e1774]
+          - paragraph [ref=e1775]: Mailbox, API ve sunucu operasyonları için uygulama içi rehber.
+        - generic [ref=e1776]: Canlı sözleşme
+      - textbox "API key, OTP, DNS, Bulk veya endpoint ara" [ref=e1785]
+      - generic [ref=e1786]:
+        - complementary "Doküman konuları" [ref=e1787]:
+          - paragraph [ref=e1788]: KONULAR
+          - button "BAŞLANGIÇ Hızlı başlangıç" [ref=e1789] [cursor=pointer]:
+            - generic [ref=e1792]:
+              - generic [ref=e1793]: BAŞLANGIÇ
+              - generic [ref=e1794]: Hızlı başlangıç
+          - button "API & BOT API key ile otomasyon" [ref=e1797] [cursor=pointer]:
+            - generic [ref=e1801]:
+              - generic [ref=e1802]: API & BOT
+              - generic [ref=e1803]: API key ile otomasyon
+          - button "MAIL OPERASYONLARI OTP, inbox ve realtime" [ref=e1806] [cursor=pointer]:
+            - generic [ref=e1810]:
+              - generic [ref=e1811]: MAIL OPERASYONLARI
+              - generic [ref=e1812]: OTP, inbox ve realtime
+          - button "BULK STUDIO Prefix havuzları" [ref=e1815] [cursor=pointer]:
+            - generic [ref=e1826]:
+              - generic [ref=e1827]: BULK STUDIO
+              - generic [ref=e1828]: Prefix havuzları
+          - button "SUNUCU & DNS SMTP, DNS ve deployment" [ref=e1831] [cursor=pointer]:
+            - generic [ref=e1835]:
+              - generic [ref=e1836]: SUNUCU & DNS
+              - generic [ref=e1837]: SMTP, DNS ve deployment
+        - article [ref=e1840]:
+          - generic [ref=e1845]:
+            - paragraph [ref=e1846]: BAŞLANGIÇ
+            - heading "Hızlı başlangıç" [level=2] [ref=e1847]
+            - paragraph [ref=e1848]: Bir mailbox açın, doğrulama kodunu alın ve işi bitirin.
+          - list [ref=e1849]:
+            - listitem [ref=e1850]:
+              - generic [ref=e1851]: "01"
+              - generic [ref=e1852]:
+                - heading "Domain seçin" [level=3] [ref=e1853]
+                - paragraph [ref=e1854]: Aktif domainlerden birini seçin veya adminin eklediği subdomaini kullanın.
+            - listitem [ref=e1855]:
+              - generic [ref=e1856]: "02"
+              - generic [ref=e1857]:
+                - heading "Adres oluşturun" [level=3] [ref=e1858]
+                - paragraph [ref=e1859]: Tek adres veya Bulk Studio ile prefix tabanlı havuz oluşturun.
+            - listitem [ref=e1860]:
+              - generic [ref=e1861]: "03"
+              - generic [ref=e1862]:
+                - heading "Maili alın" [level=3] [ref=e1863]
+                - paragraph [ref=e1864]: Inbox, SSE veya long-poll üzerinden yeni maili görün.
+            - listitem [ref=e1865]:
+              - generic [ref=e1866]: "04"
+              - generic [ref=e1867]:
+                - heading "OTP’yi kullanın" [level=3] [ref=e1868]
+                - paragraph [ref=e1869]: Kod subject, text ve HTML bağlamından algılanır; direkt kopyalayın.
+          - generic [ref=e1870]:
+            - generic [ref=e1871]:
+              - generic [ref=e1872]: ÖRNEK KOMUT
+              - button "Kopyala" [ref=e1876] [cursor=pointer]
+            - generic [ref=e1880]: "POST /api/addresses { \"username\": \"gork_0\", \"domain\": \"mmkgams.space\" }"
+          - paragraph [ref=e1885]:
+            - strong [ref=e1886]: Operasyon notu
+            - text: Aynı adres tekrar istenirse sistem hata yerine mevcut mailbox bilgisini döndürür.
+        - complementary [ref=e1887]:
+          - generic [ref=e1888]:
+            - paragraph [ref=e1891]: DEPLOYMENT
+            - paragraph [ref=e1892]: Coolify hazır
+            - paragraph [ref=e1893]: Port 25, Docker Compose ve DNS adımları sunucu rehberinde.
+          - generic [ref=e1894]:
+            - paragraph [ref=e1899]: OTOMASYON
+            - paragraph [ref=e1900]: Long-poll önerilir
+            - paragraph [ref=e1901]: "Bot trafiğini azaltmak için `wait=25` ve `after_id` kullanın."
+          - generic [ref=e1902]:
+            - paragraph [ref=e1908]: DOMAIN
+            - paragraph [ref=e1909]: Subdomain destekli
+            - paragraph [ref=e1910]: Admin aktif domainlere subdomain ekleyebilir.
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

@@ -1,0 +1,47 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]
+      - generic [ref=e20]:
+        - button "Ara veya komut çalıştır…" [ref=e1911] [cursor=pointer]
+        - button [ref=e1914] [cursor=pointer]
+  - main [ref=e23]:
+    - generic [ref=e1944]:
+      - generic [ref=e1945]:
+        - generic [ref=e1946]:
+          - generic [ref=e1947]:
+            - generic [ref=e1948]:
+              - paragraph [ref=e1949]: Geçici E-Posta Adresiniz
+              - paragraph [ref=e1950]: Adresiniz anında aktif olur, mailler aşağıdaki gelen kutusuna düşer.
+            - generic [ref=e1951]: Adres aktif ve kullanıma hazır
+          - generic [ref=e1954]:
+            - textbox "username" [ref=e1955]
+            - generic [ref=e1956]: "@"
+            - button "mmkgams.space" [ref=e1958] [cursor=pointer]
+            - button "Kopyala" [ref=e1962] [cursor=pointer]
+          - generic [ref=e1966]:
+            - button "Bu Adresi Aç" [disabled]
+            - button "Yenile" [ref=e1967] [cursor=pointer]
+            - button "Rastgele" [ref=e1973] [cursor=pointer]
+            - button "Şifre Koru" [ref=e1980] [cursor=pointer]
+        - button [ref=e1986] [cursor=pointer]
+      - generic [ref=e1995]:
+        - generic [ref=e1996]:
+          - generic [ref=e1997]:
+            - generic [ref=e1998]:
+              - paragraph [ref=e2002]: Gelen Kutusu
+              - generic [ref=e2003]: Canlı
+            - button "Yenile" [ref=e2005] [cursor=pointer]
+          - textbox "Ara..." [ref=e2015]
+        - generic [ref=e2017]:
+          - paragraph [ref=e2022]: Henüz mail yok
+          - paragraph [ref=e2023]: Yeni mesajlar anlık olarak burada görünür.
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - navigation "Mobil menü" [ref=e1915]:
+    - generic [ref=e1916]:
+      - button "Inbox" [ref=e1917] [cursor=pointer]
+      - button "Domains" [ref=e1921] [cursor=pointer]
+      - button "Bulk Studio" [ref=e1925] [cursor=pointer]
+      - button "Otomasyon" [ref=e1936] [cursor=pointer]
+      - button "Dokümanlar" [ref=e1941] [cursor=pointer]

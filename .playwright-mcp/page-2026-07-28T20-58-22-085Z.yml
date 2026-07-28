@@ -1,0 +1,252 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e457]:
+      - generic [ref=e458]:
+        - generic [ref=e459]:
+          - generic [ref=e465]:
+            - paragraph [ref=e466]: Kontrol merkezi
+            - heading "Admin Paneli" [level=1] [ref=e467]
+            - paragraph [ref=e468]: MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları.
+          - generic [ref=e469]:
+            - button "Yeni Domain Ekle" [ref=e470] [cursor=pointer]
+            - button "Temizle" [ref=e472] [cursor=pointer]
+            - button "Dışa Aktar" [ref=e476] [cursor=pointer]
+        - tablist [ref=e480]:
+          - tab "Dashboard" [ref=e481] [cursor=pointer]
+          - tab "Adresler" [active] [selected] [ref=e487] [cursor=pointer]
+          - tab "Domainler" [ref=e491] [cursor=pointer]
+          - tab "Mailler" [ref=e495] [cursor=pointer]
+          - tab "Kullanıcılar" [ref=e499] [cursor=pointer]
+          - tab "Bulk Havuzları" [ref=e505] [cursor=pointer]
+          - tab "İstekler" [ref=e516] [cursor=pointer]
+          - tab "Ayarlar" [ref=e519] [cursor=pointer]
+      - generic [ref=e743]:
+        - generic [ref=e744]:
+          - generic [ref=e747]:
+            - paragraph [ref=e748]: Toplam Adres
+            - paragraph [ref=e749]: "89"
+            - paragraph [ref=e750]: Tüm mailbox kayıtları
+          - generic [ref=e758]:
+            - paragraph [ref=e759]: Aktif Adres
+            - paragraph [ref=e760]: "29"
+            - paragraph [ref=e761]: Son erişim veya mail var
+          - generic [ref=e767]:
+            - paragraph [ref=e768]: Süresi Dolan
+            - paragraph [ref=e769]: "0"
+            - paragraph [ref=e770]: Temizlik bekleyen
+          - generic [ref=e776]:
+            - paragraph [ref=e777]: Şifre Korumalı
+            - paragraph [ref=e778]: "9"
+            - paragraph [ref=e779]: Ek güvenlik açık
+        - generic [ref=e784]:
+          - heading "Tüm Adresler" [level=3] [ref=e792]
+          - generic [ref=e793]:
+            - generic [ref=e794]:
+              - textbox "E-posta adresi ara..." [ref=e799]
+              - combobox [ref=e801]:
+                - option "Durum" [selected]
+                - option "Aktif"
+                - option "Şifreli"
+                - option "Pasif"
+                - option "Süresi doldu"
+              - combobox [ref=e803]:
+                - option "Domain" [selected]
+                - option "testaudit123.com"
+                - option "mmkgams.space"
+              - combobox [ref=e805]:
+                - 'option "Sırala: En yeni" [selected]'
+                - 'option "Sırala: En eski"'
+                - option "Son aktivite"
+                - option "Kullanım sayısı"
+                - option "Domain"
+            - button "Filtreyi Temizle" [ref=e806] [cursor=pointer]
+          - table [ref=e810]:
+            - rowgroup [ref=e811]:
+              - row [ref=e812]:
+                - columnheader "E-posta Adresi" [ref=e813]
+                - columnheader "Durum" [ref=e814]
+                - columnheader "Oluşturulma" [ref=e815]
+                - columnheader "Son Aktivite" [ref=e816]
+                - columnheader "Mail Sayısı" [ref=e817]
+                - columnheader "Domain" [ref=e818]
+                - columnheader "Saklama" [ref=e819]
+                - columnheader "İşlemler" [ref=e820]
+            - rowgroup [ref=e821]:
+              - row [ref=e822]:
+                - cell [ref=e823]:
+                  - paragraph [ref=e824]: steam280@testaudit123.com
+                - cell [ref=e825]
+                - cell "28 Tem 2026 20:39" [ref=e828]
+                - cell "28 Tem 2026 20:39" [ref=e829]
+                - cell "0" [ref=e830]
+                - cell "testaudit123.com" [ref=e831]
+                - cell "Süresiz" [ref=e832]
+                - cell [ref=e833]:
+                  - generic [ref=e834]:
+                    - button [ref=e835] [cursor=pointer]
+                    - button [ref=e839] [cursor=pointer]
+                    - button [ref=e843] [cursor=pointer]
+                    - button [ref=e847] [cursor=pointer]
+              - row [ref=e851]:
+                - cell [ref=e852]:
+                  - paragraph [ref=e853]: stellar434@testaudit123.com
+                - cell [ref=e854]
+                - cell "28 Tem 2026 20:39" [ref=e857]
+                - cell "28 Tem 2026 20:39" [ref=e858]
+                - cell "0" [ref=e859]
+                - cell "testaudit123.com" [ref=e860]
+                - cell "Süresiz" [ref=e861]
+                - cell [ref=e862]:
+                  - generic [ref=e863]:
+                    - button [ref=e864] [cursor=pointer]
+                    - button [ref=e868] [cursor=pointer]
+                    - button [ref=e872] [cursor=pointer]
+                    - button [ref=e876] [cursor=pointer]
+              - row [ref=e880]:
+                - cell [ref=e881]:
+                  - paragraph [ref=e882]: note87@testaudit123.com
+                - cell [ref=e883]
+                - cell "28 Tem 2026 20:39" [ref=e886]
+                - cell "28 Tem 2026 20:39" [ref=e887]
+                - cell "0" [ref=e888]
+                - cell "testaudit123.com" [ref=e889]
+                - cell "Süresiz" [ref=e890]
+                - cell [ref=e891]:
+                  - generic [ref=e892]:
+                    - button [ref=e893] [cursor=pointer]
+                    - button [ref=e897] [cursor=pointer]
+                    - button [ref=e901] [cursor=pointer]
+                    - button [ref=e905] [cursor=pointer]
+              - row [ref=e909]:
+                - cell [ref=e910]:
+                  - paragraph [ref=e911]: asteroid6@e.mmkgams.space
+                - cell [ref=e912]
+                - cell "28 Tem 2026 20:38" [ref=e915]
+                - cell "28 Tem 2026 20:38" [ref=e916]
+                - cell "0" [ref=e917]
+                - cell "mmkgams.space" [ref=e918]
+                - cell "Süresiz" [ref=e919]
+                - cell [ref=e920]:
+                  - generic [ref=e921]:
+                    - button [ref=e922] [cursor=pointer]
+                    - button [ref=e926] [cursor=pointer]
+                    - button [ref=e930] [cursor=pointer]
+                    - button [ref=e934] [cursor=pointer]
+              - row [ref=e938]:
+                - cell [ref=e939]:
+                  - paragraph [ref=e940]: iris54@e.mmkgams.space
+                - cell [ref=e941]
+                - cell "28 Tem 2026 20:05" [ref=e944]
+                - cell "28 Tem 2026 20:05" [ref=e945]
+                - cell "0" [ref=e946]
+                - cell "mmkgams.space" [ref=e947]
+                - cell "Süresiz" [ref=e948]
+                - cell [ref=e949]:
+                  - generic [ref=e950]:
+                    - button [ref=e951] [cursor=pointer]
+                    - button [ref=e955] [cursor=pointer]
+                    - button [ref=e959] [cursor=pointer]
+                    - button [ref=e963] [cursor=pointer]
+              - row [ref=e967]:
+                - cell [ref=e968]:
+                  - paragraph [ref=e969]: brazier5801@set.mmkgams.space
+                - cell [ref=e970]
+                - cell "28 Tem 2026 19:41" [ref=e973]
+                - cell "28 Tem 2026 19:41" [ref=e974]
+                - cell "0" [ref=e975]
+                - cell "mmkgams.space" [ref=e976]
+                - cell "Süresiz" [ref=e977]
+                - cell [ref=e978]:
+                  - generic [ref=e979]:
+                    - button [ref=e980] [cursor=pointer]
+                    - button [ref=e984] [cursor=pointer]
+                    - button [ref=e988] [cursor=pointer]
+                    - button [ref=e992] [cursor=pointer]
+              - row [ref=e996]:
+                - cell [ref=e997]:
+                  - paragraph [ref=e998]: reed241@e.mmkgams.space
+                - cell [ref=e999]
+                - cell "28 Tem 2026 19:40" [ref=e1002]
+                - cell "28 Tem 2026 19:40" [ref=e1003]
+                - cell "0" [ref=e1004]
+                - cell "mmkgams.space" [ref=e1005]
+                - cell "Süresiz" [ref=e1006]
+                - cell [ref=e1007]:
+                  - generic [ref=e1008]:
+                    - button [ref=e1009] [cursor=pointer]
+                    - button [ref=e1013] [cursor=pointer]
+                    - button [ref=e1017] [cursor=pointer]
+                    - button [ref=e1021] [cursor=pointer]
+              - row [ref=e1025]:
+                - cell [ref=e1026]:
+                  - paragraph [ref=e1027]: brazier82@hjh.mmkgams.space
+                - cell [ref=e1028]
+                - cell "28 Tem 2026 19:40" [ref=e1031]
+                - cell "28 Tem 2026 19:40" [ref=e1032]
+                - cell "0" [ref=e1033]
+                - cell "mmkgams.space" [ref=e1034]
+                - cell "Süresiz" [ref=e1035]
+                - cell [ref=e1036]:
+                  - generic [ref=e1037]:
+                    - button [ref=e1038] [cursor=pointer]
+                    - button [ref=e1042] [cursor=pointer]
+                    - button [ref=e1046] [cursor=pointer]
+                    - button [ref=e1050] [cursor=pointer]
+              - row [ref=e1054]:
+                - cell [ref=e1055]:
+                  - paragraph [ref=e1056]: bear617@e.mmkgams.space
+                - cell [ref=e1057]
+                - cell "28 Tem 2026 19:07" [ref=e1060]
+                - cell "28 Tem 2026 19:07" [ref=e1061]
+                - cell "0" [ref=e1062]
+                - cell "mmkgams.space" [ref=e1063]
+                - cell "Süresiz" [ref=e1064]
+                - cell [ref=e1065]:
+                  - generic [ref=e1066]:
+                    - button [ref=e1067] [cursor=pointer]
+                    - button [ref=e1071] [cursor=pointer]
+                    - button [ref=e1075] [cursor=pointer]
+                    - button [ref=e1079] [cursor=pointer]
+              - row [ref=e1083]:
+                - cell [ref=e1084]:
+                  - paragraph [ref=e1085]: alex3@set.mmkgams.space
+                - cell [ref=e1086]
+                - cell "28 Tem 2026 19:07" [ref=e1089]
+                - cell "28 Tem 2026 19:07" [ref=e1090]
+                - cell "0" [ref=e1091]
+                - cell "mmkgams.space" [ref=e1092]
+                - cell "Süresiz" [ref=e1093]
+                - cell [ref=e1094]:
+                  - generic [ref=e1095]:
+                    - button [ref=e1096] [cursor=pointer]
+                    - button [ref=e1100] [cursor=pointer]
+                    - button [ref=e1104] [cursor=pointer]
+                    - button [ref=e1108] [cursor=pointer]
+          - generic [ref=e1112]:
+            - paragraph [ref=e1113]: 89 adresten 1-10 arası gösteriliyor
+            - navigation "Pagination" [ref=e1114]:
+              - button "Previous page" [disabled] [ref=e1115]
+              - button "1" [ref=e1118] [cursor=pointer]
+              - button "2" [ref=e1119] [cursor=pointer]
+              - button "3" [ref=e1120] [cursor=pointer]
+              - button "4" [ref=e1121] [cursor=pointer]
+              - button "5" [ref=e1122] [cursor=pointer]
+              - generic [ref=e1123]: …
+              - button "9" [ref=e1124] [cursor=pointer]
+              - button "Next page" [ref=e1125] [cursor=pointer]
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

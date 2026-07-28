@@ -1,0 +1,221 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e457]:
+      - generic [ref=e458]:
+        - generic [ref=e459]:
+          - generic [ref=e465]:
+            - paragraph [ref=e466]: Kontrol merkezi
+            - heading "Admin Paneli" [level=1] [ref=e467]
+            - paragraph [ref=e468]: MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları.
+          - generic [ref=e469]:
+            - button "Yeni Domain Ekle" [ref=e470] [cursor=pointer]
+            - button "Temizle" [ref=e472] [cursor=pointer]
+            - button "Dışa Aktar" [ref=e476] [cursor=pointer]
+        - tablist [ref=e480]:
+          - tab "Dashboard" [ref=e481] [cursor=pointer]
+          - tab "Adresler" [ref=e487] [cursor=pointer]
+          - tab "Domainler" [ref=e491] [cursor=pointer]
+          - tab "Mailler" [ref=e495] [cursor=pointer]
+          - tab "Kullanıcılar" [active] [selected] [ref=e499] [cursor=pointer]
+          - tab "Bulk Havuzları" [ref=e505] [cursor=pointer]
+          - tab "İstekler" [ref=e516] [cursor=pointer]
+          - tab "Ayarlar" [ref=e519] [cursor=pointer]
+      - generic [ref=e1160]:
+        - generic [ref=e1161]:
+          - heading "Kullanıcılar (7)" [level=3] [ref=e1170]
+          - button [ref=e1172] [cursor=pointer]
+        - table [ref=e1179]:
+          - rowgroup [ref=e1180]:
+            - row [ref=e1181]:
+              - columnheader "Kullanıcı" [ref=e1182]
+              - columnheader "Rol" [ref=e1183]
+              - columnheader "Adres" [ref=e1184]
+              - columnheader "Mail" [ref=e1185]
+              - columnheader "Bulk" [ref=e1186]
+              - columnheader "Son giriş" [ref=e1187]
+              - columnheader "Durum" [ref=e1188]
+              - columnheader "İşlem" [ref=e1189]
+          - rowgroup [ref=e1190]:
+            - row [ref=e1191]:
+              - cell [ref=e1192]:
+                - paragraph [ref=e1193]: e2e7710
+                - paragraph [ref=e1194]: e2e7710@t.dev
+              - cell "Free free" [ref=e1195]:
+                - generic [ref=e1196]:
+                  - generic [ref=e1197]: Free
+                  - generic [ref=e1198]: free
+              - cell "1" [ref=e1199]
+              - cell "0" [ref=e1200]
+              - cell "Kapalı" [ref=e1201]
+              - cell "-" [ref=e1204]
+              - cell "Aktif" [ref=e1205]
+              - cell [ref=e1207]:
+                - generic [ref=e1208]:
+                  - combobox [ref=e1209]:
+                    - option "Free" [selected]
+                    - option "Pro"
+                    - option "Admin"
+                  - combobox [ref=e1210]:
+                    - option "Free" [selected]
+                    - option "Pro"
+                    - option "Pro+"
+                  - button "Pasifleştir" [ref=e1211] [cursor=pointer]
+            - row [ref=e1212]:
+              - cell [ref=e1213]:
+                - paragraph [ref=e1214]: e2euser555
+                - paragraph [ref=e1215]: e2euser555@test.dev
+              - cell "Free free" [ref=e1216]:
+                - generic [ref=e1217]:
+                  - generic [ref=e1218]: Free
+                  - generic [ref=e1219]: free
+              - cell "1" [ref=e1220]
+              - cell "0" [ref=e1221]
+              - cell "Kapalı" [ref=e1222]
+              - cell "-" [ref=e1225]
+              - cell "Aktif" [ref=e1226]
+              - cell [ref=e1228]:
+                - generic [ref=e1229]:
+                  - combobox [ref=e1230]:
+                    - option "Free" [selected]
+                    - option "Pro"
+                    - option "Admin"
+                  - combobox [ref=e1231]:
+                    - option "Free" [selected]
+                    - option "Pro"
+                    - option "Pro+"
+                  - button "Pasifleştir" [ref=e1232] [cursor=pointer]
+            - row [ref=e1233]:
+              - cell [ref=e1234]:
+                - paragraph [ref=e1235]: e2euser5896
+                - paragraph [ref=e1236]: e2euser5896@test.dev
+              - cell "Free free" [ref=e1237]:
+                - generic [ref=e1238]:
+                  - generic [ref=e1239]: Free
+                  - generic [ref=e1240]: free
+              - cell "1" [ref=e1241]
+              - cell "0" [ref=e1242]
+              - cell "Kapalı" [ref=e1243]
+              - cell "-" [ref=e1246]
+              - cell "Aktif" [ref=e1247]
+              - cell [ref=e1249]:
+                - generic [ref=e1250]:
+                  - combobox [ref=e1251]:
+                    - option "Free" [selected]
+                    - option "Pro"
+                    - option "Admin"
+                  - combobox [ref=e1252]:
+                    - option "Free" [selected]
+                    - option "Pro"
+                    - option "Pro+"
+                  - button "Pasifleştir" [ref=e1253] [cursor=pointer]
+            - row [ref=e1254]:
+              - cell [ref=e1255]:
+                - paragraph [ref=e1256]: tst1
+                - paragraph [ref=e1257]: tst1@tst1.com
+              - cell "Pro pro" [ref=e1258]:
+                - generic [ref=e1259]:
+                  - generic [ref=e1260]: Pro
+                  - generic [ref=e1261]: pro
+              - cell "0" [ref=e1262]
+              - cell "0" [ref=e1263]
+              - cell "Kapalı" [ref=e1264]
+              - cell "07 Tem 2026 14:43" [ref=e1267]
+              - cell "Aktif" [ref=e1268]
+              - cell [ref=e1270]:
+                - generic [ref=e1271]:
+                  - combobox [ref=e1272]:
+                    - option "Free"
+                    - option "Pro" [selected]
+                    - option "Admin"
+                  - combobox [ref=e1273]:
+                    - option "Free"
+                    - option "Pro" [selected]
+                    - option "Pro+"
+                  - button "Bulk Aç" [ref=e1274] [cursor=pointer]
+                  - button "Pasifleştir" [ref=e1275] [cursor=pointer]
+            - row [ref=e1276]:
+              - cell [ref=e1277]:
+                - paragraph [ref=e1278]: emirhanmamak
+                - paragraph [ref=e1279]: emirhanmamak@emirhanmamak.com
+              - cell "Admin admin" [ref=e1280]:
+                - generic [ref=e1281]:
+                  - generic [ref=e1282]: Admin
+                  - generic [ref=e1283]: admin
+              - cell "0" [ref=e1284]
+              - cell "0" [ref=e1285]
+              - cell "Kapalı" [ref=e1286]
+              - cell "26 Tem 2026 05:51" [ref=e1289]
+              - cell "Aktif" [ref=e1290]
+              - cell "Admin Admin Package Pasifleştir" [ref=e1292]:
+                - generic [ref=e1293]:
+                  - combobox [ref=e1294]:
+                    - option "Free"
+                    - option "Pro"
+                    - option "Admin" [selected]
+                  - generic [ref=e1295]: Admin Package
+                  - button "Pasifleştir" [ref=e1296] [cursor=pointer]
+            - row [ref=e1297]:
+              - cell [ref=e1298]:
+                - paragraph [ref=e1299]: testuser
+                - paragraph [ref=e1300]: test@test.com
+              - cell "Pro pro" [ref=e1301]:
+                - generic [ref=e1302]:
+                  - generic [ref=e1303]: Pro
+                  - generic [ref=e1304]: pro
+              - cell "0" [ref=e1305]
+              - cell "0" [ref=e1306]
+              - cell "Kapalı" [ref=e1307]
+              - cell "-" [ref=e1310]
+              - cell "Aktif" [ref=e1311]
+              - cell [ref=e1313]:
+                - generic [ref=e1314]:
+                  - combobox [ref=e1315]:
+                    - option "Free"
+                    - option "Pro" [selected]
+                    - option "Admin"
+                  - combobox [ref=e1316]:
+                    - option "Free"
+                    - option "Pro" [selected]
+                    - option "Pro+"
+                  - button "Bulk Aç" [ref=e1317] [cursor=pointer]
+                  - button "Pasifleştir" [ref=e1318] [cursor=pointer]
+            - row [ref=e1319]:
+              - cell [ref=e1320]:
+                - paragraph [ref=e1321]: admin
+                - paragraph [ref=e1322]: admin@tempmail.local
+              - cell "Admin admin" [ref=e1323]:
+                - generic [ref=e1324]:
+                  - generic [ref=e1325]: Admin
+                  - generic [ref=e1326]: admin
+              - cell "21" [ref=e1327]
+              - cell "0" [ref=e1328]
+              - cell "Kapalı 2 havuz" [ref=e1329]:
+                - generic [ref=e1330]:
+                  - generic [ref=e1331]: Kapalı
+                  - generic [ref=e1332]: 2 havuz
+              - cell "28 Tem 2026 20:48" [ref=e1333]
+              - cell "Aktif" [ref=e1334]
+              - cell "Admin Admin Package Pasifleştir" [ref=e1336]:
+                - generic [ref=e1337]:
+                  - combobox [ref=e1338]:
+                    - option "Free"
+                    - option "Pro"
+                    - option "Admin" [selected]
+                  - generic [ref=e1339]: Admin Package
+                  - button "Pasifleştir" [ref=e1340] [cursor=pointer]
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

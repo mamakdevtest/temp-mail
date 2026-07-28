@@ -1,0 +1,63 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e457]:
+      - generic [ref=e458]:
+        - generic [ref=e459]:
+          - generic [ref=e465]:
+            - paragraph [ref=e466]: Kontrol merkezi
+            - heading "Admin Paneli" [level=1] [ref=e467]
+            - paragraph [ref=e468]: MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları.
+          - generic [ref=e469]:
+            - button "Yeni Domain Ekle" [ref=e470] [cursor=pointer]
+            - button "Temizle" [ref=e472] [cursor=pointer]
+            - button "Dışa Aktar" [ref=e476] [cursor=pointer]
+        - tablist [ref=e480]:
+          - tab "Dashboard" [ref=e481] [cursor=pointer]
+          - tab "Adresler" [ref=e487] [cursor=pointer]
+          - tab "Domainler" [ref=e491] [cursor=pointer]
+          - tab "Mailler" [ref=e495] [cursor=pointer]
+          - tab "Kullanıcılar" [ref=e499] [cursor=pointer]
+          - tab "Bulk Havuzları" [ref=e505] [cursor=pointer]
+          - tab "İstekler" [active] [selected] [ref=e516] [cursor=pointer]
+          - tab "Ayarlar" [ref=e519] [cursor=pointer]
+      - generic [ref=e1438]:
+        - generic [ref=e1439]:
+          - heading "Pro İstekleri (2)" [level=3] [ref=e1445]
+          - button [ref=e1447] [cursor=pointer]
+        - generic [ref=e1453]:
+          - generic [ref=e1454]:
+            - generic [ref=e1455]:
+              - generic [ref=e1456]:
+                - generic [ref=e1457]:
+                  - paragraph [ref=e1458]: tst1
+                  - generic [ref=e1459]: Onaylandı
+                - paragraph [ref=e1460]: tst1@tst1.com
+              - generic [ref=e1461]: Zaten Pro
+            - paragraph [ref=e1462]: hey
+            - paragraph [ref=e1463]: 07 Tem 2026 14:42
+          - generic [ref=e1464]:
+            - generic [ref=e1465]:
+              - generic [ref=e1466]:
+                - generic [ref=e1467]:
+                  - paragraph [ref=e1468]: tst1
+                  - generic [ref=e1469]: Reddedildi
+                - paragraph [ref=e1470]: tst1@tst1.com
+              - generic [ref=e1471]: Zaten Pro
+            - paragraph [ref=e1472]: ehm 02020202 f0d0fds
+            - paragraph [ref=e1473]: 07 Tem 2026 14:41
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

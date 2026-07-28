@@ -1,0 +1,90 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e457]:
+      - generic [ref=e458]:
+        - generic [ref=e459]:
+          - generic [ref=e465]:
+            - paragraph [ref=e466]: Kontrol merkezi
+            - heading "Admin Paneli" [level=1] [ref=e467]
+            - paragraph [ref=e468]: MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları.
+          - generic [ref=e469]:
+            - button "Yeni Domain Ekle" [ref=e470] [cursor=pointer]
+            - button "Temizle" [ref=e472] [cursor=pointer]
+            - button "Dışa Aktar" [ref=e476] [cursor=pointer]
+        - tablist [ref=e480]:
+          - tab "Dashboard" [ref=e481] [cursor=pointer]
+          - tab "Adresler" [ref=e487] [cursor=pointer]
+          - tab "Domainler" [ref=e491] [cursor=pointer]
+          - tab "Mailler" [ref=e495] [cursor=pointer]
+          - tab "Kullanıcılar" [ref=e499] [cursor=pointer]
+          - tab "Bulk Havuzları" [ref=e505] [cursor=pointer]
+          - tab "İstekler" [ref=e516] [cursor=pointer]
+          - tab "Ayarlar" [active] [selected] [ref=e519] [cursor=pointer]
+      - generic [ref=e1474]:
+        - generic [ref=e1475]:
+          - heading "Genel Ayarlar" [level=3] [ref=e1483]
+          - generic [ref=e1484]:
+            - generic [ref=e1485]:
+              - generic [ref=e1486]: Aktif Domain Sayısı
+              - generic [ref=e1487]: "2"
+            - generic [ref=e1488]:
+              - generic [ref=e1489]: Varsayılan Veri Saklama
+              - generic [ref=e1490]: 7 gün / yalnızca manuel tetikleme
+            - generic [ref=e1491]:
+              - generic [ref=e1492]: Temizlik Politikası
+              - generic [ref=e1493]: Manuel + servis bazlı
+            - generic [ref=e1494]:
+              - generic [ref=e1495]: Admin kimlik doğrulama
+              - generic [ref=e1496]: JWT + parola fallback
+            - button "Tüm Veriyi Yenile" [ref=e1497] [cursor=pointer]
+        - generic [ref=e1503]:
+          - heading "Bildirim Sesi" [level=3] [ref=e1511]
+          - generic [ref=e1512]:
+            - generic [ref=e1513]:
+              - paragraph [ref=e1514]: Seçili Sinyal
+              - generic [ref=e1515]:
+                - combobox [ref=e1517]:
+                  - option "Classic Ping"
+                  - option "Soft Bell"
+                  - option "Digital Pop"
+                  - option "Glass Chime" [selected]
+                  - option "Alert Pulse"
+                  - option "Arcade"
+                - button "Önizle" [ref=e1518] [cursor=pointer]
+            - generic [ref=e1523]:
+              - generic [ref=e1524]:
+                - paragraph [ref=e1525]: Glass Chime
+                - paragraph [ref=e1526]: Katmanlı ve parlak bir chime efekti.
+              - generic [ref=e1527]: Glass Chime
+        - generic [ref=e1528]:
+          - heading "Operasyon Özeti" [level=3] [ref=e1535]
+          - generic [ref=e1536]:
+            - generic [ref=e1537]:
+              - generic [ref=e1538]: Toplam Kullanıcı
+              - generic [ref=e1539]: "7"
+            - generic [ref=e1540]:
+              - generic [ref=e1541]: Bekleyen İstek
+              - generic [ref=e1542]: "0"
+            - generic [ref=e1543]:
+              - generic [ref=e1544]: Şifreli Mailbox
+              - generic [ref=e1545]: "9"
+            - generic [ref=e1546]:
+              - generic [ref=e1547]: Mail Hacmi
+              - generic [ref=e1548]: "0"
+            - button "Admin Oturumunu Kapat" [ref=e1549] [cursor=pointer]
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

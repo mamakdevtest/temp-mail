@@ -1,0 +1,187 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - button "Inbox" [ref=e6] [cursor=pointer]:
+          - generic [ref=e11]:
+            - paragraph [ref=e12]: MS Temp Mail
+            - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+        - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+          - generic [ref=e19]: ⌘K
+        - generic [ref=e20]:
+          - generic [ref=e93]: Canlı
+          - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+            - generic [ref=e201]:
+              - generic [ref=e202]: admin
+              - generic [ref=e203]: Admin Kullanıcı
+    - main [ref=e23]:
+      - generic [ref=e235]:
+        - generic [ref=e236]:
+          - generic [ref=e237]:
+            - paragraph [ref=e238]: Hesap Özeti
+            - paragraph [ref=e239]: Kısa durum, kullanım ve son hareketler
+          - generic [ref=e240]:
+            - button "Ayarlar" [ref=e241] [cursor=pointer]
+            - button [ref=e245] [cursor=pointer]
+        - generic [ref=e249]:
+          - generic [ref=e250]:
+            - img "avatar" [ref=e252]
+            - generic [ref=e253]:
+              - paragraph [ref=e254]: Hesap Alanı
+              - paragraph [ref=e255]: admin
+              - paragraph [ref=e256]: "@admin"
+              - generic [ref=e257]:
+                - generic [ref=e258]: Admin
+                - generic [ref=e259]: Aktif
+            - generic [ref=e260]:
+              - generic [ref=e262]:
+                - paragraph [ref=e263]: 0%
+                - paragraph [ref=e264]: Kullanım
+              - paragraph [ref=e265]: 21/9999
+          - generic [ref=e266]:
+            - generic [ref=e267]:
+              - paragraph [ref=e268]: Adres
+              - paragraph [ref=e269]: "21"
+            - generic [ref=e270]:
+              - paragraph [ref=e271]: Mail
+              - paragraph [ref=e272]: "0"
+            - generic [ref=e273]:
+              - paragraph [ref=e274]: Plan
+              - paragraph [ref=e275]: Admin
+            - generic [ref=e276]:
+              - paragraph [ref=e277]: Alan Adı
+              - paragraph [ref=e278]: e.mmkgams.space
+        - button "Son Kullanılanlar En son açtığın adresler 2" [ref=e281] [cursor=pointer]:
+          - generic [ref=e282]:
+            - paragraph [ref=e283]: Son Kullanılanlar
+            - paragraph [ref=e284]: En son açtığın adresler
+          - generic [ref=e285]: "2"
+        - button [ref=e290] [cursor=pointer]:
+          - generic [ref=e291]:
+            - paragraph [ref=e292]: Tüm Şifreli E-Postalar
+            - paragraph [ref=e293]: Şifreli açılan adresler
+    - contentinfo [ref=e91]:
+      - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - dialog [ref=e297]:
+    - generic [ref=e299]:
+      - complementary [ref=e300]:
+        - generic [ref=e301]:
+          - button "Kapat" [active] [ref=e302] [cursor=pointer]
+          - generic [ref=e306]:
+            - paragraph [ref=e307]: Hesap Ayarları
+            - paragraph [ref=e308]: Düzenleme Merkezi
+        - generic [ref=e309]:
+          - generic [ref=e312]:
+            - paragraph [ref=e313]: Hesap Ayarları
+            - paragraph [ref=e314]: admin
+            - paragraph [ref=e315]: admin@tempmail.local
+          - generic [ref=e316]:
+            - generic [ref=e317]: Admin
+            - generic [ref=e318]: Aktif
+        - navigation [ref=e320]:
+          - button "Genel Görünüm ve temel ayarlar" [ref=e321] [cursor=pointer]:
+            - generic [ref=e325]:
+              - generic [ref=e326]: Genel
+              - generic [ref=e327]: Görünüm ve temel ayarlar
+          - button "Profil Ad, e-posta ve fotoğraf" [ref=e328] [cursor=pointer]:
+            - generic [ref=e332]:
+              - generic [ref=e333]: Profil
+              - generic [ref=e334]: Ad, e-posta ve fotoğraf
+          - button "Güvenlik Şifre ve hesap koruması" [ref=e335] [cursor=pointer]:
+            - generic [ref=e338]:
+              - generic [ref=e339]: Güvenlik
+              - generic [ref=e340]: Şifre ve hesap koruması
+          - button "Tercihler Bildirimler ve domainler" [ref=e341] [cursor=pointer]:
+            - generic [ref=e345]:
+              - generic [ref=e346]: Tercihler
+              - generic [ref=e347]: Bildirimler ve domainler
+          - button "Oturumlar Cihazlar ve girişler" [ref=e348] [cursor=pointer]:
+            - generic [ref=e353]:
+              - generic [ref=e354]: Oturumlar
+              - generic [ref=e355]: Cihazlar ve girişler
+          - button "Kullanım Plan ve kota bilgileri" [ref=e356] [cursor=pointer]:
+            - generic [ref=e359]:
+              - generic [ref=e360]: Kullanım
+              - generic [ref=e361]: Plan ve kota bilgileri
+        - generic [ref=e362]:
+          - paragraph [ref=e363]: İpucu
+          - paragraph [ref=e364]: Ayarları kaydetmeden sekme değiştirebilirsin. Profil ve güvenlik bölümleri bu pencerede doğrudan çalışır.
+      - generic [ref=e365]:
+        - generic [ref=e366]:
+          - generic [ref=e367]:
+            - paragraph [ref=e368]: Genel
+            - heading "Genel" [level=3] [ref=e369]
+            - paragraph [ref=e370]: Görünüm ve temel ayarlar
+          - button "Kaydet" [ref=e372] [cursor=pointer]
+        - generic [ref=e379]:
+          - generic [ref=e380]:
+            - generic [ref=e381]:
+              - generic [ref=e382]:
+                - paragraph [ref=e383]: Genel
+                - heading "Görünüm ve varsayılanlar" [level=4] [ref=e384]
+                - paragraph [ref=e385]: Popup içinde sık kullanılan ayarları hızlıca değiştir.
+              - generic [ref=e386]: Admin
+            - generic [ref=e388]:
+              - generic [ref=e389]:
+                - generic [ref=e390]:
+                  - paragraph [ref=e391]: Görünüm
+                  - paragraph [ref=e392]: Görünüm ve varsayılanlar
+                - generic [ref=e394]:
+                  - combobox [ref=e396] [cursor=pointer]:
+                    - option "Sistem"
+                    - option "Açık"
+                    - option "Koyu" [selected]
+                  - radiogroup "Accent color" [ref=e397]:
+                    - radio [ref=e398] [cursor=pointer]
+                    - radio [ref=e399] [cursor=pointer]
+                    - radio [checked] [ref=e400] [cursor=pointer]
+                    - radio [ref=e401] [cursor=pointer]
+                    - radio [ref=e402] [cursor=pointer]
+                    - radio [ref=e403] [cursor=pointer]
+                    - radio [ref=e404] [cursor=pointer]
+                    - radio [ref=e405] [cursor=pointer]
+                    - radio [ref=e406] [cursor=pointer]
+                    - radio [ref=e407] [cursor=pointer]
+              - generic [ref=e408]:
+                - generic [ref=e409]:
+                  - paragraph [ref=e410]: Dil
+                  - paragraph [ref=e411]: Dil
+                - combobox [ref=e414] [cursor=pointer]:
+                  - option "Türkçe" [selected]
+                  - option "English"
+                  - option "Español"
+                  - option "Français"
+                  - option "Deutsch"
+                  - option "Русский"
+                  - option "Português"
+              - generic [ref=e415]:
+                - generic [ref=e416]:
+                  - paragraph [ref=e417]: Varsayılan domain
+                  - paragraph [ref=e418]: Varsayılan domain
+                - combobox [ref=e421] [cursor=pointer]:
+                  - option "Seçiniz"
+                  - option "mmkgams.space" [selected]
+                  - option "testaudit123.com"
+              - generic [ref=e422]:
+                - generic [ref=e423]:
+                  - paragraph [ref=e424]: Bildirim sesi
+                  - paragraph [ref=e425]: Bildirim sesi
+                - generic [ref=e427]:
+                  - combobox [ref=e429] [cursor=pointer]:
+                    - option "Classic Ping"
+                    - option "Soft Bell"
+                    - option "Digital Pop"
+                    - option "Glass Chime" [selected]
+                    - option "Alert Pulse"
+                    - option "Arcade"
+                  - button "Önizle" [ref=e430] [cursor=pointer]
+          - generic [ref=e434]:
+            - generic [ref=e437]:
+              - paragraph [ref=e438]: Adres
+              - paragraph [ref=e439]: "21"
+            - generic [ref=e444]:
+              - paragraph [ref=e445]: Mail
+              - paragraph [ref=e446]: "0"
+            - generic [ref=e452]:
+              - paragraph [ref=e453]: Favori domain
+              - paragraph [ref=e454]: "0"

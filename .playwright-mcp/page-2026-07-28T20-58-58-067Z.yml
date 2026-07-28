@@ -1,0 +1,85 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e457]:
+      - generic [ref=e458]:
+        - generic [ref=e459]:
+          - generic [ref=e465]:
+            - paragraph [ref=e466]: Kontrol merkezi
+            - heading "Admin Paneli" [level=1] [ref=e467]
+            - paragraph [ref=e468]: MS Temp Mail sistem yönetimi, canlı istatistikler ve operasyon akışları.
+          - generic [ref=e469]:
+            - button "Yeni Domain Ekle" [ref=e470] [cursor=pointer]
+            - button "Temizle" [ref=e472] [cursor=pointer]
+            - button "Dışa Aktar" [ref=e476] [cursor=pointer]
+        - tablist [ref=e480]:
+          - tab "Dashboard" [ref=e481] [cursor=pointer]
+          - tab "Adresler" [ref=e487] [cursor=pointer]
+          - tab "Domainler" [ref=e491] [cursor=pointer]
+          - tab "Mailler" [ref=e495] [cursor=pointer]
+          - tab "Kullanıcılar" [ref=e499] [cursor=pointer]
+          - tab "Bulk Havuzları" [active] [selected] [ref=e505] [cursor=pointer]
+          - tab "İstekler" [ref=e516] [cursor=pointer]
+          - tab "Ayarlar" [ref=e519] [cursor=pointer]
+      - generic [ref=e1341]:
+        - generic [ref=e1342]:
+          - generic [ref=e1345]:
+            - paragraph [ref=e1346]: Aktif Havuz
+            - paragraph [ref=e1347]: "2"
+            - paragraph [ref=e1348]: Kullanıcıya bağlı prefix havuzları
+          - generic [ref=e1361]:
+            - paragraph [ref=e1362]: Üretilen Adres
+            - paragraph [ref=e1363]: "20"
+            - paragraph [ref=e1364]: Normal paket kotasına dahildir
+          - generic [ref=e1370]:
+            - paragraph [ref=e1371]: Yetkili Kullanıcı
+            - paragraph [ref=e1372]: "0"
+            - paragraph [ref=e1373]: Yalnız Pro ve Pro+
+        - generic [ref=e1379]:
+          - generic [ref=e1380]:
+            - heading "Bulk Havuzları (2)" [level=3] [ref=e1394]
+            - button [ref=e1396] [cursor=pointer]
+          - textbox "Kullanıcı, prefix veya domain ara" [ref=e1406]
+          - table [ref=e1408]:
+            - rowgroup [ref=e1409]:
+              - row [ref=e1410]:
+                - columnheader "Sahip" [ref=e1411]
+                - columnheader "Paket" [ref=e1412]
+                - columnheader "Havuz" [ref=e1413]
+                - columnheader "Adres" [ref=e1414]
+                - columnheader "Son üretim" [ref=e1415]
+                - columnheader "Yetki" [ref=e1416]
+            - rowgroup [ref=e1417]:
+              - row [ref=e1418]:
+                - cell [ref=e1419]:
+                  - paragraph [ref=e1420]: admin
+                  - paragraph [ref=e1421]: admin@tempmail.local
+                - cell "admin" [ref=e1422]
+                - cell "ehm_* @mmkgams.space" [ref=e1423]
+                - cell "10" [ref=e1424]
+                - cell "26 Tem 2026 05:39" [ref=e1425]
+                - cell "Kapalı" [ref=e1426]
+              - row [ref=e1428]:
+                - cell [ref=e1429]:
+                  - paragraph [ref=e1430]: admin
+                  - paragraph [ref=e1431]: admin@tempmail.local
+                - cell "admin" [ref=e1432]
+                - cell "dddd_* @mmkgams.space" [ref=e1433]
+                - cell "10" [ref=e1434]
+                - cell "26 Tem 2026 05:39" [ref=e1435]
+                - cell "Kapalı" [ref=e1436]
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

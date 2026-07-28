@@ -1,0 +1,83 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - generic [ref=e20]:
+        - generic [ref=e93]: Canlı
+        - button "admin Admin Kullanıcı" [ref=e199] [cursor=pointer]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: admin
+            - generic [ref=e203]: Admin Kullanıcı
+  - main [ref=e23]:
+    - generic [ref=e1639]:
+      - generic [ref=e1649]:
+        - paragraph [ref=e1650]: AUTOMATION CENTER
+        - heading "Otomasyon Merkezi" [level=1] [ref=e1651]
+        - paragraph [ref=e1652]: API anahtarları ve webhook hedefleri ile dış sistemleri bağla.
+      - generic [ref=e1653]:
+        - generic [ref=e1654]:
+          - heading "API anahtarı" [level=2] [ref=e1660]
+          - generic [ref=e1661]:
+            - generic [ref=e1662]:
+              - generic [ref=e1663]: İsim
+              - textbox "CUSTOM_TEMPMAIL_TOKEN" [ref=e1664]
+            - generic [ref=e1665]:
+              - generic [ref=e1666]: Rate limit (istek/dk)
+              - spinbutton [ref=e1667]: "120"
+            - generic [ref=e1668] [cursor=pointer]:
+              - checkbox "Master key (tüm izinler)" [ref=e1669]
+              - text: Master key (tüm izinler)
+            - generic [ref=e1670]:
+              - paragraph [ref=e1671]: İzinler
+              - generic [ref=e1672]:
+                - generic [ref=e1673] [cursor=pointer]:
+                  - checkbox "addresses:read" [checked] [ref=e1674]
+                  - generic [ref=e1675]: addresses:read
+                - generic [ref=e1676] [cursor=pointer]:
+                  - checkbox "addresses:write" [ref=e1677]
+                  - generic [ref=e1678]: addresses:write
+                - generic [ref=e1679] [cursor=pointer]:
+                  - checkbox "emails:read" [checked] [ref=e1680]
+                  - generic [ref=e1681]: emails:read
+                - generic [ref=e1682] [cursor=pointer]:
+                  - checkbox "emails:delete" [ref=e1683]
+                  - generic [ref=e1684]: emails:delete
+                - generic [ref=e1685] [cursor=pointer]:
+                  - checkbox "bulk:write" [ref=e1686]
+                  - generic [ref=e1687]: bulk:write
+                - generic [ref=e1688] [cursor=pointer]:
+                  - checkbox "webhooks:manage" [ref=e1689]
+                  - generic [ref=e1690]: webhooks:manage
+            - button "Anahtar oluştur" [ref=e1691] [cursor=pointer]
+        - generic [ref=e1713]:
+          - heading "Bildirim hedefi" [level=2] [ref=e1720]
+          - generic [ref=e1721]:
+            - generic [ref=e1722]:
+              - generic [ref=e1723]: İsim
+              - textbox "Production events" [ref=e1724]
+            - generic [ref=e1725]:
+              - generic [ref=e1726]: HTTPS URL
+              - textbox "https://example.com/hooks/mail" [ref=e1727]
+            - generic [ref=e1728]:
+              - paragraph [ref=e1729]: Olaylar
+              - generic [ref=e1730]:
+                - generic [ref=e1731] [cursor=pointer]:
+                  - checkbox "email.received" [checked] [ref=e1732]
+                  - generic [ref=e1733]: email.received
+                - generic [ref=e1734] [cursor=pointer]:
+                  - checkbox "otp.detected" [ref=e1735]
+                  - generic [ref=e1736]: otp.detected
+                - generic [ref=e1737] [cursor=pointer]:
+                  - checkbox "address.expiring" [ref=e1738]
+                  - generic [ref=e1739]: address.expiring
+                - generic [ref=e1740] [cursor=pointer]:
+                  - checkbox "bulk.completed" [ref=e1741]
+                  - generic [ref=e1742]: bulk.completed
+            - button "Webhook ekle" [ref=e1743] [cursor=pointer]
+  - contentinfo [ref=e91]:
+    - paragraph [ref=e92]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
