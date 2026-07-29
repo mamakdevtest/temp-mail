@@ -21,6 +21,7 @@ export default function AutomationCenter({ token, isAdmin = false }) {
   const [hookEvents, setHookEvents] = useState(['email.received']);
   const [secret, setSecret] = useState('');
   const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState('');
   const [listLoading, setListLoading] = useState(true);
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -38,22 +39,38 @@ export default function AutomationCenter({ token, isAdmin = false }) {
   const toggle = (values, setter, value) => setter(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
 
   const createKey = async () => {
+    if (!keyName.trim() || !keyScopes.length) { setMessage('Anahtar adı ve en az bir izin seçin.'); return; }
+    setSaving('key'); setMessage('');
     try {
       const response = await apiFetch('/api/automation/api-keys', { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: keyName, scopes: keyScopes, rate_limit_per_minute: keyRateLimit, key_type: masterKey ? 'master' : 'standard' }) });
       const data = await response.json(); if (!response.ok) throw new Error(data.message || data.error);
-      setSecret(data.secret); setKeyName(''); setMasterKey(false); await load();
+      setSecret(data.secret); setKeyName(''); setMasterKey(false); setMessage('API anahtarı oluşturuldu.'); await load();
     } catch (error) { setMessage(error.message); }
+    finally { setSaving(''); }
   };
   const createHook = async () => {
+    if (!hookName.trim() || !hookUrl.trim() || !hookEvents.length) { setMessage('Webhook için ad, HTTPS adresi ve en az bir olay seçin.'); return; }
+    setSaving('hook'); setMessage('');
     try {
       const response = await apiFetch('/api/automation/webhooks', { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: hookName, url: hookUrl, events: hookEvents }) });
       const data = await response.json(); if (!response.ok) throw new Error(data.message || data.error);
-      setSecret(data.secret); setHookName(''); setHookUrl(''); await load();
+      setSecret(data.secret); setHookName(''); setHookUrl(''); setMessage('Webhook oluşturuldu.'); await load();
     } catch (error) { setMessage(error.message); }
+    finally { setSaving(''); }
   };
-  const revoke = async (id) => { await apiFetch(`/api/automation/api-keys/${id}`, { method: 'DELETE', headers }); await load(); };
-  const toggleKey = async (key) => { await apiFetch(`/api/automation/api-keys/${key.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !key.is_active }) }); await load(); };
-  const toggleHook = async (hook) => { await apiFetch(`/api/automation/webhooks/${hook.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !hook.is_active }) }); await load(); };
+  const runAction = async (id, request, successMessage) => {
+    setSaving(id); setMessage('');
+    try {
+      const response = await request();
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || data.error || 'İşlem tamamlanamadı.');
+      setMessage(successMessage); await load();
+    } catch (error) { setMessage(error.message); }
+    finally { setSaving(''); }
+  };
+  const revoke = (id) => runAction(`key-${id}`, () => apiFetch(`/api/automation/api-keys/${id}`, { method: 'DELETE', headers }), 'API anahtarı iptal edildi.');
+  const toggleKey = (key) => runAction(`key-${key.id}`, () => apiFetch(`/api/automation/api-keys/${key.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !key.is_active }) }), key.is_active ? 'API anahtarı duraklatıldı.' : 'API anahtarı etkinleştirildi.');
+  const toggleHook = (hook) => runAction(`hook-${hook.id}`, () => apiFetch(`/api/automation/webhooks/${hook.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !hook.is_active }) }), hook.is_active ? 'Webhook duraklatıldı.' : 'Webhook etkinleştirildi.');
 
   return (
     <section className="space-y-6">
@@ -88,7 +105,7 @@ export default function AutomationCenter({ token, isAdmin = false }) {
                 {SCOPE_OPTIONS.map((scope) => <Checkbox key={scope} checked={masterKey || keyScopes.includes(scope)} onChange={() => toggle(keyScopes, setKeyScopes, scope)} label={<span className="t-mono">{scope}</span>} />)}
               </div>
             </div>
-            <Button variant="primary" className="w-full" onClick={createKey}><Plus size={15} /> {t('automation.createKey')}</Button>
+            <Button variant="primary" className="w-full" onClick={createKey} disabled={saving === 'key'}>{saving === 'key' ? 'Oluşturuluyor…' : <><Plus size={15} /> {t('automation.createKey')}</>}</Button>
           </div>
           <div className="mt-4">
             {listLoading ? <ListSkeleton rows={3} /> : keys.length === 0 ? (
@@ -104,8 +121,8 @@ export default function AutomationCenter({ token, isAdmin = false }) {
                       <p className="t-caption text-txt-disabled">{key.last_used_at ? t('automation.lastUsed', { date: new Date(key.last_used_at).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR') }) : t('automation.neverUsed')}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <IconButton icon={Power} size={15} label={key.is_active ? t('automation.deactivate') : t('automation.activate')} onClick={() => toggleKey(key)} className={key.is_active ? '!text-[rgb(var(--success-fg))]' : ''} />
-                      <IconButton icon={Trash2} size={15} label={t('automation.revoke')} onClick={() => revoke(key.id)} />
+                      <IconButton icon={Power} size={15} label={key.is_active ? t('automation.deactivate') : t('automation.activate')} onClick={() => toggleKey(key)} disabled={saving === `key-${key.id}`} className={key.is_active ? '!text-[rgb(var(--success-fg))]' : ''} />
+                      <IconButton icon={Trash2} size={15} label={t('automation.revoke')} onClick={() => revoke(key.id)} disabled={saving === `key-${key.id}`} />
                     </div>
                   </div>
                 ))}
@@ -128,7 +145,7 @@ export default function AutomationCenter({ token, isAdmin = false }) {
                 {EVENT_OPTIONS.map((eventName) => <Checkbox key={eventName} checked={hookEvents.includes(eventName)} onChange={() => toggle(hookEvents, setHookEvents, eventName)} label={<span className="t-mono">{eventName}</span>} />)}
               </div>
             </div>
-            <Button variant="primary" className="w-full" onClick={createHook}><Plus size={15} /> {t('automation.addWebhook')}</Button>
+            <Button variant="primary" className="w-full" onClick={createHook} disabled={saving === 'hook'}>{saving === 'hook' ? 'Ekleniyor…' : <><Plus size={15} /> {t('automation.addWebhook')}</>}</Button>
           </div>
           <div className="mt-4">
             {listLoading ? <ListSkeleton rows={3} /> : hooks.length === 0 ? (
@@ -142,7 +159,7 @@ export default function AutomationCenter({ token, isAdmin = false }) {
                       <code className="t-mono text-txt-muted break-all">{hook.url}</code>
                       <p className="t-caption text-txt-muted">{hook.events.join(', ')}</p>
                     </div>
-                    <IconButton icon={Power} size={15} label={hook.is_active ? t('automation.stop') : t('automation.start')} onClick={() => toggleHook(hook)} className={hook.is_active ? '!text-[rgb(var(--success-fg))]' : ''} />
+                    <IconButton icon={Power} size={15} label={hook.is_active ? t('automation.stop') : t('automation.start')} onClick={() => toggleHook(hook)} disabled={saving === `hook-${hook.id}`} className={hook.is_active ? '!text-[rgb(var(--success-fg))]' : ''} />
                   </div>
                 ))}
               </div>

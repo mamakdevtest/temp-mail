@@ -303,7 +303,7 @@ router.post('/bulk', requireApiScope('bulk:write'), rateLimit({ max: 5, key: 'ad
     const domainName = String(req.body?.domain || '').trim().toLowerCase();
     const subdomainName = String(req.body?.subdomain || '').trim().toLowerCase();
     const count = Number.parseInt(req.body?.count, 10);
-    if (!/^[a-z0-9][a-z0-9._-]{0,39}$/.test(prefix) || !domainName || !Number.isInteger(count) || count < 1 || count > 1000) {
+    if (!/^[a-z0-9][a-z0-9._\/-]{0,39}$/.test(prefix) || !domainName || !Number.isInteger(count) || count < 1 || count > 1000) {
       return res.status(400).json({ error: 'invalid_request', message: 'prefix, aktif domain ve 1-1000 arası count gerekli' });
     }
     const domain = db.get('SELECT id, domain, wildcard_subdomains FROM domains WHERE domain = ? AND is_active = 1', [domainName]);

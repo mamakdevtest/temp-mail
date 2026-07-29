@@ -66,7 +66,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
   const createPool = async () => {
     setError('');
     setResult(null);
-    if (!/^[a-z0-9][a-z0-9._-]{0,39}$/i.test(normalizedPrefix)) {
+    if (!/^[a-z0-9][a-z0-9._\/-]{0,39}$/i.test(normalizedPrefix)) {
       setError(t('bulk.prefixInvalid'));
       return;
     }
@@ -130,7 +130,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
             <h2 className="t-card-title text-txt-primary">{t('bulk.newSeries')}</h2>
           </div>
           <Field label={t('bulk.prefixLabel')} hint={t('bulk.startWith', { address: previewStart })}>
-            <Input className="font-mono" value={prefix} onChange={(event) => setPrefix(event.target.value)} placeholder={t('bulk.prefixPlaceholder')} autoComplete="off" />
+            <Input className="font-mono" value={prefix} onChange={(event) => setPrefix(event.target.value.replace(/[^a-zA-Z0-9._\/-]/g, ''))} placeholder={t('bulk.prefixPlaceholder')} autoComplete="off" />
           </Field>
           <Field label={t('bulk.domainLabel')}>
             <Select value={domain} onChange={(event) => setDomain(event.target.value)}>

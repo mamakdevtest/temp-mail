@@ -93,6 +93,7 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [notif, setNotif] = useState(null);
+  const [notifClosing, setNotifClosing] = useState(false);
   const [compose, setCompose] = useState({ open: false, to: '', subject: '', body: '' });
   const [sending, setSending] = useState(false);
   const [sockOn, setSockOn] = useState(false);
@@ -209,8 +210,12 @@ export default function App() {
 
   const toast = useCallback((msg, type = 'info') => {
     if (notifTimer.current) clearTimeout(notifTimer.current);
+    setNotifClosing(false);
     setNotif({ message: msg, type });
-    notifTimer.current = setTimeout(() => setNotif(null), 3500);
+    notifTimer.current = setTimeout(() => {
+      setNotifClosing(true);
+      notifTimer.current = setTimeout(() => setNotif(null), 220);
+    }, 3200);
   }, []);
 
   const openAuth = useCallback((mode = 'login') => {
@@ -1003,25 +1008,6 @@ export default function App() {
         )}
           </main>
 
-          <footer className="border-t border-brand-border/60 px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
-            <p className="t-caption text-txt-muted">MS Temp Mail · Emir Han Mamak</p>
-            <div className="flex items-center gap-2">
-              {addr && (
-                <span className={`inline-flex items-center gap-1.5 text-[10px] ${sockOn ? 'text-[rgb(var(--success-fg))]' : 'text-txt-muted'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${sockOn ? 'bg-[rgb(var(--success))]' : 'bg-txt-disabled'}`} />
-                  {sockOn ? t('inbox.live') : t('inbox.waiting')}
-                </span>
-              )}
-              {emails.length > 0 && (
-                <span className="text-[10px] text-txt-muted">{emails.length} mail</span>
-              )}
-              {notif && (
-                <span className={`text-[10px] truncate max-w-[120px] ${notif.type === 'success' ? 'text-[rgb(var(--success-fg))]' : notif.type === 'error' ? 'text-[rgb(var(--danger-fg))]' : 'text-[rgb(var(--brand))]'}`}>
-                  {notif.message}
-                </span>
-              )}
-            </div>
-          </footer>
 
       {/* Mobile bottom tab bar (replaces left rail / mobile drawer) */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-brand-border bg-brand-bg/95 backdrop-blur-xl" aria-label={t('app.mobileNavAria')}>
@@ -1070,7 +1056,7 @@ export default function App() {
 
       {/* Toast */}
       {notif && (
-        <div className={`fixed top-20 right-4 z-[1100] card px-4 py-3 flex items-center gap-2.5 animate-slide-down max-w-[min(360px,calc(100vw-2rem))] ${notif.type === 'success' ? 'text-[rgb(var(--success-fg))]' : notif.type === 'error' ? 'text-[rgb(var(--danger-fg))]' : 'text-[rgb(var(--brand))]'}`} role="status" aria-live="polite">
+        <div className={`fixed top-5 right-4 sm:right-6 z-[1100] card px-4 py-3 flex items-center gap-2.5 max-w-[min(360px,calc(100vw-2rem))] ${notifClosing ? 'animate-toast-out' : 'animate-toast-in'} ${notif.type === 'success' ? 'text-[rgb(var(--success-fg))]' : notif.type === 'error' ? 'text-[rgb(var(--danger-fg))]' : 'text-[rgb(var(--brand))]'}`} role="status" aria-live="polite">
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${notif.type === 'success' ? 'bg-[rgb(var(--success))]' : notif.type === 'error' ? 'bg-[rgb(var(--danger))]' : 'bg-[rgb(var(--brand))]'}`} />
           <span className="t-body-sm text-txt-primary">{notif.message}</span>
         </div>

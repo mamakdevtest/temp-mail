@@ -779,6 +779,18 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     }
   };
 
+  const transferBulkPool = async (pool, ownerUserId) => {
+    const nextOwnerId = Number(ownerUserId);
+    if (!Number.isInteger(nextOwnerId) || nextOwnerId === Number(pool.user_id)) return;
+    try {
+      await apiRequest(`/admin/bulk-pools/${pool.id}/owner`, { method: 'PUT', body: { owner_user_id: nextOwnerId } });
+      flash('Bulk havuzu ve içindeki adresler yeni sahibine devredildi.');
+      await Promise.all([loadBulkPools(), loadUsers()]);
+    } catch (e) {
+      flash(e.message, 'error');
+    }
+  };
+
   const handleRequestDecision = async (id, status) => {
     try {
       await apiRequest(`/admin/package-requests/${id}`, { method: 'PUT', body: { status } });
@@ -821,7 +833,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
     if (!auth) return;
     if (tab === 'addresses') void loadAddrs();
     if (tab === 'users') void loadUsers();
-    if (tab === 'bulk') void loadBulkPools();
+    if (tab === 'bulk') { void loadBulkPools(); void loadUsers(); }
   }, [auth, tab, loadAddrs, loadBulkPools, loadUsers]);
 
   useEffect(() => {
@@ -1242,9 +1254,9 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-            <AdminPanelCard title={t('admin.ui.dash.traffic')} icon={Activity} className="xl:col-span-6">
+            <AdminPanelCard title={t('admin.ui.dash.traffic')} icon={Activity} className="xl:col-span-8 dashboard-chart-card">
               {trafficData.some((item) => item.incoming > 0 || item.otp > 0 || item.attachments > 0) ? (
-                <div className="h-[240px] animate-fade-in">
+                <div className="h-[280px] animate-fade-in">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trafficData} isAnimationActive={reducedMotion ? false : true} animationDuration={900} animationEasing="ease-out">
                       <defs>
@@ -1272,7 +1284,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               )}
             </AdminPanelCard>
 
-            <AdminPanelCard title={t('admin.ui.dash.systemStatus')} icon={Shield} className="xl:col-span-3" action={<span className="badge-green">{t('admin.ui.dash.opsSummary')}</span>}>
+            <AdminPanelCard title={t('admin.ui.dash.systemStatus')} icon={Shield} className="xl:col-span-4" action={<span className="badge-green">{t('admin.ui.dash.opsSummary')}</span>}>
               <div className="space-y-3">
                 {systemChecks.map((item) => (
                   <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
@@ -1286,7 +1298,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               </div>
             </AdminPanelCard>
 
-            <AdminPanelCard title={t('admin.ui.dash.recentActivity')} icon={RefreshCw} className="xl:col-span-3">
+            <AdminPanelCard title={t('admin.ui.dash.recentActivity')} icon={RefreshCw} className="xl:col-span-12">
               {activities.length > 0 ? (
                 <div className="space-y-4">
                   {activities.map((item) => (
@@ -1362,7 +1374,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-            <AdminPanelCard title={t('admin.ui.dash.recentMails')} icon={Mail} className="xl:col-span-8" action={<button onClick={() => { setTab('emails'); loadEmails(1); }} className="btn-ghost text-accent-blue">{t('admin.ui.dash.viewAllMails')}</button>}>
+            <AdminPanelCard title={t('admin.ui.dash.recentMails')} icon={Mail} className="xl:col-span-7" action={<button onClick={() => { setTab('emails'); loadEmails(1); }} className="btn-ghost text-accent-blue">{t('admin.ui.dash.viewAllMails')}</button>}>
               {(stats?.latest_emails || []).length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -1399,7 +1411,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
               )}
             </AdminPanelCard>
 
-            <AdminPanelCard title={t('admin.ui.dash.mailMix')} icon={PieChartIcon} className="xl:col-span-4">
+            <AdminPanelCard title={t('admin.ui.dash.mailMix')} icon={PieChartIcon} className="xl:col-span-5 dashboard-chart-card">
               {mailMix.length > 0 ? (
                 <div className="h-[260px] animate-fade-in relative">
                   <ResponsiveContainer width="100%" height="100%">
@@ -1786,13 +1798,13 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
 
       {tab === 'emails' && (
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-          <AdminPanelCard title={t('admin.ui.emails.all', { count: emailsTotal })} icon={Mail} className="xl:col-span-8" action={<button onClick={() => loadEmails(1)} className="btn-ghost"><RefreshCw size={14} /></button>}>
+          <AdminPanelCard title={t('admin.ui.emails.all', { count: emailsTotal })} icon={Mail} className="xl:col-span-12" action={<button onClick={() => loadEmails(1)} className="btn-ghost"><RefreshCw size={14} /></button>}>
             {tableLoading.emails && emails.length === 0 ? (
               <TableSkeleton rows={10} cols={6} />
             ) : emails.length > 0 ? (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm min-w-[920px]">
+                  <table className="w-full text-sm min-w-[1120px]">
                     <thead className="text-left text-txt-muted">
                       <tr className="border-b border-brand-border/20">
                         <th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.emails.colSender')}</th>
@@ -1842,7 +1854,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             )}
           </AdminPanelCard>
 
-          <AdminPanelCard title={t('admin.ui.emails.detail')} icon={Eye} className="xl:col-span-4">
+          <AdminPanelCard title={t('admin.ui.emails.detail')} icon={Eye} className="xl:col-span-12">
             {selectedGlobalMail ? (
               <div className="space-y-4">
                 <div>
@@ -1971,7 +1983,7 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
             {tableLoading.bulk && bulkPools.length === 0 ? (
               <TableSkeleton rows={6} cols={6} />
             ) : bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).length > 0 ? (
-              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colOwner')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colPackage')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colPool')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colAddr')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colLastGen')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colAccess')}</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-[rgb(var(--brand))]">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">{t('admin.ui.bulk.accessOn')}</span> : <span className="badge-red">{t('admin.ui.bulk.accessOff')}</span>}</td></tr>)}</tbody></table></div>
+              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[920px]"><thead className="text-left text-txt-muted"><tr className="border-b border-brand-border/20"><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colOwner')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">Yeni sahip</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colPackage')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colPool')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colAddr')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colLastGen')}</th><th className="py-3 text-[10px] uppercase tracking-[0.14em] text-txt-muted font-semibold">{t('admin.ui.bulk.colAccess')}</th></tr></thead><tbody>{bulkPools.filter((pool) => `${pool.username} ${pool.email} ${pool.prefix} ${pool.domain} ${pool.package_name}`.toLowerCase().includes(bulkQuery.toLowerCase())).map((pool) => <tr key={pool.id} className="border-b border-brand-border/10 last:border-0 hover:bg-brand-surface2/60 transition-colors"><td className="py-4"><p className="font-medium text-txt-primary">{pool.username}</p><p className="text-xs text-txt-muted">{pool.email}</p></td><td className="py-4"><select aria-label="Bulk havuzu sahibi" value={pool.user_id} onChange={(e) => transferBulkPool(pool, e.target.value)} className="input !py-2 !px-3 !text-xs !w-[180px]">{users.filter((user) => user.is_active === 1).map((user) => <option key={user.id} value={user.id}>{user.username} · {user.email}</option>)}</select></td><td className="py-4 uppercase text-xs text-txt-secondary">{pool.package_name === 'pro_plus' ? 'Pro+' : pool.package_name}</td><td className="py-4 font-mono text-[rgb(var(--brand))]">{pool.prefix}_* @{pool.domain}</td><td className="py-4 text-txt-secondary">{pool.address_count}</td><td className="py-4 text-txt-secondary">{formatAdminDate(pool.last_generated_at || pool.updated_at)}</td><td className="py-4">{pool.bulk_access_enabled ? <span className="badge-green">{t('admin.ui.bulk.accessOn')}</span> : <span className="badge-red">{t('admin.ui.bulk.accessOff')}</span>}</td></tr>)}</tbody></table></div>
             ) : <AdminEmptyState title={t('admin.ui.bulk.emptyTitle')} subtitle={t('admin.ui.bulk.emptySubtitle')} />}
           </AdminPanelCard>
         </div>

@@ -279,6 +279,11 @@ html, body, #root { max-width: 100%; }
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-8px) scale(0.98); }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -301,6 +306,9 @@ html, body, #root { max-width: 100%; }
 
 .animate-slide-up { animation: slideUp 0.28s var(--ease, cubic-bezier(0.16, 1, 0.3, 1)) both; }
 .animate-slide-down { animation: slideDown 0.24s var(--ease, cubic-bezier(0.16, 1, 0.3, 1)) both; }
+.animate-toast-in { animation: slideDown 0.24s var(--ease, cubic-bezier(0.16, 1, 0.3, 1)) both; }
+.animate-toast-out { animation: toastOut 0.22s ease-in both; }
+.dashboard-chart-card { background: linear-gradient(135deg, rgb(var(--surface)) 0%, rgb(var(--brand) / 0.055) 100%); }
 .animate-fade-in { animation: fadeIn 0.2s ease-out both; }
 .animate-pop-in { animation: popIn 0.24s var(--ease-spring, cubic-bezier(0.34, 1.4, 0.64, 1)) both; }
 .animate-row-in { animation: rowIn 0.22s var(--ease, cubic-bezier(0.16, 1, 0.3, 1)) both; }
