@@ -254,7 +254,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
         <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 mt-4">
           {isModified ? (
             <button onClick={handleSubmit} disabled={loading || !username || !selectedFullDomain} className="btn-primary">
-              {loading ? t('addressBar.loadingAction') : t('addressBar.openAddress')}
+              {loading ? t('addressBar.loadingAction') : t('addressBar.selectAddress')}
             </button>
           ) : (
             <button onClick={handleCopy} className="btn-primary"><Copy size={15} /> {copied ? t('addressBar.copied') : t('addressBar.copy')}</button>

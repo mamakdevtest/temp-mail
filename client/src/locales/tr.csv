@@ -164,6 +164,7 @@ key,tr
 "addressBar.noPassworded","Şifreli adres bulunmuyor."
 "addressBar.noSubdomains","Henüz subdomain eklenmemiş"
 "addressBar.openAddress","Bu Adresi Aç"
+"addressBar.selectAddress","Seç"
 "addressBar.passwordedBadge","Şifreli"
 "addressBar.passwordedList","Tüm Şifreli E-Postalar"
 "addressBar.protect","Şifre Koru"

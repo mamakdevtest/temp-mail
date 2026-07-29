@@ -164,6 +164,7 @@ key,ru
 "addressBar.noPassworded","Нет адресов, защищённых паролем."
 "addressBar.noSubdomains","Поддомены ещё не добавлены"
 "addressBar.openAddress","Открыть адрес"
+"addressBar.selectAddress","Выбрать"
 "addressBar.passwordedBadge","С паролем"
 "addressBar.passwordedList","Все письма с паролем"
 "addressBar.protect","Защитить"

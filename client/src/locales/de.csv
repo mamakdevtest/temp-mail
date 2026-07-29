@@ -164,6 +164,7 @@ key,de
 "addressBar.noPassworded","Keine passwortgeschützten Adressen."
 "addressBar.noSubdomains","Noch keine Subdomains hinzugefügt"
 "addressBar.openAddress","Adresse öffnen"
+"addressBar.selectAddress","Auswählen"
 "addressBar.passwordedBadge","Passwortgeschützt"
 "addressBar.passwordedList","Alle passwortgeschützten E-Mails"
 "addressBar.protect","Schützen"

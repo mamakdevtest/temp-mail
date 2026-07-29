@@ -600,11 +600,10 @@ export default function App() {
     // click "Rastgele" button to get a new address.
     if (restoredRef.current) return;
     if (domains.length === 0) return;
-    restoredRef.current = true;
     (async () => {
       await restoreLastAddress();
     })();
-  }, [restoreLastAddress, domains.length, addr, genRandom]);
+  }, [restoreLastAddress, domains.length]);
 
   useEffect(() => {
     if (!addr || sockOn) {
