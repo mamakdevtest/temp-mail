@@ -596,15 +596,13 @@ export default function App() {
   }, [page, emails, selected, cmdkOpen, showAuth, pendingDelete, loadDetail, copyAddr, delEmail, addr]);
 
   useEffect(() => {
-    // D1: restore last address on mount (guest OR logged-in). If none saved,
-    // generate a random one once domains are loaded. Wait for domains so the
-    // restore attempt and fallback both have a valid domain to work with.
+    // Restore last address on mount. Do NOT auto-generate random — user must
+    // click "Rastgele" button to get a new address.
     if (restoredRef.current) return;
     if (domains.length === 0) return;
     restoredRef.current = true;
     (async () => {
-      const ok = await restoreLastAddress();
-      if (!ok && !addr) genRandom();
+      await restoreLastAddress();
     })();
   }, [restoreLastAddress, domains.length, addr, genRandom]);
 
@@ -1006,8 +1004,24 @@ export default function App() {
         )}
           </main>
 
-          <footer className="border-t border-brand-border/60 px-4 sm:px-6 py-5 text-center">
-            <p className="t-body-sm text-txt-muted">MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio</p>
+          <footer className="border-t border-brand-border/60 px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
+            <p className="t-caption text-txt-muted">MS Temp Mail · Emir Han Mamak</p>
+            <div className="flex items-center gap-2">
+              {addr && (
+                <span className={`inline-flex items-center gap-1.5 text-[10px] ${sockOn ? 'text-[rgb(var(--success-fg))]' : 'text-txt-muted'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${sockOn ? 'bg-[rgb(var(--success))]' : 'bg-txt-disabled'}`} />
+                  {sockOn ? t('inbox.live') : t('inbox.waiting')}
+                </span>
+              )}
+              {emails.length > 0 && (
+                <span className="text-[10px] text-txt-muted">{emails.length} mail</span>
+              )}
+              {notif && (
+                <span className={`text-[10px] truncate max-w-[120px] ${notif.type === 'success' ? 'text-[rgb(var(--success-fg))]' : notif.type === 'error' ? 'text-[rgb(var(--danger-fg))]' : 'text-[rgb(var(--brand))]'}`}>
+                  {notif.message}
+                </span>
+              )}
+            </div>
           </footer>
 
       {/* Mobile bottom tab bar (replaces left rail / mobile drawer) */}
