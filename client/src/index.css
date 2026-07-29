@@ -49,7 +49,7 @@
     box-shadow: var(--shadow-sm);
   }
   .btn-primary:hover { background-color: rgb(var(--brand-hover)); }
-  .btn-primary:active { background-color: rgb(var(--brand-pressed)); transform: translateY(0.5px); }
+  .btn-primary:active { background-color: rgb(var(--brand-pressed)); transform: scale(0.97); }
   .btn-primary:disabled { opacity: 0.45; pointer-events: none; }
 
   .btn-secondary {
@@ -60,7 +60,7 @@
     background-color: transparent;
   }
   .btn-secondary:hover { color: rgb(var(--text)); background-color: rgb(var(--surface-2)); border-color: rgb(var(--border-strong)); }
-  .btn-secondary:active { transform: translateY(0.5px); }
+  .btn-secondary:active { transform: scale(0.97); }
   .btn-secondary:disabled { opacity: 0.45; pointer-events: none; }
 
   .btn-ghost {
@@ -236,6 +236,35 @@ html[data-theme="light"] .admin-doc-pre code {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---- OTP neon animations ---- */
+@keyframes otpPulseGlow {
+  0%, 100% { box-shadow: 0 0 28px rgb(var(--neon-rgb) / 0.4), inset 0 0 18px rgb(var(--neon-rgb) / 0.12); }
+  50% { box-shadow: 0 0 44px rgb(var(--neon-rgb) / 0.7), inset 0 0 28px rgb(var(--neon-rgb) / 0.22); }
+}
+@keyframes otpTextFlicker {
+  0%, 100% { text-shadow: 0 0 14px rgb(var(--neon-rgb) / 0.9), 0 0 28px rgb(var(--neon-rgb) / 0.5); }
+  50% { text-shadow: 0 0 22px rgb(var(--neon-rgb) / 1), 0 0 44px rgb(var(--neon-rgb) / 0.7); }
+}
+@keyframes otpShimmer {
+  0% { transform: translateX(-100%); opacity: 0; }
+  40% { opacity: 0.5; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+.otp-neon-card { animation: otpPulseGlow 2.4s ease-in-out infinite; }
+.otp-glow-text { animation: otpTextFlicker 2.4s ease-in-out infinite; }
+.otp-shimmer { animation: otpShimmer 3s ease-in-out infinite; }
+
+/* ---- Universal micro-animations ---- */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.animate-fade-in-up { animation: fadeInUp 0.4s var(--ease, cubic-bezier(0.16,1,0.3,1)) both; }
+.animate-scale-in { animation: scaleIn 0.3s var(--ease, cubic-bezier(0.16,1,0.3,1)) both; }
+.tab-content-enter { animation: fadeInUp 0.3s ease both; }
+.stat-card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.stat-card-hover:hover { transform: translateY(-2px); }
+.button-press { transition: transform 0.1s ease; }
+.button-press:active { transform: scale(0.97); }
 
 /* Small screens: single intentional scroll surface. No modal/table may create horizontal page overflow. */
 html, body, #root { max-width: 100%; }

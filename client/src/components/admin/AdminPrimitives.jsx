@@ -32,7 +32,7 @@ const STAT_TONE = {
 
 export function AdminStatCard({ title, value, subtitle, icon: Icon, tone = 'blue' }) {
   return (
-    <div className="card p-4 sm:p-5">
+    <div className="card p-4 sm:p-5 stat-card-hover animate-fade-in-up">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="section-title">{title}</p>

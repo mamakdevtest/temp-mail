@@ -1,0 +1,172 @@
+- generic [ref=f4e3]:
+  - complementary [ref=f4e4]:
+    - button "Inbox" [ref=f4e5] [cursor=pointer]:
+      - generic [ref=f4e10]:
+        - paragraph [ref=f4e11]: MS Temp Mail
+        - paragraph [ref=f4e12]: Mamak Studio temporary mail workspace
+    - navigation "Mobile menu" [ref=f4e13]:
+      - button "Inbox" [ref=f4e14] [cursor=pointer]
+      - button "Domains" [ref=f4e18] [cursor=pointer]
+      - button "Bulk Studio" [ref=f4e22] [cursor=pointer]
+      - button "Automation" [ref=f4e33] [cursor=pointer]
+      - button "Docs" [ref=f4e38] [cursor=pointer]
+      - button "Account" [ref=f4e41] [cursor=pointer]
+      - button "Operations" [ref=f4e45] [cursor=pointer]
+      - button "Bulk management" [ref=f4e48] [cursor=pointer]
+    - generic [ref=f4e59]:
+      - button "Search or run a command…" [ref=f4e60] [cursor=pointer]:
+        - generic [ref=f4e65]: ⌘K
+      - button "admin Admin User" [ref=f4e68] [cursor=pointer]:
+        - generic [ref=f4e70]:
+          - generic [ref=f4e71]: admin
+          - generic [ref=f4e72]: Admin User
+  - main [ref=f4e75]:
+    - generic [ref=f4e76]:
+      - generic [ref=f4e77]:
+        - generic [ref=f4e78]:
+          - generic [ref=f4e79]:
+            - generic [ref=f4e80]:
+              - paragraph [ref=f4e81]: Your Temporary Email Address
+              - paragraph [ref=f4e82]: Your address becomes active instantly and messages land in the inbox below.
+            - generic [ref=f4e83]: Address is active and ready to use
+          - generic [ref=f4e86]:
+            - textbox "username" [ref=f4e87]: echo0
+            - generic [ref=f4e88]: "@"
+            - button "mmkgams.space" [ref=f4e90] [cursor=pointer]
+            - button "Copy" [ref=f4e94] [cursor=pointer]
+          - generic [ref=f4e98]:
+            - button "Copy" [ref=f4e175] [cursor=pointer]
+            - button "Refresh" [ref=f4e103] [cursor=pointer]
+            - button "Random" [ref=f4e109] [cursor=pointer]
+            - button "Protect" [ref=f4e116] [cursor=pointer]
+        - button [ref=f4e122] [cursor=pointer]
+      - generic [ref=f4e129]:
+        - generic [ref=f4e131]:
+          - generic [ref=f4e132]:
+            - generic [ref=f4e133]:
+              - generic [ref=f4e134]:
+                - paragraph [ref=f4e138]: Inbox
+                - generic [ref=f4e139]: Live
+              - button "Refresh" [ref=f4e141] [cursor=pointer]
+            - textbox "Search..." [ref=f4e151]
+          - generic [ref=f4e182]:
+            - generic [ref=f4e184] [cursor=pointer]:
+              - generic [ref=f4e185]: "N"
+              - generic [ref=f4e186]:
+                - generic [ref=f4e187]:
+                  - paragraph [ref=f4e188]: noreply@github.com
+                  - generic [ref=f4e189]: github.com
+                - paragraph [ref=f4e190]: Yeni cihaz girişi
+              - generic [ref=f4e191]:
+                - generic [ref=f4e192]: 11:33 AM
+                - button "Delete" [ref=f4e194]
+            - generic [ref=f4e199] [cursor=pointer]:
+              - generic [ref=f4e200]: L
+              - generic [ref=f4e201]:
+                - generic [ref=f4e202]:
+                  - paragraph [ref=f4e203]: login@facebookmail.com
+                  - generic [ref=f4e204]: facebookmail.com
+                - paragraph [ref=f4e205]: Facebook giriş kodu
+              - generic [ref=f4e206]:
+                - generic [ref=f4e207]: 11:32 AM
+                - button "Delete" [ref=f4e209]
+            - generic [ref=f4e214] [cursor=pointer]:
+              - generic [ref=f4e215]: "N"
+              - generic [ref=f4e216]:
+                - generic [ref=f4e217]:
+                  - paragraph [ref=f4e218]: noreply@github.com
+                  - generic [ref=f4e219]: github.com
+                  - generic [ref=f4e220]: OTP
+                - paragraph [ref=f4e221]: Yeni cihaz girişi (718352)
+              - generic [ref=f4e222]:
+                - generic [ref=f4e223]: 11:31 AM
+                - generic [ref=f4e224]:
+                  - button "Copy OTP" [ref=f4e225]
+                  - button "Delete" [ref=f4e229]
+            - generic [ref=f4e234] [cursor=pointer]:
+              - generic [ref=f4e235]: L
+              - generic [ref=f4e236]:
+                - generic [ref=f4e237]:
+                  - paragraph [ref=f4e238]: login@facebookmail.com
+                  - generic [ref=f4e239]: facebookmail.com
+                - paragraph [ref=f4e240]: Yeni cihaz algılandı
+              - generic [ref=f4e241]:
+                - generic [ref=f4e242]: 11:30 AM
+                - button "Delete" [ref=f4e244]
+            - generic [ref=f4e249] [cursor=pointer]:
+              - generic [ref=f4e250]: "N"
+              - generic [ref=f4e251]:
+                - generic [ref=f4e252]:
+                  - paragraph [ref=f4e253]: no-reply@amazon.com
+                  - generic [ref=f4e254]: amazon.com
+                - paragraph [ref=f4e255]: Hesap doğrulama
+              - generic [ref=f4e256]:
+                - generic [ref=f4e257]: 11:29 AM
+                - button "Delete" [ref=f4e259]
+            - generic [ref=f4e264] [cursor=pointer]:
+              - generic [ref=f4e265]: I
+              - generic [ref=f4e266]:
+                - generic [ref=f4e267]:
+                  - paragraph [ref=f4e268]: info@netflix.com
+                  - generic [ref=f4e269]: netflix.com
+                  - generic [ref=f4e270]: OTP
+                - paragraph [ref=f4e271]: Yeni cihaz girişi (810024)
+              - generic [ref=f4e272]:
+                - generic [ref=f4e273]: 11:28 AM
+                - generic [ref=f4e274]:
+                  - button "Copy OTP" [ref=f4e275]
+                  - button "Delete" [ref=f4e279]
+            - generic [ref=f4e284] [cursor=pointer]:
+              - generic [ref=f4e285]: L
+              - generic [ref=f4e286]:
+                - generic [ref=f4e287]:
+                  - paragraph [ref=f4e288]: login@facebookmail.com
+                  - generic [ref=f4e289]: facebookmail.com
+                  - generic [ref=f4e290]: OTP
+                - paragraph [ref=f4e291]: Güvenlik kontrolü (951932)
+              - generic [ref=f4e292]:
+                - generic [ref=f4e293]: 11:27 AM
+                - generic [ref=f4e294]:
+                  - button "Copy OTP" [ref=f4e295]
+                  - button "Delete" [ref=f4e299]
+            - generic [ref=f4e304] [cursor=pointer]:
+              - generic [ref=f4e305]: "N"
+              - generic [ref=f4e306]:
+                - generic [ref=f4e307]:
+                  - paragraph [ref=f4e308]: noreply@github.com
+                  - generic [ref=f4e309]: github.com
+                  - generic [ref=f4e310]: OTP
+                - paragraph [ref=f4e311]: Repository daveti (520693)
+              - generic [ref=f4e312]:
+                - generic [ref=f4e313]: 11:26 AM
+                - generic [ref=f4e314]:
+                  - button "Copy OTP" [ref=f4e315]
+                  - button "Delete" [ref=f4e319]
+            - generic [ref=f4e324] [cursor=pointer]:
+              - generic [ref=f4e325]: A
+              - generic [ref=f4e326]:
+                - generic [ref=f4e327]:
+                  - paragraph [ref=f4e328]: account-security-noreply@accountprotection.microsoft.com
+                  - generic [ref=f4e329]: accountprotection.microsoft.com
+                  - generic [ref=f4e330]: OTP
+                - paragraph [ref=f4e331]: Olağandışı aktivite (726635)
+              - generic [ref=f4e332]:
+                - generic [ref=f4e333]: 11:25 AM
+                - generic [ref=f4e334]:
+                  - button "Copy OTP" [ref=f4e335]
+                  - button "Delete" [ref=f4e339]
+            - generic [ref=f4e344] [cursor=pointer]:
+              - generic [ref=f4e345]: M
+              - generic [ref=f4e346]:
+                - generic [ref=f4e347]:
+                  - paragraph [ref=f4e348]: messages-noreply@linkedin.com
+                  - generic [ref=f4e349]: linkedin.com
+                - paragraph [ref=f4e350]: Profil görüntülendi
+              - generic [ref=f4e351]:
+                - generic [ref=f4e352]: 11:24 AM
+                - button "Delete" [ref=f4e354]
+        - generic [ref=f4e162]:
+          - paragraph [ref=f4e167]: Select an email
+          - paragraph [ref=f4e168]: Pick an email from the list on the left to view its content.
+  - contentinfo [ref=f4e169]:
+    - paragraph [ref=f4e170]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

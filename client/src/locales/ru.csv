@@ -912,3 +912,8 @@ key,ru
 "nav.learn","Ресурсы"
 "nav.mailbox","Почтовый ящик"
 "nav.scale","Масштаб"
+"accountModal.tabs.addresses","Адреса"
+"accountModal.tabsSubtitle.addresses","Теги и избранное"
+"accountModal.addressListTitle","Теги и Избранное"
+"accountModal.addressListHint","Пометьте адреса тегами и избранным."
+"accountModal.noAddresses","Адресов пока нет."

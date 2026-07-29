@@ -1,4 +1,5 @@
 import { startTransition, useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { io } from 'socket.io-client';
 import { Mail, Settings, Inbox as InboxIcon, Globe, Send, X, KeyRound, Lock, ChevronDown, Crown, Shield, Sparkles, Boxes, Workflow, BookOpen, Search, Command, LogOut, Plus, Moon, Sun } from 'lucide-react';
 import useAuth from './hooks/useAuth';
@@ -112,6 +113,7 @@ export default function App() {
   const authHeaders = useMemo(() => (auth.token ? { Authorization: `Bearer ${auth.token}` } : {}), [auth.token]);
 
   const userMenuRef = useRef(null);
+  const userMenuMobileRef = useRef(null);
   const accountPanelRef = useRef(null);
   const sockRef = useRef(null);
   const notifTimer = useRef(null);
@@ -188,7 +190,10 @@ export default function App() {
 
   useEffect(() => {
     const h = (e) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setShowUserMenu(false);
+      // Check both the trigger button ref and the portal menu (by data attribute).
+      const inTrigger = (userMenuRef.current && userMenuRef.current.contains(e.target)) || (userMenuMobileRef.current && userMenuMobileRef.current.contains(e.target));
+      const inMenu = e.target.closest && e.target.closest('[data-user-menu]');
+      if (!inTrigger && !inMenu) setShowUserMenu(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
@@ -314,8 +319,15 @@ export default function App() {
         setEmails(d.emails || []);
         return true;
       }
+      // Backend couldn't find the address (DB reset etc.) — still restore
+      // locally so the address bar shows the last address. Don't genRandom.
+      setAddr(saved);
+      setEmails([]);
+      return true;
     } catch (e) {
-      /* */
+      // Network error — restore locally if we have a saved address.
+      const saved = JSON.parse(localStorage.getItem('tm-last-addr') || 'null');
+      if (saved?.address) { setAddr(saved); setEmails([]); return true; }
     }
     return false;
   }, [authHeaders]);
@@ -673,6 +685,21 @@ export default function App() {
     return [...nav, ...actions, ...dom];
   }, [navGroups, domains, addr, t, navigate, genRandom, copyAddr, openAddr, setTheme]);
 
+  // User dropdown menu rendered via portal so it escapes sidebar overflow.
+  const renderUserMenu = () => createPortal(
+    <div data-user-menu className="fixed bottom-16 left-4 lg:left-4 w-56 card p-1.5 z-[2000] animate-slide-up shadow-lg" role="menu" style={{ boxShadow: 'var(--shadow-lg)' }}>
+      <div className="px-2.5 py-2.5 border-b border-brand-border/50 mb-1">
+        <p className="text-sm font-medium text-txt-primary truncate">{auth.user?.display_name || auth.user?.username}</p>
+        <p className="text-[12px] text-txt-muted truncate">{auth.user?.email}</p>
+      </div>
+      <button type="button" onClick={() => { setShowUserMenu(false); openAccountSettings(); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={15} /> {t('app.accountSettings')}</button>
+      {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Shield size={15} /> {t('app.adminPanel')}</button>}
+      {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--otp))] hover:bg-[rgb(var(--otp)/0.08)] transition-colors"><Crown size={15} /> {t('app.proUpgrade')}</button>}
+      <button type="button" onClick={() => { setShowUserMenu(false); auth.logout(); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--danger-fg))] hover:bg-[rgb(var(--danger)/0.08)] transition-colors"><LogOut size={15} /> {t('app.logout')}</button>
+    </div>,
+    document.body
+  );
+
   if (auth.loading) {
     return (
       <LocaleProvider language={language}>
@@ -746,18 +773,7 @@ export default function App() {
                   </span>
                   <ChevronDown size={14} className="text-txt-muted" />
                 </button>
-                {showUserMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-56 card p-1.5 z-50 animate-slide-up" role="menu">
-                    <div className="px-2.5 py-2.5 border-b border-brand-border/50 mb-1">
-                      <p className="text-sm font-medium text-txt-primary truncate">{auth.user?.display_name || auth.user?.username}</p>
-                      <p className="text-[12px] text-txt-muted truncate">{auth.user?.email}</p>
-                    </div>
-                    <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={15} /> {t('app.accountSettings')}</button>
-                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Shield size={15} /> {t('app.adminPanel')}</button>}
-                    {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--otp))] hover:bg-[rgb(var(--otp)/0.08)] transition-colors"><Crown size={15} /> {t('app.proUpgrade')}</button>}
-                    <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--danger-fg))] hover:bg-[rgb(var(--danger)/0.08)] transition-colors"><LogOut size={15} /> {t('app.logout')}</button>
-                  </div>
-                )}
+                {showUserMenu && renderUserMenu()}
               </div>
             )}
           </div>
@@ -810,7 +826,7 @@ export default function App() {
                 <button onClick={() => openAuth('register')} className="btn-primary" size="sm">{t('app.signUp')}</button>
               </>
             ) : (
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative" ref={userMenuMobileRef}>
                 <button onClick={() => setShowUserMenu((v) => !v)} className="flex items-center gap-2.5 rounded-[var(--r-md)] px-1.5 py-1.5 hover:bg-brand-surface2 transition-colors" aria-haspopup="menu" aria-expanded={showUserMenu}>
                   <Avatar src={auth.user?.avatar_url} fallback={(auth.user?.username || 'U')[0].toUpperCase()} size="sm" />
                   <span className="hidden sm:block text-left">
@@ -819,18 +835,7 @@ export default function App() {
                   </span>
                   <ChevronDown size={14} className="text-txt-muted" />
                 </button>
-                {showUserMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-56 card p-1.5 z-50 animate-slide-down" role="menu">
-                    <div className="px-2.5 py-2.5 border-b border-brand-border/50 mb-1">
-                      <p className="text-sm font-medium text-txt-primary truncate">{auth.user?.display_name || auth.user?.username}</p>
-                      <p className="text-[12px] text-txt-muted truncate">{auth.user?.email}</p>
-                    </div>
-                    <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={15} /> {t('app.accountSettings')}</button>
-                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Shield size={15} /> {t('app.adminPanel')}</button>}
-                    {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--otp))] hover:bg-[rgb(var(--otp)/0.08)] transition-colors"><Crown size={15} /> {t('app.proUpgrade')}</button>}
-                    <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--danger-fg))] hover:bg-[rgb(var(--danger)/0.08)] transition-colors"><LogOut size={15} /> {t('app.logout')}</button>
-                  </div>
-                )}
+                {showUserMenu && renderUserMenu()}
               </div>
             )}
           </div>

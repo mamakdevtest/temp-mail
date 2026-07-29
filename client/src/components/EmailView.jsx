@@ -101,11 +101,11 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
           const sum = String(email.otp_code).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
           const hue = NEON[sum % NEON.length];
           return (
-            <div className="p-5 rounded-[var(--r-xl)] flex items-center justify-between gap-4 animate-pop-in relative overflow-hidden" style={{ background: `rgb(${hue.rgb} / 0.12)`, border: `2px solid rgb(${hue.rgb} / 0.55)`, boxShadow: `0 0 28px rgb(${hue.rgb} / 0.4), inset 0 0 18px rgb(${hue.rgb} / 0.12)` }}>
-              <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: `radial-gradient(circle at 30% 50%, rgb(${hue.rgb} / 0.45), transparent 70%)` }} />
+            <div className="p-5 rounded-[var(--r-xl)] flex items-center justify-between gap-4 animate-pop-in relative overflow-hidden otp-neon-card" style={{ '--neon-rgb': hue.rgb, background: `rgb(${hue.rgb} / 0.12)`, border: `2px solid rgb(${hue.rgb} / 0.55)`, boxShadow: `0 0 28px rgb(${hue.rgb} / 0.4), inset 0 0 18px rgb(${hue.rgb} / 0.12)` }}>
+              <div className="absolute inset-0 opacity-30 pointer-events-none otp-shimmer" style={{ background: `radial-gradient(circle at 30% 50%, rgb(${hue.rgb} / 0.45), transparent 70%)` }} />
               <div className="min-w-0 relative">
                 <p className="text-[11px] uppercase tracking-[0.2em] font-bold flex items-center gap-1.5" style={{ color: `rgb(${hue.rgb})` }}><KeyRound size={12} /> {t('emailView.otpCode')}</p>
-                <p className="text-4xl font-mono font-extrabold tracking-[0.2em] mt-1.5" style={{ color: `rgb(${hue.rgb})`, textShadow: `0 0 14px rgb(${hue.rgb} / 0.9), 0 0 28px rgb(${hue.rgb} / 0.5)` }}>{email.otp_code}</p>
+                <p className="text-4xl font-mono font-extrabold tracking-[0.2em] mt-1.5 otp-glow-text" style={{ color: `rgb(${hue.rgb})`, textShadow: `0 0 14px rgb(${hue.rgb} / 0.9), 0 0 28px rgb(${hue.rgb} / 0.5)` }}>{email.otp_code}</p>
               </div>
               <button onClick={handleOtpCopy} className="btn-secondary shrink-0 relative" style={{ borderColor: `rgb(${hue.rgb} / 0.5)`, color: otpCopied ? 'rgb(var(--success-fg))' : `rgb(${hue.rgb})` }}>
                 {otpCopied ? <Check size={14} /> : <Copy size={14} />} {otpCopied ? t('emailView.copied') : t('emailView.copy')}

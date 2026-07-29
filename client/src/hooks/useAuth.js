@@ -97,6 +97,11 @@ export default function useAuth() {
     localStorage.setItem('tm-token', d.token);
     setToken(d.token);
     setUser(d.user);
+    setPkg(d.package || GUEST_PACKAGE);
+    setStats(d.stats || GUEST_STATS);
+    setPreferences(d.preferences || null);
+    userRef.current = d.user;
+    setLoading(false);
     return d;
   };
 
@@ -112,6 +117,11 @@ export default function useAuth() {
     localStorage.setItem('tm-token', d.token);
     setToken(d.token);
     setUser(d.user);
+    setPkg(d.package || GUEST_PACKAGE);
+    setStats(d.stats || GUEST_STATS);
+    setPreferences(d.preferences || null);
+    userRef.current = d.user;
+    setLoading(false);
     return d;
   };
 

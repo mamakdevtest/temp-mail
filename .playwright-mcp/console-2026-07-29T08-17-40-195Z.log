@@ -1,0 +1,134 @@
+[  223509ms] [ERROR] Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[  223649ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17610:15)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17577:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17699:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15)
+[  223671ms] [ERROR] The above error occurred in the <LocaleProvider> component:
+
+    at LocaleProvider (http://localhost:3000/src/i18n.js:79:34)
+    at App (http://localhost:3000/src/App.jsx:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx:12:5)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14031
+[  223671ms] [ERROR] Uygulama hatası: NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17610:15)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17577:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17699:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15) {componentStack: 
+    at LocaleProvider (http://localhost:3000/src/…oundary (http://localhost:3000/src/main.jsx:12:5)} @ http://localhost:3000/src/main.jsx:18
+[  223674ms] [WARNING] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1499
+[  223709ms] [ERROR] Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[  223711ms] [ERROR] Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[  223715ms] [ERROR] Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[  223721ms] [ERROR] Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:520
+[  223872ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17588:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17896:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17794:15)
+    at commitMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17663:11)
+[  223795ms] [ERROR] The above error occurred in the <ErrorBoundary> component:
+
+    at ErrorBoundary (http://localhost:3000/src/main.jsx:12:5)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14031
+[  223905ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17610:15)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17577:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17699:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15)
+[  223808ms] [ERROR] The above error occurred in the <LocaleProvider> component:
+
+    at LocaleProvider (http://localhost:3000/src/i18n.js?t=1785313282788:79:34)
+    at App (http://localhost:3000/src/App.jsx?t=1785313282828:74:16)
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785313282475:12:5)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14031
+[  223809ms] [ERROR] Uygulama hatası: NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17610:15)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17577:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17699:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15) {componentStack: 
+    at LocaleProvider (http://localhost:3000/src/…localhost:3000/src/main.jsx?t=1785313282475:12:5)} @ http://localhost:3000/src/main.jsx?t=1785313282475:18
+[  223911ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17588:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17896:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17794:15)
+    at commitMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17663:11)
+[  224327ms] [WARNING] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1499
+[  224470ms] [WARNING] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1499
+[  297586ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17588:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17896:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17794:15)
+    at commitMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17663:11)
+[  297565ms] [ERROR] The above error occurred in the <ErrorBoundary> component:
+
+    at ErrorBoundary (http://localhost:3000/src/main.jsx?t=1785313282475:12:5)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:14031
+[  297588ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:8462:23)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17508:21)
+    at recursivelyTraverseDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17486:13)
+    at commitDeletionEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17588:15)
+    at commitDeletionEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17477:13)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17674:17)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17896:15)
+    at recursivelyTraverseMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17685:15)
+    at commitMutationEffectsOnFiber (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17794:15)
+    at commitMutationEffects (http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:17663:11)
+[  547790ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/emails/smoke366%40asdsadsa.asdsad.com?limit=100&order=desc:0
+[  547790ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/emails/vortex03%40testaudit123.com?limit=100&order=desc:0
+[  547790ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/emails/badger952%40testaudit123.com?limit=100&order=desc:0
+[  547790ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/emails/bellows0%40hjh.mmkgams.space?limit=100&order=desc:0
+[  547797ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/emails/echo0%40set.mmkgams.space?limit=100&order=desc:0
+[  547805ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/emails/vanilla8%40asdsad.com?limit=100&order=desc:0
+[  549123ms] [ERROR] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: Connection closed before receiving a handshake response @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1523
+[  549539ms] [ERROR] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: Connection closed before receiving a handshake response @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1523
+[  549679ms] [ERROR] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: Connection closed before receiving a handshake response @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1523
+[  550285ms] [ERROR] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: Connection closed before receiving a handshake response @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1523

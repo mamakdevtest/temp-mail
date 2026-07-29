@@ -21,7 +21,12 @@ export default function BulkInbox({ token, pool }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [copiedOtp, setCopiedOtp] = useState('');
+  const [copiedAddr, setCopiedAddr] = useState('');
   const [selected, setSelected] = useState(null);
+
+  const copyAddr = async (addr) => {
+    try { await navigator.clipboard.writeText(addr); setCopiedAddr(addr); window.setTimeout(() => setCopiedAddr(''), 1400); } catch (_) { setError(t('bulkInbox.otpCopyFailed')); }
+  };
 
   const load = useCallback(async ({ cursor = null, append = false } = {}) => {
     if (!pool?.id) return;
@@ -59,7 +64,14 @@ export default function BulkInbox({ token, pool }) {
       key: 'recipient', header: t('bulkInbox.colRecipient'), primary: true,
       render: (email) => (
         <span className="inline-flex items-center gap-2 min-w-0">
-          <code className="t-mono text-txt-primary truncate">{email.recipient_address}</code>
+          <code
+            className="t-mono text-txt-primary truncate cursor-pointer hover:text-[rgb(var(--brand))]"
+            title={t('bulkInbox.copyOtp') || 'Copy'}
+            onClick={(event) => { event.stopPropagation(); copyAddr(email.recipient_address); }}
+          >
+            {copiedAddr === email.recipient_address ? <Check size={12} className="inline mr-1 text-[rgb(var(--success-fg))]" /> : null}
+            {email.recipient_address}
+          </code>
           <span className="text-[11px] text-txt-muted shrink-0">#{email.id}</span>
         </span>
       ),
@@ -158,7 +170,15 @@ export default function BulkInbox({ token, pool }) {
         >
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2 t-caption text-txt-muted">
-              <code className="t-mono text-txt-secondary">{selected.recipient_address}</code>
+              <button
+                type="button"
+                onClick={() => copyAddr(selected.recipient_address)}
+                className="inline-flex items-center gap-1.5 rounded-[var(--r-md)] px-2 py-1 hover:bg-brand-surface2 transition-colors"
+                title="Copy address"
+              >
+                <code className="t-mono text-txt-secondary">{selected.recipient_address}</code>
+                {copiedAddr === selected.recipient_address ? <Check size={12} className="text-[rgb(var(--success-fg))]" /> : <Copy size={12} className="text-txt-muted" />}
+              </button>
               <time>· {formatTime(selected.received_at, language)}</time>
             </div>
             {selected.otp_code && (

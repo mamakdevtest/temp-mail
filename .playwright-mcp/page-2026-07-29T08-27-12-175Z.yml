@@ -1,0 +1,61 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e1024]:
+    - complementary [ref=f2e1025]:
+      - button "Inbox" [ref=f2e1026] [cursor=pointer]:
+        - generic [ref=f2e1031]:
+          - paragraph [ref=f2e1032]: MS Temp Mail
+          - paragraph [ref=f2e1033]: Mamak Studio temporary mail workspace
+      - navigation "Mobile menu" [ref=f2e1034]:
+        - button "Inbox" [ref=f2e1035] [cursor=pointer]
+        - button "Domains" [ref=f2e1039] [cursor=pointer]
+        - button "Bulk Studio" [ref=f2e1043] [cursor=pointer]
+        - button "Automation" [ref=f2e1054] [cursor=pointer]
+        - button "Docs" [ref=f2e1059] [cursor=pointer]
+        - button "Account" [ref=f2e1062] [cursor=pointer]
+        - button "Operations" [ref=f2e1066] [cursor=pointer]
+        - button "Bulk management" [ref=f2e1069] [cursor=pointer]
+      - generic [ref=f2e1080]:
+        - button "Search or run a command…" [ref=f2e1081] [cursor=pointer]:
+          - generic [ref=f2e1086]: ⌘K
+        - button "admin Admin User" [ref=f2e1089] [cursor=pointer]:
+          - generic [ref=f2e1091]:
+            - generic [ref=f2e1092]: admin
+            - generic [ref=f2e1093]: Admin User
+    - main [ref=f2e1096]:
+      - generic [ref=f2e1097]:
+        - generic [ref=f2e1098]:
+          - generic [ref=f2e1099]:
+            - generic [ref=f2e1100]:
+              - generic [ref=f2e1101]:
+                - paragraph [ref=f2e1102]: Your Temporary Email Address
+                - paragraph [ref=f2e1103]: Your address becomes active instantly and messages land in the inbox below.
+              - generic [ref=f2e1104]: Address is active and ready to use
+            - generic [ref=f2e1107]:
+              - textbox "username" [ref=f2e1108]
+              - generic [ref=f2e1109]: "@"
+              - button "asdsad.com" [ref=f2e1111] [cursor=pointer]
+              - button "Copy" [ref=f2e1115] [cursor=pointer]
+            - generic [ref=f2e1119]:
+              - button "Open Address" [disabled]
+              - button "Refresh" [ref=f2e1120] [cursor=pointer]
+              - button "Random" [ref=f2e1126] [cursor=pointer]
+              - button "Protect" [ref=f2e1133] [cursor=pointer]
+          - button [ref=f2e1139] [cursor=pointer]
+        - generic [ref=f2e1146]:
+          - generic [ref=f2e1148]:
+            - generic [ref=f2e1149]:
+              - generic [ref=f2e1150]:
+                - generic [ref=f2e1151]:
+                  - paragraph [ref=f2e1155]: Inbox
+                  - generic [ref=f2e1156]: Live
+                - button "Refresh" [ref=f2e1158] [cursor=pointer]
+              - textbox "Search..." [ref=f2e1168]
+            - generic [ref=f2e1170]:
+              - paragraph [ref=f2e1175]: No mail yet
+              - paragraph [ref=f2e1176]: New messages appear here in real time.
+          - generic [ref=f2e1179]:
+            - paragraph [ref=f2e1184]: Select an email
+            - paragraph [ref=f2e1185]: Pick an email from the list on the left to view its content.
+    - contentinfo [ref=f2e1186]:
+      - paragraph [ref=f2e1187]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - generic [ref=f2e488]: "0"

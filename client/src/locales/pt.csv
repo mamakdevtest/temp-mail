@@ -912,3 +912,8 @@ key,pt
 "nav.learn","Recursos"
 "nav.mailbox","Caixa de correio"
 "nav.scale","Escala"
+"accountModal.tabs.addresses","Endereços"
+"accountModal.tabsSubtitle.addresses","Tags e favoritos"
+"accountModal.addressListTitle","Tags & Favoritos"
+"accountModal.addressListHint","Marque seus endereços com tags e favoritos."
+"accountModal.noAddresses","Ainda não há endereços."

@@ -1,0 +1,99 @@
+- generic [ref=f2e1]:
+  - generic [ref=f2e3]:
+    - complementary [ref=f2e4]:
+      - button "Inbox" [ref=f2e5] [cursor=pointer]:
+        - generic [ref=f2e10]:
+          - paragraph [ref=f2e11]: MS Temp Mail
+          - paragraph [ref=f2e12]: Mamak Studio temporary mail workspace
+      - navigation "Mobile menu" [ref=f2e13]:
+        - button "Inbox" [ref=f2e14] [cursor=pointer]
+        - button "Domains" [ref=f2e18] [cursor=pointer]
+        - button "Bulk Studio" [ref=f2e22] [cursor=pointer]
+        - button "Automation" [ref=f2e33] [cursor=pointer]
+        - button "Docs" [ref=f2e38] [cursor=pointer]
+        - button "Account" [ref=f2e41] [cursor=pointer]
+        - button "Operations" [ref=f2e45] [cursor=pointer]
+        - button "Bulk management" [ref=f2e48] [cursor=pointer]
+      - generic [ref=f2e59]:
+        - button "Search or run a command…" [ref=f2e60] [cursor=pointer]:
+          - generic [ref=f2e65]: ⌘K
+        - button "admin Admin User" [ref=f2e68] [cursor=pointer]:
+          - generic [ref=f2e70]:
+            - generic [ref=f2e71]: admin
+            - generic [ref=f2e72]: Admin User
+    - main [ref=f2e75]:
+      - generic [ref=f2e76]:
+        - generic [ref=f2e77]:
+          - generic [ref=f2e78]:
+            - generic [ref=f2e84]:
+              - paragraph [ref=f2e85]: Control center
+              - heading "Admin Panel" [level=1] [ref=f2e86]
+              - paragraph [ref=f2e87]: MS Temp Mail system management, live stats and operation flows.
+            - generic [ref=f2e88]:
+              - button "Add Domain" [ref=f2e89] [cursor=pointer]
+              - button "Cleanup" [ref=f2e91] [cursor=pointer]
+              - button "Export" [ref=f2e95] [cursor=pointer]
+          - tablist [ref=f2e99]:
+            - tab "Dashboard" [ref=f2e100] [cursor=pointer]
+            - tab "Addresses" [ref=f2e106] [cursor=pointer]
+            - tab "Domains" [ref=f2e110] [cursor=pointer]
+            - tab "Emails" [ref=f2e114] [cursor=pointer]
+            - tab "Users" [ref=f2e118] [cursor=pointer]
+            - tab "Bulk Pools" [ref=f2e124] [cursor=pointer]
+            - tab "Requests" [ref=f2e135] [cursor=pointer]
+            - tab "Settings" [active] [selected] [ref=f2e138] [cursor=pointer]
+        - generic [ref=f2e489]:
+          - generic [ref=f2e490]:
+            - heading "General Settings" [level=3] [ref=f2e498]
+            - generic [ref=f2e499]:
+              - generic [ref=f2e500]:
+                - generic [ref=f2e501]: Active Domain Count
+                - generic [ref=f2e502]: "3"
+              - generic [ref=f2e503]:
+                - generic [ref=f2e504]: Default Data Retention
+                - generic [ref=f2e505]: 7 days / manual trigger only
+              - generic [ref=f2e506]:
+                - generic [ref=f2e507]: Cleanup Policy
+                - generic [ref=f2e508]: Manual + service based
+              - generic [ref=f2e509]:
+                - generic [ref=f2e510]: Admin authentication
+                - generic [ref=f2e511]: JWT + password fallback
+              - button "Refresh All Data" [ref=f2e512] [cursor=pointer]
+          - generic [ref=f2e518]:
+            - heading "Notification Sound" [level=3] [ref=f2e526]
+            - generic [ref=f2e527]:
+              - generic [ref=f2e528]:
+                - paragraph [ref=f2e529]: Selected Signal
+                - generic [ref=f2e530]:
+                  - combobox [ref=f2e531]:
+                    - option "Classic Ping"
+                    - option "Soft Bell"
+                    - option "Digital Pop"
+                    - option "Glass Chime" [selected]
+                    - option "Alert Pulse"
+                    - option "Arcade"
+                  - button "Preview" [ref=f2e532] [cursor=pointer]
+              - generic [ref=f2e537]:
+                - generic [ref=f2e538]:
+                  - paragraph [ref=f2e539]: Glass Chime
+                  - paragraph [ref=f2e540]: Katmanlı ve parlak bir chime efekti.
+                - generic [ref=f2e541]: Glass Chime
+          - generic [ref=f2e542]:
+            - heading "Operation Summary" [level=3] [ref=f2e549]
+            - generic [ref=f2e550]:
+              - generic [ref=f2e551]:
+                - generic [ref=f2e552]: Total Users
+                - generic [ref=f2e553]: "0"
+              - generic [ref=f2e554]:
+                - generic [ref=f2e555]: Pending Requests
+                - generic [ref=f2e556]: "0"
+              - generic [ref=f2e557]:
+                - generic [ref=f2e558]: Passworded Mailboxes
+                - generic [ref=f2e559]: "0"
+              - generic [ref=f2e560]:
+                - generic [ref=f2e561]: Mail Volume
+                - generic [ref=f2e562]: "250"
+              - button "Sign Out Admin Session" [ref=f2e563] [cursor=pointer]
+    - contentinfo [ref=f2e429]:
+      - paragraph [ref=f2e430]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - generic [ref=f2e488]: "0"

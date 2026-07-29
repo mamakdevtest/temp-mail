@@ -6,7 +6,7 @@
     "ANTHROPIC_AUTH_TOKEN": "sk-675ab44767a5de5b-vd5070-d8dfdd51",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "llmapi/zai-glm-5.2",
     "ANTHROPIC_DEFAULT_FABLE_MODEL": "llmapi/claude-opus-4-8",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "llmapi/claude-fable-5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "china-work",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "LlmAPI-Kimi-K3"
   }
 }

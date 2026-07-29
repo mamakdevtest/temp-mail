@@ -912,3 +912,8 @@ key,fr
 "nav.learn","Ressources"
 "nav.mailbox","Boîte de réception"
 "nav.scale","Échelle"
+"accountModal.tabs.addresses","Adresses"
+"accountModal.tabsSubtitle.addresses","Étiquettes et favoris"
+"accountModal.addressListTitle","Étiquettes & Favoris"
+"accountModal.addressListHint","Étiquetez vos adresses et marquez les favoris."
+"accountModal.noAddresses","Aucune adresse pour le moment."

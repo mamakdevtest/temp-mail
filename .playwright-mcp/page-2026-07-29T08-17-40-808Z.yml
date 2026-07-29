@@ -1,0 +1,218 @@
+- generic [ref=f2e3]:
+  - complementary [ref=f2e4]:
+    - button "Inbox" [ref=f2e5] [cursor=pointer]:
+      - generic [ref=f2e10]:
+        - paragraph [ref=f2e11]: MS Temp Mail
+        - paragraph [ref=f2e12]: Mamak Studio temporary mail workspace
+    - navigation "Mobile menu" [ref=f2e13]:
+      - button "Inbox" [ref=f2e14] [cursor=pointer]
+      - button "Domains" [ref=f2e18] [cursor=pointer]
+      - button "Bulk Studio" [ref=f2e22] [cursor=pointer]
+      - button "Automation" [ref=f2e33] [cursor=pointer]
+      - button "Docs" [ref=f2e38] [cursor=pointer]
+      - button "Account" [ref=f2e41] [cursor=pointer]
+      - button "Operations" [ref=f2e45] [cursor=pointer]
+      - button "Bulk management" [ref=f2e48] [cursor=pointer]
+    - generic [ref=f2e59]:
+      - button "Search or run a command…" [ref=f2e60] [cursor=pointer]:
+        - generic [ref=f2e65]: ⌘K
+      - button "admin Admin User" [ref=f2e68] [cursor=pointer]:
+        - generic [ref=f2e70]:
+          - generic [ref=f2e71]: admin
+          - generic [ref=f2e72]: Admin User
+  - main [ref=f2e75]:
+    - generic [ref=f2e76]:
+      - generic [ref=f2e77]:
+        - generic [ref=f2e78]:
+          - generic [ref=f2e84]:
+            - paragraph [ref=f2e85]: Control center
+            - heading "Admin Panel" [level=1] [ref=f2e86]
+            - paragraph [ref=f2e87]: MS Temp Mail system management, live stats and operation flows.
+          - generic [ref=f2e88]:
+            - button "Add Domain" [ref=f2e89] [cursor=pointer]
+            - button "Cleanup" [ref=f2e91] [cursor=pointer]
+            - button "Export" [ref=f2e95] [cursor=pointer]
+        - tablist [ref=f2e99]:
+          - tab "Dashboard" [selected] [ref=f2e100] [cursor=pointer]
+          - tab "Addresses" [ref=f2e106] [cursor=pointer]
+          - tab "Domains" [ref=f2e110] [cursor=pointer]
+          - tab "Emails" [ref=f2e114] [cursor=pointer]
+          - tab "Users" [ref=f2e118] [cursor=pointer]
+          - tab "Bulk Pools" [ref=f2e124] [cursor=pointer]
+          - tab "Requests" [ref=f2e135] [cursor=pointer]
+          - tab "Settings" [ref=f2e138] [cursor=pointer]
+      - generic [ref=f2e142]:
+        - generic [ref=f2e143]:
+          - generic [ref=f2e146]:
+            - paragraph [ref=f2e147]: Total Mail
+            - paragraph [ref=f2e148]: "250"
+            - paragraph [ref=f2e149]: All time
+          - generic [ref=f2e155]:
+            - paragraph [ref=f2e156]: Total Addresses
+            - paragraph [ref=f2e157]: "152"
+            - paragraph [ref=f2e158]: "Passworded: 0"
+          - generic [ref=f2e166]:
+            - paragraph [ref=f2e167]: Last 24 Hours
+            - paragraph [ref=f2e168]: "250"
+            - paragraph [ref=f2e169]: New incoming mail
+          - generic [ref=f2e175]:
+            - paragraph [ref=f2e176]: OTP Codes
+            - paragraph [ref=f2e177]: "48"
+            - paragraph [ref=f2e178]: Detected verification
+          - generic [ref=f2e184]:
+            - paragraph [ref=f2e185]: Active Domains
+            - paragraph [ref=f2e186]: "3"
+            - paragraph [ref=f2e187]: "Total: 3"
+        - generic [ref=f2e191]:
+          - heading "Mail Traffic" [level=3] [ref=f2e199]
+          - generic [ref=f2e202]:
+            - generic [ref=f2e203]:
+              - generic:
+                - generic:
+                  - heading "System Status" [level=3]
+              - generic [ref=f2e207]: Operation summary
+            - generic [ref=f2e209]:
+              - generic [ref=f2e210]:
+                - generic [ref=f2e211]: SMTP flow
+                - generic [ref=f2e213]: Active
+              - generic [ref=f2e214]:
+                - generic [ref=f2e215]: Admin session
+                - generic [ref=f2e217]: Open
+              - generic [ref=f2e218]:
+                - generic [ref=f2e219]: Active domains
+                - generic [ref=f2e221]: 3/3
+              - generic [ref=f2e222]:
+                - generic [ref=f2e223]: Protected mailboxes
+                - generic [ref=f2e225]: "0"
+              - generic [ref=f2e226]:
+                - generic [ref=f2e227]: Cleanup policy
+                - generic [ref=f2e229]: Automatic + manual
+          - generic [ref=f2e230]:
+            - heading "Recent Activity" [level=3] [ref=f2e240]
+            - generic [ref=f2e241]:
+              - generic [ref=f2e244]:
+                - paragraph [ref=f2e245]: Domain active
+                - paragraph [ref=f2e246]: asdsad.com
+                - paragraph [ref=f2e247]: 6 sa önce
+              - generic [ref=f2e249]:
+                - paragraph [ref=f2e250]: Domain active
+                - paragraph [ref=f2e251]: testaudit123.com
+                - paragraph [ref=f2e252]: 15 sa önce
+              - generic [ref=f2e255]:
+                - paragraph [ref=f2e256]: Request approved
+                - paragraph [ref=f2e257]: tst1
+                - paragraph [ref=f2e258]: 21 gün önce
+              - generic [ref=f2e261]:
+                - paragraph [ref=f2e262]: Request rejected
+                - paragraph [ref=f2e263]: tst1
+                - paragraph [ref=f2e264]: 21 gün önce
+        - generic [ref=f2e265]:
+          - generic [ref=f2e266]:
+            - generic [ref=f2e267]:
+              - heading "Domain Management" [level=3] [ref=f2e274]
+              - button "View All" [ref=f2e276] [cursor=pointer]
+            - table [ref=f2e278]:
+              - rowgroup [ref=f2e279]:
+                - row [ref=f2e280]:
+                  - columnheader "Domain" [ref=f2e281]
+                  - columnheader "Status" [ref=f2e282]
+                  - columnheader "Addresses" [ref=f2e283]
+                  - columnheader "Created" [ref=f2e284]
+              - rowgroup [ref=f2e285]:
+                - row [ref=f2e286]:
+                  - cell "asdsad.com" [ref=f2e287]
+                  - cell "Active" [ref=f2e288]
+                  - cell "4" [ref=f2e290]
+                  - cell "29 Tem 2026 05:04" [ref=f2e291]
+                - row [ref=f2e292]:
+                  - cell "testaudit123.com" [ref=f2e293]
+                  - cell "Active" [ref=f2e294]
+                  - cell "9" [ref=f2e296]
+                  - cell "28 Tem 2026 19:56" [ref=f2e297]
+                - row [ref=f2e298]:
+                  - cell "mmkgams.space" [ref=f2e299]
+                  - cell "Active" [ref=f2e300]
+                  - cell "218" [ref=f2e302]
+                  - cell "07 Tem 2026 12:47" [ref=f2e303]
+          - generic [ref=f2e304]:
+            - heading "Security & Cleanup" [level=3] [ref=f2e312]
+            - generic [ref=f2e313]:
+              - generic [ref=f2e314]:
+                - generic [ref=f2e315]: Pending Pro Request
+                - generic [ref=f2e316]: "0"
+              - generic [ref=f2e317]:
+                - generic [ref=f2e318]: Inactive Users
+                - generic [ref=f2e319]: "0"
+              - generic [ref=f2e320]:
+                - generic [ref=f2e321]: Passworded Addresses
+                - generic [ref=f2e322]: "0"
+              - generic [ref=f2e323]:
+                - generic [ref=f2e324]: Expired Addresses
+                - generic [ref=f2e325]: "0"
+              - button "Manage Requests" [ref=f2e326] [cursor=pointer]
+        - generic [ref=f2e330]:
+          - generic [ref=f2e331]:
+            - generic [ref=f2e332]:
+              - heading "Recent Mail" [level=3] [ref=f2e339]
+              - button "View all mail" [ref=f2e341] [cursor=pointer]
+            - table [ref=f2e343]:
+              - rowgroup [ref=f2e344]:
+                - row [ref=f2e345]:
+                  - columnheader "Sender" [ref=f2e346]
+                  - columnheader "Recipient" [ref=f2e347]
+                  - columnheader "Subject" [ref=f2e348]
+                  - columnheader "Date" [ref=f2e349]
+                  - columnheader "Status" [ref=f2e350]
+                  - columnheader "Action" [ref=f2e351]
+              - rowgroup [ref=f2e352]:
+                - row [ref=f2e353]:
+                  - cell "no_reply@email.apple.com" [ref=f2e354]
+                  - cell "steam280@testaudit123.com" [ref=f2e355]
+                  - cell "Yeni cihaz girişi" [ref=f2e356]
+                  - cell "29 Tem 2026 01:01" [ref=f2e357]
+                  - cell "Incoming" [ref=f2e358]
+                  - cell [ref=f2e360]:
+                    - button [ref=f2e361] [cursor=pointer]
+                - row [ref=f2e365]:
+                  - cell "no-reply@amazon.com" [ref=f2e366]
+                  - cell "steam280@testaudit123.com" [ref=f2e367]
+                  - cell "Kargo güncellemesi" [ref=f2e368]
+                  - cell "29 Tem 2026 01:00" [ref=f2e369]
+                  - cell "Incoming" [ref=f2e370]
+                  - cell [ref=f2e372]:
+                    - button [ref=f2e373] [cursor=pointer]
+                - row [ref=f2e377]:
+                  - cell "no_reply@email.apple.com" [ref=f2e378]
+                  - cell "steam280@testaudit123.com" [ref=f2e379]
+                  - cell "Apple Kimliği kodu (411698)" [ref=f2e380]
+                  - cell "29 Tem 2026 00:59" [ref=f2e381]
+                  - cell "OTP" [ref=f2e382]
+                  - cell [ref=f2e384]:
+                    - button [ref=f2e385] [cursor=pointer]
+                - row [ref=f2e389]:
+                  - cell "account-security-noreply@accountprotection.microsoft.com" [ref=f2e390]
+                  - cell "steam280@testaudit123.com" [ref=f2e391]
+                  - cell "Microsoft hesap kodu" [ref=f2e392]
+                  - cell "29 Tem 2026 00:58" [ref=f2e393]
+                  - cell "Incoming" [ref=f2e394]
+                  - cell [ref=f2e396]:
+                    - button [ref=f2e397] [cursor=pointer]
+                - row [ref=f2e401]:
+                  - cell "no_reply@email.apple.com" [ref=f2e402]
+                  - cell "steam280@testaudit123.com" [ref=f2e403]
+                  - cell "Yeni cihaz girişi" [ref=f2e404]
+                  - cell "29 Tem 2026 00:57" [ref=f2e405]
+                  - cell "Incoming" [ref=f2e406]
+                  - cell [ref=f2e408]:
+                    - button [ref=f2e409] [cursor=pointer]
+          - generic [ref=f2e413]:
+            - heading "Mail Distribution" [level=3] [ref=f2e421]
+            - generic [ref=f2e422]:
+              - paragraph:
+                - generic: "250"
+                - generic: Total Mail
+              - generic [ref=f2e424]:
+                - generic [ref=f2e425]: Normal
+                - generic [ref=f2e427]: OTP
+  - contentinfo [ref=f2e429]:
+    - paragraph [ref=f2e430]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

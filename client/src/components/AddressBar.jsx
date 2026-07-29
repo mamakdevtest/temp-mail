@@ -150,7 +150,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
   return (
     <div className="space-y-4">
       {/* Signature composer */}
-      <div className="card p-5 sm:p-6">
+      <div className="card p-5 sm:p-6 animate-scale-in">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
             <p className="section-title">{t('addressBar.title')}</p>

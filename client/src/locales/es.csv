@@ -912,3 +912,8 @@ key,es
 "nav.learn","Recursos"
 "nav.mailbox","Buzón"
 "nav.scale","Escalar"
+"accountModal.tabs.addresses","Direcciones"
+"accountModal.tabsSubtitle.addresses","Etiquetas y favoritos"
+"accountModal.addressListTitle","Etiquetas y Favoritos"
+"accountModal.addressListHint","Etiqueta tus direcciones y marca favoritos."
+"accountModal.noAddresses","Aún no hay direcciones."

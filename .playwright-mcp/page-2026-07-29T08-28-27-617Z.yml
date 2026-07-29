@@ -1,0 +1,91 @@
+- generic [ref=f3e3]:
+  - complementary [ref=f3e4]:
+    - button "Inbox" [ref=f3e5] [cursor=pointer]:
+      - generic [ref=f3e10]:
+        - paragraph [ref=f3e11]: MS Temp Mail
+        - paragraph [ref=f3e12]: Mamak Studio temporary mail workspace
+    - navigation "Mobil menü" [ref=f3e13]:
+      - button "Inbox" [ref=f3e14] [cursor=pointer]
+      - button "Domains" [ref=f3e18] [cursor=pointer]
+      - button "Dokümanlar" [ref=f3e22] [cursor=pointer]
+      - button "Hesap" [ref=f3e25] [cursor=pointer]
+    - generic [ref=f3e29]:
+      - button "Ara veya komut çalıştır…" [ref=f3e30] [cursor=pointer]:
+        - generic [ref=f3e35]: ⌘K
+      - generic [ref=f3e37]:
+        - button "Giriş Yap" [ref=f3e38] [cursor=pointer]
+        - button "Kayıt Ol" [ref=f3e39] [cursor=pointer]
+  - main [ref=f3e40]:
+    - generic [ref=f3e41]:
+      - generic [ref=f3e42]:
+        - generic [ref=f3e43]:
+          - generic [ref=f3e44]:
+            - generic [ref=f3e45]:
+              - paragraph [ref=f3e46]: Geçici E-Posta Adresiniz
+              - paragraph [ref=f3e47]: Adresiniz anında aktif olur, mailler aşağıdaki gelen kutusuna düşer.
+            - generic [ref=f3e48]: Adres aktif ve kullanıma hazır
+          - generic [ref=f3e51]:
+            - textbox "username" [ref=f3e52]: prism1998
+            - generic [ref=f3e53]: "@"
+            - button "testaudit123.com" [ref=f3e55] [cursor=pointer]
+            - button "Kopyala" [ref=f3e59] [cursor=pointer]
+          - generic [ref=f3e63]:
+            - button "Kopyala" [ref=f3e64] [cursor=pointer]
+            - button "Yenile" [ref=f3e68] [cursor=pointer]
+            - button "Rastgele" [ref=f3e74] [cursor=pointer]
+            - button "Şifre Koru" [ref=f3e81] [cursor=pointer]
+        - button [ref=f3e87] [cursor=pointer]
+      - generic [ref=f3e94]:
+        - generic [ref=f3e96]:
+          - generic [ref=f3e97]:
+            - generic [ref=f3e98]:
+              - generic [ref=f3e99]:
+                - paragraph [ref=f3e103]: Gelen Kutusu
+                - generic [ref=f3e104]: Canlı
+              - button "Yenile" [ref=f3e106] [cursor=pointer]
+            - textbox "Ara..." [ref=f3e116]
+          - generic [ref=f3e118]:
+            - paragraph [ref=f3e123]: Henüz mail yok
+            - paragraph [ref=f3e124]: Yeni mesajlar anlık olarak burada görünür.
+        - generic [ref=f3e127]:
+          - paragraph [ref=f3e132]: Bir e-posta seçin
+          - paragraph [ref=f3e133]: Lütfen soldaki listeden bir e-posta seçerek içeriğini görüntüleyin.
+  - contentinfo [ref=f3e134]:
+    - paragraph [ref=f3e135]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - generic [ref=f3e137]:
+    - button "Kapat" [ref=f3e138] [cursor=pointer]
+    - generic [ref=f3e142]:
+      - generic [ref=f3e143]:
+        - heading "TempMail" [level=1] [ref=f3e148]
+        - paragraph [ref=f3e149]: Geçici e-posta, daha az spam.
+        - paragraph [ref=f3e150]: Hesapsız kalabilir, ücretsiz hesap açabilir veya Pro'ya yükseltebilirsin.
+      - generic [ref=f3e151]:
+        - generic [ref=f3e152]:
+          - button "Giriş Yap" [ref=f3e153] [cursor=pointer]
+          - button "Kayıt Ol" [ref=f3e154] [cursor=pointer]
+        - generic [ref=f3e155]:
+          - generic [ref=f3e156]:
+            - generic [ref=f3e157]: Kullanıcı Adı
+            - textbox "kullaniciadi" [active] [ref=f3e162]
+          - generic [ref=f3e163]:
+            - generic [ref=f3e164]: Şifre
+            - generic [ref=f3e165]:
+              - textbox "••••••" [ref=f3e169]
+              - button [ref=f3e170] [cursor=pointer]
+          - button "Giriş Yap" [ref=f3e174] [cursor=pointer]
+          - button "Hesapsız devam et" [ref=f3e177] [cursor=pointer]
+        - paragraph [ref=f3e178]:
+          - text: "Admin:"
+          - code [ref=f3e179]: admin
+          - text: /
+          - code [ref=f3e180]: admin123
+      - generic [ref=f3e181]:
+        - generic [ref=f3e182]:
+          - paragraph [ref=f3e187]: Hesapsız
+          - paragraph [ref=f3e188]: Giriş yapmadan başla
+        - generic [ref=f3e189]:
+          - paragraph [ref=f3e193]: Free
+          - paragraph [ref=f3e194]: Ücretsiz hesap aç
+        - generic [ref=f3e195]:
+          - paragraph [ref=f3e199]: Pro
+          - paragraph [ref=f3e200]: Yükseltilmiş hesap

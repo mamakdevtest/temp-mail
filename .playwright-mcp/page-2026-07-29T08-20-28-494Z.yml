@@ -1,0 +1,185 @@
+- generic [ref=f2e1]:
+  - generic [ref=f2e3]:
+    - complementary [ref=f2e4]:
+      - button "Inbox" [ref=f2e5] [cursor=pointer]:
+        - generic [ref=f2e10]:
+          - paragraph [ref=f2e11]: MS Temp Mail
+          - paragraph [ref=f2e12]: Mamak Studio temporary mail workspace
+      - navigation "Mobile menu" [ref=f2e13]:
+        - button "Inbox" [ref=f2e14] [cursor=pointer]
+        - button "Domains" [ref=f2e18] [cursor=pointer]
+        - button "Bulk Studio" [ref=f2e22] [cursor=pointer]
+        - button "Automation" [ref=f2e33] [cursor=pointer]
+        - button "Docs" [ref=f2e38] [cursor=pointer]
+        - button "Account" [ref=f2e41] [cursor=pointer]
+        - button "Operations" [ref=f2e45] [cursor=pointer]
+        - button "Bulk management" [ref=f2e48] [cursor=pointer]
+      - generic [ref=f2e59]:
+        - button "Search or run a command…" [ref=f2e60] [cursor=pointer]:
+          - generic [ref=f2e65]: ⌘K
+        - button "admin Admin User" [ref=f2e68] [cursor=pointer]:
+          - generic [ref=f2e70]:
+            - generic [ref=f2e71]: admin
+            - generic [ref=f2e72]: Admin User
+    - main [ref=f2e75]:
+      - generic [ref=f2e568]:
+        - generic [ref=f2e569]:
+          - generic [ref=f2e570]:
+            - paragraph [ref=f2e571]: Account Summary
+            - paragraph [ref=f2e572]: Quick status, usage and recent activity
+          - generic [ref=f2e573]:
+            - button "Settings" [ref=f2e574] [cursor=pointer]
+            - button [ref=f2e578] [cursor=pointer]
+        - generic [ref=f2e582]:
+          - generic [ref=f2e583]:
+            - img "avatar" [ref=f2e585]
+            - generic [ref=f2e586]:
+              - paragraph [ref=f2e587]: Account Area
+              - paragraph [ref=f2e588]: admin
+              - paragraph [ref=f2e589]: "@admin"
+              - generic [ref=f2e590]:
+                - generic [ref=f2e591]: Admin
+                - generic [ref=f2e592]: Active
+            - generic [ref=f2e593]:
+              - generic [ref=f2e595]:
+                - paragraph [ref=f2e596]: 1%
+                - paragraph [ref=f2e597]: Usage
+              - paragraph [ref=f2e598]: 52/9999
+          - generic [ref=f2e599]:
+            - generic [ref=f2e600]:
+              - paragraph [ref=f2e601]: Address
+              - paragraph [ref=f2e602]: "52"
+            - generic [ref=f2e603]:
+              - paragraph [ref=f2e604]: Mail
+              - paragraph [ref=f2e605]: "150"
+            - generic [ref=f2e606]:
+              - paragraph [ref=f2e607]: Plan
+              - paragraph [ref=f2e608]: Admin
+            - generic [ref=f2e609]:
+              - paragraph [ref=f2e610]: Domain
+              - paragraph [ref=f2e611]: mmkgams.space
+        - button "Recent Your latest opened addresses 3" [ref=f2e615] [cursor=pointer]:
+          - generic [ref=f2e616]:
+            - paragraph [ref=f2e617]: Recent
+            - paragraph [ref=f2e618]: Your latest opened addresses
+          - generic [ref=f2e619]: "3"
+        - button [ref=f2e624] [cursor=pointer]:
+          - generic [ref=f2e625]:
+            - paragraph [ref=f2e626]: All Passworded Emails
+            - paragraph [ref=f2e627]: Addresses opened with a password
+    - contentinfo [ref=f2e429]:
+      - paragraph [ref=f2e430]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - generic [ref=f2e488]: "0"
+  - dialog [ref=f2e631]:
+    - generic [ref=f2e633]:
+      - complementary [ref=f2e634]:
+        - generic [ref=f2e635]:
+          - button "Close" [ref=f2e636] [cursor=pointer]
+          - generic [ref=f2e640]:
+            - paragraph [ref=f2e641]: Account Settings
+            - paragraph [ref=f2e642]: Editing Center
+        - generic [ref=f2e643]:
+          - generic [ref=f2e646]:
+            - paragraph [ref=f2e647]: Account Settings
+            - paragraph [ref=f2e648]: admin
+            - paragraph [ref=f2e649]: admin@tempmail.local
+          - generic [ref=f2e650]:
+            - generic [ref=f2e651]: Admin
+            - generic [ref=f2e652]: Active
+        - navigation [ref=f2e654]:
+          - button "General Appearance and core settings" [ref=f2e655] [cursor=pointer]:
+            - generic [ref=f2e659]:
+              - generic [ref=f2e660]: General
+              - generic [ref=f2e661]: Appearance and core settings
+          - button "Profile Name, email and photo" [active] [ref=f2e662] [cursor=pointer]:
+            - generic [ref=f2e666]:
+              - generic [ref=f2e667]: Profile
+              - generic [ref=f2e668]: Name, email and photo
+          - button "Security Password and account protection" [ref=f2e669] [cursor=pointer]:
+            - generic [ref=f2e672]:
+              - generic [ref=f2e673]: Security
+              - generic [ref=f2e674]: Password and account protection
+          - button "Preferences Notifications and domains" [ref=f2e675] [cursor=pointer]:
+            - generic [ref=f2e679]:
+              - generic [ref=f2e680]: Preferences
+              - generic [ref=f2e681]: Notifications and domains
+          - button "accountModal.tabs.addresses accountModal.tabsSubtitle.addresses" [ref=f2e682] [cursor=pointer]:
+            - generic [ref=f2e686]:
+              - generic [ref=f2e687]: accountModal.tabs.addresses
+              - generic [ref=f2e688]: accountModal.tabsSubtitle.addresses
+          - button "Sessions Devices and logins" [ref=f2e689] [cursor=pointer]:
+            - generic [ref=f2e694]:
+              - generic [ref=f2e695]: Sessions
+              - generic [ref=f2e696]: Devices and logins
+          - button "Usage Plan and quota info" [ref=f2e697] [cursor=pointer]:
+            - generic [ref=f2e700]:
+              - generic [ref=f2e701]: Usage
+              - generic [ref=f2e702]: Plan and quota info
+        - generic [ref=f2e703]:
+          - paragraph [ref=f2e704]: Tip
+          - paragraph [ref=f2e705]: You can switch tabs without saving. Profile and security sections work directly in this window.
+      - generic [ref=f2e706]:
+        - generic [ref=f2e707]:
+          - generic [ref=f2e708]:
+            - paragraph [ref=f2e709]: Profile
+            - heading "Profile" [level=3] [ref=f2e798]
+            - paragraph [ref=f2e711]: Name, email and photo
+          - generic [ref=f2e712]:
+            - button "Reset" [ref=f2e799] [cursor=pointer]
+            - button "Save" [ref=f2e803] [cursor=pointer]
+        - generic [ref=f2e809]:
+          - generic [ref=f2e810]:
+            - generic [ref=f2e813]:
+              - paragraph [ref=f2e814]: Account details
+              - heading "admin" [level=4] [ref=f2e815]
+              - paragraph [ref=f2e816]: "@admin"
+              - generic [ref=f2e817]:
+                - generic [ref=f2e818]: Admin
+                - generic [ref=f2e819]: Active
+            - generic [ref=f2e821]:
+              - generic [ref=f2e822]:
+                - generic [ref=f2e823]:
+                  - paragraph [ref=f2e824]: Display name
+                  - textbox "Display name" [ref=f2e825]: admin
+                - generic [ref=f2e826]:
+                  - paragraph [ref=f2e827]: Username
+                  - textbox "Username" [disabled] [ref=f2e828]: admin
+                  - paragraph [ref=f2e829]: Username right
+              - generic [ref=f2e830]:
+                - generic [ref=f2e831]:
+                  - generic [ref=f2e832]:
+                    - paragraph [ref=f2e833]: Email
+                    - paragraph [ref=f2e834]: Email change
+                  - generic [ref=f2e835]: admin@tempmail.local
+                - generic [ref=f2e836]:
+                  - textbox "Email" [ref=f2e837]: admin@tempmail.local
+                  - button "Save" [ref=f2e838] [cursor=pointer]
+            - generic [ref=f2e842]:
+              - generic [ref=f2e843] [cursor=pointer]: Upload photo
+              - button "Reset" [ref=f2e847] [cursor=pointer]
+              - button "Save profile" [ref=f2e851] [cursor=pointer]
+          - complementary [ref=f2e856]:
+            - generic [ref=f2e857]:
+              - paragraph [ref=f2e862]: Quick status
+              - generic [ref=f2e863]:
+                - generic [ref=f2e864]:
+                  - generic [ref=f2e865]: Username right
+                  - generic [ref=f2e866]: Used
+                - generic [ref=f2e867]:
+                  - generic [ref=f2e868]: Email change
+                  - generic [ref=f2e869]: Active
+                - generic [ref=f2e870]:
+                  - generic [ref=f2e871]: Pending email
+                  - generic [ref=f2e872]: "-"
+            - generic [ref=f2e873]:
+              - paragraph [ref=f2e874]: Account details
+              - generic [ref=f2e875]:
+                - generic [ref=f2e876]:
+                  - generic [ref=f2e877]: Name, email and photo
+                  - generic [ref=f2e878]: 07 Tem 2026 01:14
+                - generic [ref=f2e879]:
+                  - generic [ref=f2e880]: Devices and logins
+                  - generic [ref=f2e881]: 29 Tem 2026 08:07
+                - generic [ref=f2e882]:
+                  - generic [ref=f2e883]: General
+                  - generic [ref=f2e884]: dark / en

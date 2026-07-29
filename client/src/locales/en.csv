@@ -912,3 +912,8 @@ key,en
 "nav.learn","Resources"
 "nav.mailbox","Mailbox"
 "nav.scale","Scale"
+"accountModal.tabs.addresses","Addresses"
+"accountModal.tabsSubtitle.addresses","Tags and favorites"
+"accountModal.addressListTitle","Tags & Favorites"
+"accountModal.addressListHint","Tag your addresses and mark favorites."
+"accountModal.noAddresses","No addresses yet."

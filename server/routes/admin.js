@@ -281,9 +281,12 @@ router.get('/domains/:id/subdomains', (req, res) => {
     }
 
     const subdomains = db.all(
-      'SELECT * FROM subdomains WHERE domain_id = ? ORDER BY created_at DESC',
+      `SELECT s.* FROM subdomains s WHERE s.domain_id = ? ORDER BY s.created_at DESC`,
       [id]
-    );
+    ).map((s) => ({
+      ...s,
+      address_count: db.get(`SELECT COUNT(*) as c FROM addresses WHERE address LIKE ?`, [`%@${s.subdomain}.${domain.domain}`])?.c || 0,
+    }));
 
     res.json({ domain: domain.domain, subdomains });
   } catch (err) {
@@ -379,7 +382,8 @@ router.get('/stats', (req, res) => {
     const db = getDb();
 
     const totalEmails = db.get('SELECT COUNT(*) as count FROM emails');
-    const totalAddresses = db.get('SELECT COUNT(*) as count FROM addresses');
+    // Exclude bulk-pool addresses from dashboard counts — only real single addresses matter.
+    const totalAddresses = db.get('SELECT COUNT(*) as count FROM addresses WHERE bulk_pool_id IS NULL');
     const recentEmails = db.get(
       "SELECT COUNT(*) as count FROM emails WHERE received_at > datetime('now', '-24 hours')"
     );
@@ -411,6 +415,7 @@ router.get('/stats', (req, res) => {
       SELECT e.id, e.body_text, e.body_html, e.sender, e.subject, e.received_at, a.address
       FROM emails e
       JOIN addresses a ON e.address_id = a.id
+      WHERE a.bulk_pool_id IS NULL
       ORDER BY e.received_at DESC
       LIMIT 100
     `);
@@ -438,6 +443,7 @@ router.get('/stats', (req, res) => {
              a.address as recipient_address
       FROM emails e
       JOIN addresses a ON e.address_id = a.id
+      WHERE a.bulk_pool_id IS NULL
       ORDER BY e.received_at DESC
       LIMIT 50
     `).map((mail) => ({ ...mail, otp_code: mail.otp_code || '', has_attachments: !!mail.has_attachments }));
@@ -810,6 +816,30 @@ router.put('/bulk-pools/:id/status', (req, res) => {
     res.json({ id: pool.id, status });
   } catch (err) {
     res.status(500).json({ error: 'internal_error', message: 'Bulk havuzu güncellenemedi' });
+  }
+});
+
+// Transfer bulk pool ownership to another user (admin only).
+router.put('/bulk-pools/:id/owner', (req, res) => {
+  try {
+    const db = getDb();
+    const newOwnerId = Number.parseInt(req.body?.owner_user_id, 10);
+    if (!Number.isInteger(newOwnerId) || newOwnerId < 1) return res.status(400).json({ error: 'invalid_request', message: 'Geçerli bir kullanıcı kimliği gerekli' });
+    const target = db.get('SELECT id, username, is_active FROM users WHERE id = ?', [newOwnerId]);
+    if (!target) return res.status(404).json({ error: 'not_found', message: 'Hedef kullanıcı bulunamadı' });
+    if (!target.is_active) return res.status(400).json({ error: 'invalid_request', message: 'Pasif kullanıcıya havuz devredilemez' });
+    const pool = db.get('SELECT id, user_id, prefix FROM bulk_address_pools WHERE id = ?', [req.params.id]);
+    if (!pool) return res.status(404).json({ error: 'not_found', message: 'Bulk havuzu bulunamadı' });
+    db.transaction(() => {
+      db.run('UPDATE bulk_address_pools SET user_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [newOwnerId, pool.id]);
+      // Reassign all addresses in the pool to the new owner too.
+      db.run('UPDATE addresses SET user_id = ? WHERE bulk_pool_id = ?', [newOwnerId, pool.id]);
+    });
+    writeAudit(req, { action: 'bulk.pool.transfer', entityType: 'bulk_pool', entityId: pool.id, metadata: { from_user_id: pool.user_id, to_user_id: newOwnerId, prefix: pool.prefix } });
+    res.json({ id: pool.id, owner_user_id: newOwnerId, owner_username: target.username });
+  } catch (err) {
+    console.error('Bulk havuz devir hatası:', err);
+    res.status(500).json({ error: 'internal_error', message: 'Havuz devredilemedi' });
   }
 });
 

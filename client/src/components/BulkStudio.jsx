@@ -26,6 +26,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [poolsLoading, setPoolsLoading] = useState(true);
+  const [extendingId, setExtendingId] = useState(null);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
 
@@ -83,6 +84,25 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
       await loadPools();
     } catch (nextError) { setError(nextError.message); }
     finally { setLoading(false); }
+  };
+
+  // Extend an existing pool by N addresses (re-POST with same prefix/domain/subdomain).
+  const extendPool = async (pool, n) => {
+    setExtendingId(pool.id);
+    setError('');
+    try {
+      const baseDomain = pool.domain.includes('.') ? pool.domain.split('.').slice(-2).join('.') : pool.domain;
+      const sub = pool.domain.includes('.') && pool.domain.split('.').length > 2 ? pool.domain.split('.')[0] : '';
+      const response = await apiFetch('/api/addresses/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ prefix: pool.prefix, domain: baseDomain, subdomain: sub || undefined, count: n }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || data.error || t('bulk.createFailed'));
+      await loadPools();
+    } catch (nextError) { setError(nextError.message); }
+    finally { setExtendingId(null); }
   };
 
   if (!canUseBulk) {
@@ -198,6 +218,20 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
                   <Button variant="primary" size="sm" icon={Inbox} onClick={() => onOpenPool?.(pool)}>{t('bulk.openMails')}</Button>
                   <Button variant="secondary" size="sm" onClick={() => { setPrefix(pool.prefix); setDomain(pool.domain); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>{t('bulk.continue')}</Button>
                   <IconButton icon={Clipboard} label={t('bulk.copy')} onClick={() => navigator.clipboard.writeText(`${pool.prefix}_*@${pool.domain}`)} />
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-brand-border/40">
+                  <span className="text-[11px] text-txt-muted mr-1">Hızlı ekle:</span>
+                  {[100, 250, 500, 1000].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={!!extendingId}
+                      onClick={() => extendPool(pool, n)}
+                      className="px-2 py-1 rounded-[var(--r-sm)] text-[11px] font-medium border border-brand-border text-txt-secondary hover:bg-brand-surface2 transition-colors disabled:opacity-50"
+                    >
+                      +{n}
+                    </button>
+                  ))}
                 </div>
               </article>
             ))}

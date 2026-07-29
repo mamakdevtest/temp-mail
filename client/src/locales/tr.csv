@@ -912,3 +912,8 @@ key,tr
 "nav.learn","Kaynaklar"
 "nav.mailbox","Posta Kutusu"
 "nav.scale","Ölçek"
+"accountModal.tabs.addresses","Adresler"
+"accountModal.tabsSubtitle.addresses","Etiket ve favoriler"
+"accountModal.addressListTitle","Etiket ve Favoriler"
+"accountModal.addressListHint","Adreslerine etiket ata, favorilere ekle."
+"accountModal.noAddresses","Henüz adres yok."
