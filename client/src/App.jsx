@@ -690,10 +690,83 @@ export default function App() {
 
   return (
     <LocaleProvider language={language}>
-    <div className="app-shell min-h-screen bg-brand-bg relative flex flex-col">
-      {/* Top header — single navigation surface */}
-      <header className="sticky top-0 z-40 border-b border-brand-border/60 bg-brand-bg/85 backdrop-blur-xl">
-        <div className="mx-auto max-w-[1400px] h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
+    <div className="app-shell min-h-screen bg-brand-bg relative flex flex-col lg:flex-row">
+      {/* Desktop left sidebar */}
+      <aside className="hidden lg:flex sticky top-0 h-screen w-60 shrink-0 flex-col border-r border-brand-border/60 bg-brand-bg/85 backdrop-blur-xl z-30">
+        <button
+          type="button"
+          onClick={() => navigate('inbox')}
+          className="flex items-center gap-2.5 px-4 h-16 border-b border-brand-border/60 hover:bg-brand-surface2 transition-colors"
+          aria-label={t('app.inbox')}
+        >
+          <div className="w-9 h-9 rounded-[var(--r-lg)] bg-[rgb(var(--brand))] flex items-center justify-center shrink-0">
+            <Mail size={18} className="text-[rgb(var(--on-brand))]" />
+          </div>
+          <div className="min-w-0 text-left">
+            <p className="text-sm font-bold tracking-tight text-txt-primary leading-none">MS Temp Mail</p>
+            <p className="text-[10px] text-txt-muted mt-0.5">{t('app.brandSubtitle')}</p>
+          </div>
+        </button>
+        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5" aria-label={t('app.mobileNavAria')}>
+          {navGroups.flatMap((g) => g.items).map((it) => {
+            const active = page === it.id;
+            return (
+              <button
+                key={it.id}
+                type="button"
+                onClick={() => navigate(it.id)}
+                aria-current={active ? 'page' : undefined}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${active ? 'bg-[rgb(var(--brand)/0.12)] text-[rgb(var(--brand))]' : 'text-txt-secondary hover:bg-brand-surface2 hover:text-txt-primary'}`}
+              >
+                <it.icon size={18} className={active ? 'text-[rgb(var(--brand))]' : 'text-txt-muted'} />
+                {it.label}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="p-2 border-t border-brand-border/60">
+          <button onClick={() => setCmdkOpen(true)} className="w-full flex items-center gap-2 rounded-[var(--r-md)] border border-brand-border bg-brand-bg/60 px-3 py-2 text-txt-muted hover:text-txt-secondary transition-colors text-sm" aria-label={t('cmdk.search')}>
+            <Search size={14} />
+            <span className="flex-1 text-left">{t('cmdk.search')}</span>
+            <kbd className="text-[10px] border border-brand-border rounded px-1.5 py-0.5">⌘K</kbd>
+          </button>
+          <div className="mt-2">
+            {auth.isGuest ? (
+              <div className="flex gap-2">
+                <button onClick={() => openAuth('login')} className="btn-ghost flex-1 text-sm">{t('app.signIn')}</button>
+                <button onClick={() => openAuth('register')} className="btn-primary flex-1 text-sm">{t('app.signUp')}</button>
+              </div>
+            ) : (
+              <div className="relative" ref={userMenuRef}>
+                <button onClick={() => setShowUserMenu((v) => !v)} className="w-full flex items-center gap-2.5 rounded-[var(--r-md)] px-2 py-2 hover:bg-brand-surface2 transition-colors" aria-haspopup="menu" aria-expanded={showUserMenu}>
+                  <Avatar src={auth.user?.avatar_url} fallback={(auth.user?.username || 'U')[0].toUpperCase()} size="sm" />
+                  <span className="min-w-0 text-left flex-1">
+                    <span className="block text-sm font-medium text-txt-primary leading-none truncate">{auth.user?.display_name || auth.user?.username}</span>
+                    <span className="block text-[11px] text-txt-muted mt-1">{auth.isAdmin ? t('app.roleAdmin') : auth.isProPlus ? t('app.roleProPlus') : auth.isPro ? t('app.rolePro') : t('app.roleFree')}</span>
+                  </span>
+                  <ChevronDown size={14} className="text-txt-muted" />
+                </button>
+                {showUserMenu && (
+                  <div className="absolute bottom-full left-0 mb-2 w-56 card p-1.5 z-50 animate-slide-up" role="menu">
+                    <div className="px-2.5 py-2.5 border-b border-brand-border/50 mb-1">
+                      <p className="text-sm font-medium text-txt-primary truncate">{auth.user?.display_name || auth.user?.username}</p>
+                      <p className="text-[12px] text-txt-muted truncate">{auth.user?.email}</p>
+                    </div>
+                    <button type="button" onClick={openAccountSettings} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Settings size={15} /> {t('app.accountSettings')}</button>
+                    {auth.isAdmin && <button onClick={() => { setShowUserMenu(false); navigate('admin'); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-txt-secondary hover:bg-brand-surface2 transition-colors"><Shield size={15} /> {t('app.adminPanel')}</button>}
+                    {auth.isFree && <button onClick={() => { setShowUserMenu(false); setProReqShow(true); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--otp))] hover:bg-[rgb(var(--otp)/0.08)] transition-colors"><Crown size={15} /> {t('app.proUpgrade')}</button>}
+                    <button type="button" onClick={() => auth.logout()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--r-md)] text-sm text-[rgb(var(--danger-fg))] hover:bg-[rgb(var(--danger)/0.08)] transition-colors"><LogOut size={15} /> {t('app.logout')}</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Mobile top header (hidden on desktop — sidebar handles nav) */}
+      <header className="lg:hidden sticky top-0 z-40 border-b border-brand-border/60 bg-brand-bg/85 backdrop-blur-xl">
+        <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
           {/* Brand — click returns to inbox home */}
           <button
             type="button"
@@ -764,7 +837,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
+      <main className="flex-1 w-full min-w-0 px-4 sm:px-6 py-6 pb-24 lg:pb-6 lg:max-w-[1400px] lg:mx-auto">
 
       <Modal
         show={pwModal.show}

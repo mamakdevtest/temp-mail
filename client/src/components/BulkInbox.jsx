@@ -97,8 +97,8 @@ export default function BulkInbox({ token, pool }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <p className="t-body-sm text-txt-muted">{t('bulkInbox.mailboxCount', { count: headline?.address_count || 0 })} · {statText}</p>
-        <Button variant="secondary" size="sm" onClick={() => load()} disabled={loading} icon={undefined}>
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> {t('bulkInbox.refresh')}
+        <Button variant="secondary" size="sm" onClick={() => load()} disabled={loading} icon={undefined} className={loading ? 'animate-pulse-soft' : ''}>
+          <RefreshCw size={15} className={`transition-transform duration-300 ${loading ? 'animate-spin scale-110' : 'group-hover:rotate-180'}`} /> {loading ? t('bulkInbox.refreshing') || '...' : t('bulkInbox.refresh')}
         </Button>
       </div>
 

@@ -166,28 +166,28 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
 
         {/* Mono address line */}
         <form onSubmit={handleSubmit} className="rounded-[var(--r-lg)] border border-brand-border bg-brand-bg/60 overflow-hidden">
-          <div className="flex items-center gap-1 px-4 py-3.5 flex-wrap sm:flex-nowrap">
+          <div className="flex flex-col items-center gap-0 px-4 py-4 sm:flex-row sm:items-center sm:gap-1 sm:px-4 sm:py-3.5 sm:flex-nowrap">
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9._-]/g, ''))}
               placeholder="username"
-              className="min-w-0 flex-[1_1_140px] bg-transparent text-right font-mono text-base sm:text-xl font-semibold text-txt-primary outline-none placeholder:text-txt-disabled truncate"
+              className="min-w-0 w-full sm:flex-[1_1_140px] bg-transparent text-center sm:text-right font-mono text-base sm:text-xl font-semibold text-txt-primary outline-none placeholder:text-txt-disabled truncate"
               spellCheck={false}
               autoComplete="off"
               aria-label="username"
             />
-            <span className="shrink-0 font-mono text-lg sm:text-2xl font-semibold text-txt-muted">@</span>
-            <div className="relative min-w-0 flex-[1_1_220px]">
+            <span className="shrink-0 font-mono text-lg sm:text-2xl font-semibold text-txt-muted text-center">@</span>
+            <div className="relative min-w-0 w-full sm:w-auto sm:flex-[1_1_220px] flex justify-center sm:justify-start">
               <button
                 ref={domainButtonRef}
                 type="button"
                 onClick={() => setShowDomainMenu((v) => !v)}
-                className="w-full min-w-0 inline-flex items-center gap-2 rounded-[var(--r-md)] px-2 py-1.5 text-left hover:bg-brand-surface2 transition-colors"
+                className="w-full sm:w-auto min-w-0 inline-flex items-center justify-center gap-2 rounded-[var(--r-md)] px-2 py-1.5 sm:text-left hover:bg-brand-surface2 transition-colors"
                 aria-haspopup="listbox"
                 aria-expanded={showDomainMenu}
               >
-                <span className="min-w-0 flex-1 truncate font-mono text-base sm:text-xl font-semibold text-[rgb(var(--brand))]">{displayDomain || 'domain'}</span>
+                <span className="min-w-0 flex-1 truncate font-mono text-base sm:text-xl font-semibold text-[rgb(var(--brand))] text-center sm:text-left">{displayDomain || 'domain'}</span>
                 <ChevronDown size={16} className={`shrink-0 text-txt-muted transition-transform ${showDomainMenu ? 'rotate-180' : ''}`} />
               </button>
 
@@ -251,7 +251,7 @@ export default function AddressBar({ currentAddress, loading, error, domains, do
         </form>
 
         {/* Actions */}
-        <div className="flex flex-wrap items-center gap-2 mt-4">
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 mt-4">
           {isModified ? (
             <button onClick={handleSubmit} disabled={loading || !username || !selectedFullDomain} className="btn-primary">
               {loading ? t('addressBar.loadingAction') : t('addressBar.openAddress')}

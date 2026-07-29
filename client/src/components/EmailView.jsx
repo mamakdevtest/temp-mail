@@ -89,18 +89,30 @@ export default function EmailView({ email, onClose, api, onReply, onCopyOtp, isL
           </div>
         </div>
 
-        {email.otp_code && (
-          <div className="p-5 rounded-[var(--r-xl)] bg-[rgb(var(--otp)/0.12)] border-2 border-[rgb(var(--otp)/0.5)] flex items-center justify-between gap-4 animate-pop-in relative overflow-hidden" style={{ boxShadow: '0 0 24px rgb(var(--otp) / 0.35), inset 0 0 16px rgb(var(--otp) / 0.1)' }}>
-            <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle at 30% 50%, rgb(var(--otp) / 0.4), transparent 70%)' }} />
-            <div className="min-w-0 relative">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-[rgb(var(--otp))] font-bold flex items-center gap-1.5"><KeyRound size={12} /> {t('emailView.otpCode')}</p>
-              <p className="text-4xl font-mono font-extrabold tracking-[0.2em] text-[rgb(var(--otp))] mt-1.5" style={{ textShadow: '0 0 12px rgb(var(--otp) / 0.8), 0 0 24px rgb(var(--otp) / 0.4)' }}>{email.otp_code}</p>
+        {email.otp_code && (() => {
+          // ponytail: pick a neon hue from the OTP code itself so each mail is
+          // stable but varied across green / red / white / blue.
+          const NEON = [
+            { rgb: '52 211 153', label: 'green' },
+            { rgb: '248 113 113', label: 'red' },
+            { rgb: '241 240 255', label: 'white' },
+            { rgb: '56 189 248', label: 'blue' },
+          ];
+          const sum = String(email.otp_code).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+          const hue = NEON[sum % NEON.length];
+          return (
+            <div className="p-5 rounded-[var(--r-xl)] flex items-center justify-between gap-4 animate-pop-in relative overflow-hidden" style={{ background: `rgb(${hue.rgb} / 0.12)`, border: `2px solid rgb(${hue.rgb} / 0.55)`, boxShadow: `0 0 28px rgb(${hue.rgb} / 0.4), inset 0 0 18px rgb(${hue.rgb} / 0.12)` }}>
+              <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: `radial-gradient(circle at 30% 50%, rgb(${hue.rgb} / 0.45), transparent 70%)` }} />
+              <div className="min-w-0 relative">
+                <p className="text-[11px] uppercase tracking-[0.2em] font-bold flex items-center gap-1.5" style={{ color: `rgb(${hue.rgb})` }}><KeyRound size={12} /> {t('emailView.otpCode')}</p>
+                <p className="text-4xl font-mono font-extrabold tracking-[0.2em] mt-1.5" style={{ color: `rgb(${hue.rgb})`, textShadow: `0 0 14px rgb(${hue.rgb} / 0.9), 0 0 28px rgb(${hue.rgb} / 0.5)` }}>{email.otp_code}</p>
+              </div>
+              <button onClick={handleOtpCopy} className="btn-secondary shrink-0 relative" style={{ borderColor: `rgb(${hue.rgb} / 0.5)`, color: otpCopied ? 'rgb(var(--success-fg))' : `rgb(${hue.rgb})` }}>
+                {otpCopied ? <Check size={14} /> : <Copy size={14} />} {otpCopied ? t('emailView.copied') : t('emailView.copy')}
+              </button>
             </div>
-            <button onClick={handleOtpCopy} className={`btn-secondary shrink-0 relative !border-[rgb(var(--otp)/0.5)] ${otpCopied ? '!text-[rgb(var(--success-fg))]' : '!text-[rgb(var(--otp))]'}`}>
-              {otpCopied ? <Check size={14} /> : <Copy size={14} />} {otpCopied ? t('emailView.copied') : t('emailView.copy')}
-            </button>
-          </div>
-        )}
+          );
+        })()}
 
         <Tabs
           variant="pills"
