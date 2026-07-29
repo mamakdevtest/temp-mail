@@ -5,7 +5,7 @@ import { useLocale } from '../i18n';
 import { PageHeader, Card, Field, Input, Select, Button, IconButton, EmptyState, ErrorState, StatCard } from './ui';
 import { ListSkeleton } from './Skeleton';
 
-const COUNTS = [5, 10, 25, 50, 100];
+const COUNTS = [5, 10, 25, 50, 100, 250, 500, 1000];
 
 function downloadAddresses(addresses, prefix) {
   const blob = new Blob([addresses.join('\n')], { type: 'text/plain;charset=utf-8' });
@@ -22,6 +22,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
   const [pools, setPools] = useState([]);
   const [prefix, setPrefix] = useState('');
   const [domain, setDomain] = useState('');
+  const [subdomain, setSubdomain] = useState('');
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [poolsLoading, setPoolsLoading] = useState(true);
@@ -35,6 +36,10 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
   useEffect(() => {
     if (!domain && activeDomains[0]?.domain) setDomain(activeDomains[0].domain);
   }, [domain, activeDomains]);
+  // Reset subdomain when domain changes.
+  useEffect(() => { setSubdomain(''); }, [domain]);
+  const matchedDomain = activeDomains.find((d) => d.domain === domain);
+  const domainSubdomains = matchedDomain?.subdomains || [];
 
   const loadPools = async () => {
     if (!token) return;
@@ -50,11 +55,12 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
 
   useEffect(() => { void loadPools(); }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const matchedPool = useMemo(() => pools.find((pool) => pool.prefix === prefix.toLowerCase() && pool.domain === domain), [pools, prefix, domain]);
+  const matchedPool = useMemo(() => pools.find((pool) => pool.prefix === prefix.toLowerCase() && pool.domain === (subdomain ? `${subdomain}.${domain}` : domain)), [pools, prefix, domain, subdomain]);
   const startIndex = Number(matchedPool?.next_index || 0);
   const normalizedPrefix = prefix.trim().toLowerCase();
-  const previewStart = normalizedPrefix && domain ? `${normalizedPrefix}_${startIndex}@${domain}` : 'prefix_0@domain';
-  const previewEnd = normalizedPrefix && domain ? `${normalizedPrefix}_${startIndex + Math.max(1, count) - 1}@${domain}` : 'prefix_n@domain';
+  const fullDomain = subdomain ? `${subdomain}.${domain}` : domain;
+  const previewStart = normalizedPrefix && domain ? `${normalizedPrefix}_${startIndex}@${fullDomain}` : 'prefix_0@domain';
+  const previewEnd = normalizedPrefix && domain ? `${normalizedPrefix}_${startIndex + Math.max(1, count) - 1}@${fullDomain}` : 'prefix_n@domain';
 
   const createPool = async () => {
     setError('');
@@ -69,7 +75,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
       const response = await apiFetch('/api/addresses/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ prefix: normalizedPrefix, domain, count }),
+        body: JSON.stringify({ prefix: normalizedPrefix, domain, subdomain, count }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || data.error || t('bulk.createFailed'));
@@ -111,6 +117,14 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
               {activeDomains.map((item) => <option key={item.id || item.domain} value={item.domain}>{item.domain}</option>)}
             </Select>
           </Field>
+          {domainSubdomains.length > 0 && (
+            <Field label={t('bulk.subdomainLabel') || 'Subdomain (opsiyonel)'}>
+              <Select value={subdomain} onChange={(event) => setSubdomain(event.target.value)}>
+                <option value="">{t('bulk.noSubdomain') || '— Yok —'}</option>
+                {domainSubdomains.map((sub) => <option key={sub.id || sub.name} value={sub.name}>{sub.full_domain}</option>)}
+              </Select>
+            </Field>
+          )}
           <Field label={t('bulk.howMany')}>
             <div className="flex flex-wrap gap-1.5">
               {COUNTS.map((value) => (
@@ -124,7 +138,7 @@ export default function BulkStudio({ token, user, pkg, domains = [], onOpenPool 
                 </button>
               ))}
             </div>
-            <Input className="mt-2" type="number" min="1" max="100" value={count} onChange={(event) => setCount(Math.min(100, Math.max(1, Number(event.target.value) || 1)))} />
+            <Input className="mt-2" type="number" min="1" max="1000" value={count} onChange={(event) => setCount(Math.min(1000, Math.max(1, Number(event.target.value) || 1)))} />
           </Field>
           <Button variant="primary" className="w-full" onClick={createPool} loading={loading} icon={loading ? undefined : Plus}>
             {loading ? t('bulk.preparing') : t('bulk.createAddresses')}

@@ -585,14 +585,15 @@ export default function App() {
 
   useEffect(() => {
     // D1: restore last address on mount (guest OR logged-in). If none saved,
-    // generate a random one once domains are loaded.
-    if (!restoredRef.current) {
-      restoredRef.current = true;
-      (async () => {
-        const ok = await restoreLastAddress();
-        if (!ok && domains.length > 0 && !addr) genRandom();
-      })();
-    }
+    // generate a random one once domains are loaded. Wait for domains so the
+    // restore attempt and fallback both have a valid domain to work with.
+    if (restoredRef.current) return;
+    if (domains.length === 0) return;
+    restoredRef.current = true;
+    (async () => {
+      const ok = await restoreLastAddress();
+      if (!ok && !addr) genRandom();
+    })();
   }, [restoreLastAddress, domains.length, addr, genRandom]);
 
   useEffect(() => {
@@ -964,17 +965,17 @@ export default function App() {
       {/* Command palette */}
       <CommandPalette open={cmdkOpen} onClose={() => setCmdkOpen(false)} items={commandItems} placeholder={t('cmdk.search')} emptyLabel={t('cmdk.empty')} />
 
-      {/* Bulk Inbox drawer */}
-      <Drawer
+      {/* Bulk Inbox full-screen modal */}
+      <Modal
         show={Boolean(bulkInboxPool)}
         onClose={() => setBulkInboxPool(null)}
         title={bulkInboxPool ? `${bulkInboxPool.prefix}_*@${bulkInboxPool.domain}` : ''}
         subtitle={t('bulkInbox.modalSubtitle')}
-        width="max-w-2xl"
+        size="full"
         closeLabel={t('app.close')}
       >
         {bulkInboxPool && <BulkInbox token={auth.token} pool={bulkInboxPool} />}
-      </Drawer>
+      </Modal>
 
       {/* Toast */}
       {notif && (

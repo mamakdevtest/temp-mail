@@ -258,7 +258,7 @@ router.get('/bulk/:poolId/emails', requireApiScope('emails:read'), rateLimit({ m
     }
     if (otpOnly) where.push("COALESCE(e.otp_code, '') <> ''");
 
-    const emails = db.all(`SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments, e.otp_code,
+    const emails = db.all(`SELECT e.id, e.sender, e.subject, e.received_at, e.has_attachments, e.otp_code, e.provider_tag,
       a.address AS recipient_address
       FROM emails e JOIN addresses a ON a.id = e.address_id
       WHERE ${where.join(' AND ')}
@@ -301,12 +301,23 @@ router.post('/bulk', requireApiScope('bulk:write'), rateLimit({ max: 5, key: 'ad
     }
     const prefix = String(req.body?.prefix || '').trim().toLowerCase();
     const domainName = String(req.body?.domain || '').trim().toLowerCase();
+    const subdomainName = String(req.body?.subdomain || '').trim().toLowerCase();
     const count = Number.parseInt(req.body?.count, 10);
-    if (!/^[a-z0-9][a-z0-9._-]{0,39}$/.test(prefix) || !domainName || !Number.isInteger(count) || count < 1 || count > 100) {
-      return res.status(400).json({ error: 'invalid_request', message: 'prefix, aktif domain ve 1-100 arası count gerekli' });
+    if (!/^[a-z0-9][a-z0-9._-]{0,39}$/.test(prefix) || !domainName || !Number.isInteger(count) || count < 1 || count > 1000) {
+      return res.status(400).json({ error: 'invalid_request', message: 'prefix, aktif domain ve 1-1000 arası count gerekli' });
     }
-    const domain = db.get('SELECT id, domain FROM domains WHERE domain = ? AND is_active = 1', [domainName]);
+    const domain = db.get('SELECT id, domain, wildcard_subdomains FROM domains WHERE domain = ? AND is_active = 1', [domainName]);
     if (!domain) return res.status(400).json({ error: 'invalid_domain', message: 'Domain bulunamadı veya aktif değil' });
+    // Resolve subdomain (optional) into the full host used in the address.
+    let fullDomain = domain.domain;
+    if (subdomainName) {
+      if (!domain.wildcard_subdomains) {
+        return res.status(400).json({ error: 'invalid_subdomain', message: 'Bu domain için subdomain desteği aktif değil' });
+      }
+      const sub = db.get('SELECT id FROM subdomains WHERE domain_id = ? AND subdomain = ? AND is_active = 1', [domain.id, subdomainName]);
+      if (!sub) return res.status(400).json({ error: 'invalid_subdomain', message: 'Subdomain bulunamadı veya aktif değil' });
+      fullDomain = `${subdomainName}.${domain.domain}`;
+    }
     const targetPackage = isAdmin ? getUserPackage(db, user.role, user.package_name) : pkg;
     const currentCount = getAddressCount(db, user.id);
     const remaining = Math.max(0, Number(targetPackage.max_addresses || 0) - currentCount);
@@ -327,7 +338,7 @@ router.post('/bulk', requireApiScope('bulk:write'), rateLimit({ max: 5, key: 'ad
       index = Number(pool.next_index || 0);
       while (addresses.length < count) {
         const username = `${prefix}_${index}`;
-        const address = `${username}@${domain.domain}`;
+        const address = `${username}@${fullDomain}`;
         index += 1;
         if (db.get('SELECT id FROM addresses WHERE address = ?', [address])) continue;
         db.run(`INSERT INTO addresses (address, username, domain_id, user_id, bulk_pool_id, is_persistent, expires_at, last_accessed)
@@ -341,9 +352,9 @@ router.post('/bulk', requireApiScope('bulk:write'), rateLimit({ max: 5, key: 'ad
       action: isAdmin ? 'bulk.generate.admin_override' : 'bulk.generate',
       entityType: 'bulk_pool',
       entityId: pool.id,
-      metadata: { owner_user_id: user.id, prefix, domain: domain.domain, count: addresses.length, quota_override: isAdmin },
+      metadata: { owner_user_id: user.id, prefix, domain: fullDomain, count: addresses.length, quota_override: isAdmin },
     });
-    res.status(201).json({ addresses, pool: { id: pool.id, prefix, domain: domain.domain, status: pool.status, next_index: index }, quota: { current: currentCount, remaining, overridden: isAdmin } });
+    res.status(201).json({ addresses, pool: { id: pool.id, prefix, domain: fullDomain, status: pool.status, next_index: index }, quota: { current: currentCount, remaining, overridden: isAdmin } });
   } catch (err) {
     console.error('Bulk adres oluşturma hatası:', err);
     res.status(err.status || 500).json({ error: err.code || 'internal_error', message: err.message || 'Bulk adres oluşturulamadı' });

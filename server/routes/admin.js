@@ -896,4 +896,69 @@ router.put('/package-requests/:id', (req, res) => {
   }
 });
 
+// ponytail: seed test mails into the SAME in-memory DB the backend serves.
+// The standalone server/scripts/seed-mails.js runs in a separate process and
+// can't reach sql.js memory — this endpoint writes from inside the server.
+const SEED_PROVIDERS = [
+  { domain: 'google.com', sender: 'no-reply@accounts.google.com', subjects: ['Güvenlik uyarısı', 'Yeni giriş algılandı', 'Hesap doğrulama'] },
+  { domain: 'github.com', sender: 'noreply@github.com', subjects: ['Yeni cihaz girişi', 'İki faktörlü doğrulama kodu', 'Repository daveti'] },
+  { domain: 'microsoft.com', sender: 'account-security-noreply@accountprotection.microsoft.com', subjects: ['Microsoft hesap kodu', 'Olağandışı aktivite', 'Parola sıfırlama'] },
+  { domain: 'facebook.com', sender: 'login@facebookmail.com', subjects: ['Facebook giriş kodu', 'Yeni cihaz algılandı', 'Güvenlik kontrolü'] },
+  { domain: 'amazon.com', sender: 'no-reply@amazon.com', subjects: ['Sipariş onayı', 'Kargo güncellemesi', 'Hesap doğrulama'] },
+  { domain: 'netflix.com', sender: 'info@netflix.com', subjects: ['Yeni cihaz girişi', 'Ödeme hatası', 'Yeni içerik'] },
+  { domain: 'linkedin.com', sender: 'messages-noreply@linkedin.com', subjects: ['Yeni bağlantı', 'Mesajın var', 'Profil görüntülendi'] },
+  { domain: 'apple.com', sender: 'no_reply@email.apple.com', subjects: ['Apple Kimliği kodu', 'Yeni cihaz girişi', 'İki adımlı doğrulama'] },
+];
+function seedExtractProviderTag(sender) {
+  const m = String(sender || '').match(/@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  if (!m) return '';
+  let d = m[1].toLowerCase();
+  const IGNORED = ['login','support','reply','email','no-reply','noreply','mailer','mail','notification','notify','notifications','messages'];
+  const parts = d.split('.');
+  while (parts.length > 2 && IGNORED.includes(parts[0])) parts.shift();
+  return parts.join('.');
+}
+const SEED_OTP_TPL = [
+  (c) => `Doğrulama kodunuz: ${c}. Bu kodu kimseyle paylaşmayın.`,
+  (c) => `Your verification code is ${c}. Do not share it.`,
+  (c) => `<div><p>Güvenlik kodu: <strong>${c}</strong></p></div>`,
+  (c) => `Hesabınız için tek kullanımlık şifreniz: ${c}`,
+  (c) => `Login code: ${c}`,
+];
+router.post('/seed-mails', (req, res) => {
+  try {
+    const db = getDb();
+    const targetAddress = String(req.body?.address || '').trim().toLowerCase();
+    const count = Math.min(Math.max(Number.parseInt(req.body?.count, 10) || 50, 1), 500);
+    if (!targetAddress) return res.status(400).json({ error: 'address gerekli' });
+    const addr = db.get('SELECT id, address FROM addresses WHERE address = ?', [targetAddress]);
+    if (!addr) return res.status(404).json({ error: 'Adres bulunamadı', address: targetAddress });
+
+    const now = Date.now();
+    let otpCount = 0;
+    for (let i = 0; i < count; i++) {
+      const provider = SEED_PROVIDERS[Math.floor(Math.random() * SEED_PROVIDERS.length)];
+      const isOtp = Math.random() < 0.5;
+      const code = String(100000 + Math.floor(Math.random() * 900000));
+      const subject = provider.subjects[Math.floor(Math.random() * provider.subjects.length)] + (isOtp ? ` (${code})` : '');
+      const tpl = SEED_OTP_TPL[Math.floor(Math.random() * SEED_OTP_TPL.length)];
+      const body = isOtp ? tpl(code) : `Bu bir test mailidir. Provider: ${provider.domain}. Konu: ${subject}`;
+      const bodyHtml = body.includes('<div>') ? body : `<div><p>${body}</p></div>`;
+      const receivedAt = new Date(now - (count - i) * 60000).toISOString();
+      const providerTag = seedExtractProviderTag(provider.sender);
+      const otpCode = isOtp ? (extractOtpFromEmail(subject, body, bodyHtml) || code) : '';
+      if (otpCode) otpCount += 1;
+      db.run(
+        `INSERT INTO emails (address_id, sender, subject, body_text, body_html, has_attachments, otp_code, provider_tag, received_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [addr.id, provider.sender, subject, body, bodyHtml, 0, otpCode, providerTag, receivedAt]
+      );
+    }
+    res.json({ success: true, address: addr.address, inserted: count, otp: otpCount });
+  } catch (err) {
+    console.error('Seed mail hatası:', err);
+    res.status(500).json({ error: 'internal_error', message: 'Test mailleri eklenemedi' });
+  }
+});
+
 module.exports = router;

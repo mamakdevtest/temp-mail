@@ -1,0 +1,125 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - button "Inbox" [ref=e6] [cursor=pointer]:
+          - generic [ref=e11]:
+            - paragraph [ref=e12]: MS Temp Mail
+            - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+        - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+          - generic [ref=e19]: ⌘K
+        - generic [ref=e20]:
+          - generic [ref=e121]: Canlı
+          - button "admin Admin Kullanıcı" [ref=e22] [cursor=pointer]:
+            - generic [ref=e24]:
+              - generic [ref=e25]: admin
+              - generic [ref=e26]: Admin Kullanıcı
+    - main [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e32]:
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: BULK STUDIO
+            - heading "Bulk Studio" [level=1] [ref=e47]
+            - paragraph [ref=e48]: Prefix tabanlı adres havuzları oluştur ve yönet.
+          - generic [ref=e52]:
+            - paragraph [ref=e53]: Plan
+            - paragraph [ref=e54]: admin override
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: "01"
+              - heading "Yeni adres serisi" [level=2] [ref=e59]
+            - generic [ref=e60]:
+              - generic [ref=e61]: Prefix
+              - textbox "ornek" [ref=e62]
+              - paragraph [ref=e63]: Prefix ile başla
+            - generic [ref=e64]:
+              - generic [ref=e65]: Domain
+              - combobox [ref=e67] [cursor=pointer]:
+                - option "asdsad.com" [selected]
+                - option "mmkgams.space"
+                - option "testaudit123.com"
+            - generic [ref=e123]:
+              - generic [ref=e124]: bulk.subdomainLabel
+              - combobox [ref=e126] [cursor=pointer]:
+                - option "bulk.noSubdomain" [selected]
+                - option "asdsadsa.asdsad.com"
+            - generic [ref=e68]:
+              - generic [ref=e69]: Kaç adres?
+              - generic [ref=e70]:
+                - button "5" [ref=e71] [cursor=pointer]
+                - button "10" [ref=e72] [cursor=pointer]
+                - button "25" [ref=e73] [cursor=pointer]
+                - button "50" [ref=e74] [cursor=pointer]
+                - button "100" [ref=e75] [cursor=pointer]
+                - button "250" [ref=e76] [cursor=pointer]
+                - button "500" [ref=e77] [cursor=pointer]
+                - button "1000" [ref=e78] [cursor=pointer]
+              - spinbutton [ref=e79]: "10"
+            - button "Adresleri oluştur" [ref=e80] [cursor=pointer]
+          - complementary [ref=e82]:
+            - generic [ref=e83]:
+              - generic [ref=e84]: "02"
+              - heading "Canlı önizleme" [level=2] [ref=e85]
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - paragraph [ref=e88]: İlk adres
+                - code [ref=e89]: prefix_0@domain
+              - generic [ref=e90]:
+                - paragraph [ref=e91]: Son adres
+                - code [ref=e92]: prefix_n@domain
+            - paragraph [ref=e93]: Yeni havuz 10 adres üretecek
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - generic [ref=e96]:
+              - generic [ref=e97]: "03"
+              - heading "Havuzların" [level=2] [ref=e98]
+            - generic [ref=e99]: aktif kayıt
+          - generic [ref=e127]:
+            - article [ref=e128]:
+              - generic [ref=e129]:
+                - code [ref=e130]: testbulk_* @mmkgams.space
+                - paragraph [ref=e131]: "6 adres · sonraki #6"
+              - generic [ref=e132]:
+                - button "Mailleri aç" [ref=e133] [cursor=pointer]
+                - button "Devam et" [ref=e137] [cursor=pointer]
+                - button "Kopyala" [ref=e138] [cursor=pointer]
+            - article [ref=e142]:
+              - generic [ref=e143]:
+                - code [ref=e144]: ehm_* @mmkgams.space
+                - paragraph [ref=e145]: "10 adres · sonraki #10"
+              - generic [ref=e146]:
+                - button "Mailleri aç" [ref=e147] [cursor=pointer]
+                - button "Devam et" [ref=e151] [cursor=pointer]
+                - button "Kopyala" [ref=e152] [cursor=pointer]
+            - article [ref=e156]:
+              - generic [ref=e157]:
+                - code [ref=e158]: dddd_* @mmkgams.space
+                - paragraph [ref=e159]: "10 adres · sonraki #10"
+              - generic [ref=e160]:
+                - button "Mailleri aç" [ref=e161] [cursor=pointer]
+                - button "Devam et" [ref=e165] [cursor=pointer]
+                - button "Kopyala" [ref=e166] [cursor=pointer]
+    - contentinfo [ref=e119]:
+      - paragraph [ref=e120]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"
+  - dialog "testbulk_*@mmkgams.space" [ref=e170]:
+    - generic [ref=e172]:
+      - generic [ref=e173]:
+        - heading "testbulk_*@mmkgams.space" [level=2] [ref=e174]
+        - paragraph [ref=e175]: Bulk Inbox · Havuzdaki tüm mailbox'lara gelen mailler ve OTP kodları
+      - button "Kapat" [ref=e176] [cursor=pointer]
+    - generic [ref=e181]:
+      - generic [ref=e182]:
+        - paragraph [ref=e183]: 6 mailbox · mail · OTP
+        - button "Yenile" [ref=e184] [cursor=pointer]
+      - generic [ref=e190]:
+        - textbox "Alıcı, gönderen veya konu ara" [ref=e192]
+        - button "Yalnız OTP" [ref=e193] [cursor=pointer]
+        - combobox "Limit" [ref=e196]:
+          - option "5"
+          - option "10"
+          - option "25" [selected]
+          - option "50"
+          - option "100"
+      - paragraph [ref=e197]: OTP kodlarına tıklayarak kopyalayın
+      - paragraph [ref=e210]: Bu havuza henüz mail gelmedi
