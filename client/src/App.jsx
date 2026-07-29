@@ -548,17 +548,52 @@ export default function App() {
     loadDomains();
   }, [loadDomains]);
 
+  // ponytail: keyboard shortcuts — J/K next/prev mail, Enter open, Del delete, C copy addr.
+  // Only when page is inbox, no input is focused, and a command palette/modal isn't open.
   useEffect(() => {
-    if (auth.user) {
-      restoreLastAddress();
-    }
-  }, [auth.user, restoreLastAddress]);
+    if (page !== 'inbox') return;
+    const onKey = (e) => {
+      const tag = (e.target?.tagName || '').toLowerCase();
+      const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
+      if (isTyping || cmdkOpen || showAuth || pendingDelete) return;
+      const list = emails;
+      if (!list.length) return;
+      const idx = selected ? list.findIndex((m) => m.id === selected.id) : -1;
+      const key = e.key.toLowerCase();
+      if (key === 'j') {
+        e.preventDefault();
+        const next = list[Math.min(idx + 1, list.length - 1)];
+        if (next) loadDetail(next.id);
+      } else if (key === 'k') {
+        e.preventDefault();
+        const prev = list[Math.max(idx - 1, 0)];
+        if (prev) loadDetail(prev.id);
+      } else if (key === 'enter' && selected) {
+        e.preventDefault();
+        copyAddr(addr?.address);
+      } else if (key === 'c' && addr?.address) {
+        e.preventDefault();
+        copyAddr(addr?.address);
+      } else if (key === 'delete' && selected) {
+        e.preventDefault();
+        delEmail(selected.id);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [page, emails, selected, cmdkOpen, showAuth, pendingDelete, loadDetail, copyAddr, delEmail, addr]);
 
   useEffect(() => {
-    if (domains.length > 0 && !addr && !loading && restoredRef.current && auth.user) {
-      if (!localStorage.getItem('tm-last-addr')) genRandom();
+    // D1: restore last address on mount (guest OR logged-in). If none saved,
+    // generate a random one once domains are loaded.
+    if (!restoredRef.current) {
+      restoredRef.current = true;
+      (async () => {
+        const ok = await restoreLastAddress();
+        if (!ok && domains.length > 0 && !addr) genRandom();
+      })();
     }
-  }, [domains, addr, loading, auth.user, genRandom]);
+  }, [restoreLastAddress, domains.length, addr, genRandom]);
 
   useEffect(() => {
     if (!addr || sockOn) {
@@ -575,19 +610,6 @@ export default function App() {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
     };
   }, [addr, sockOn, loadEmails]);
-
-  if (auth.loading) {
-    return (
-      <div className="min-h-screen bg-brand-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-blue to-accent-cyan flex items-center justify-center mx-auto mb-3 animate-pulse-soft">
-            <Mail size={20} className="text-white" />
-          </div>
-          <p className="text-xs text-txt-muted">{t('app.loading')}</p>
-        </div>
-      </div>
-    );
-  }
 
   const activeDomain = addr?.address?.split('@')[1] || (domains[0]?.domain || '');
 
@@ -649,6 +671,21 @@ export default function App() {
     }));
     return [...nav, ...actions, ...dom];
   }, [navGroups, domains, addr, t, navigate, genRandom, copyAddr, openAddr, setTheme]);
+
+  if (auth.loading) {
+    return (
+      <LocaleProvider language={language}>
+        <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-blue to-accent-cyan flex items-center justify-center mx-auto mb-3 animate-pulse-soft">
+              <Mail size={20} className="text-white" />
+            </div>
+            <p className="text-xs text-txt-muted">{t('app.loading')}</p>
+          </div>
+        </div>
+      </LocaleProvider>
+    );
+  }
 
   return (
     <LocaleProvider language={language}>

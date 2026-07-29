@@ -53,7 +53,7 @@ const TRANSLATIONS = {
       recipientPlaceholder: 'alici@ornek.com',
       subjectPlaceholder: 'Konu',
       bodyPlaceholder: 'Mesajınızı yazın',
-      guestHint: 'Admin: admin / admin123',
+      guestHint: 'Admin: admin/admin123',
       roleAdmin: 'Admin Kullanıcı',
       roleProPlus: 'Pro+ Kullanıcı',
       rolePro: 'Pro Kullanıcı',

@@ -870,6 +870,7 @@ const AccountPanel = forwardRef(function AccountPanel({
         onPreviewNotificationSound={onPreviewNotificationSound}
         accent={accent}
         onAccentChange={onAccentChange}
+        authToken={authToken}
         savePreferences={savePreferences}
         onRequestPro={onRequestPro}
         isAdmin={isAdmin}

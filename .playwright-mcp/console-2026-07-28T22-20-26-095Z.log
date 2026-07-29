@@ -1,0 +1,11 @@
+[     181ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:21550
+[     419ms] [WARNING] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1499
+[ 7200360ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:559
+[ 7200363ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:3000/api/emails/4th86tck%40mmkgams.space?limit=100&order=desc:0
+[ 7200363ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:3000/:0
+[10838856ms] [ERROR] WebSocket connection to 'ws://localhost:3000/socket.io/?EIO=4&transport=websocket' failed: Error during WebSocket handshake: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:3000/node_modules/.vite/deps/socket__io-client.js?v=64beea69:1523
+[10838856ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:3000/api/emails/4th86tck%40mmkgams.space?limit=100&order=desc:0
+[10838856ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:3000/:0
+[11701695ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-NUMECXU6.js?v=64beea69:21550
+[11744207ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:559
+[11744209ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:3000/:0

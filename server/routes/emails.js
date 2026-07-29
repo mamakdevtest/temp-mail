@@ -38,7 +38,7 @@ function listEmails(db, addressId, options) {
   if (Number.isInteger(options.afterId) && options.afterId > 0) { where.push('id > ?'); params.push(options.afterId); }
   if (options.since && !Number.isNaN(Date.parse(options.since))) { where.push('received_at > ?'); params.push(new Date(options.since).toISOString()); }
   params.push(options.limit);
-  return db.all(`SELECT id, sender, subject, body_text, body_html, received_at, has_attachments, otp_code
+  return db.all(`SELECT id, sender, subject, body_text, body_html, received_at, has_attachments, otp_code, provider_tag
     FROM emails WHERE ${where.join(' AND ')} ORDER BY received_at ${options.order}, id ${options.order} LIMIT ?`, params)
     .map((mail) => {
       const detectedOtp = extractOtpFromEmail(mail.subject, mail.body_text, mail.body_html) || '';
@@ -50,6 +50,7 @@ function listEmails(db, addressId, options) {
       received_at: mail.received_at,
       has_attachments: !!mail.has_attachments,
       otp_code: detectedOtp || mail.otp_code || '',
+      provider_tag: mail.provider_tag || '',
     });
     });
 }

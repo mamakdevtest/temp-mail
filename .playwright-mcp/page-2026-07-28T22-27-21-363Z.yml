@@ -1,0 +1,49 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Inbox" [ref=e6] [cursor=pointer]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: MS Temp Mail
+          - paragraph [ref=e13]: Mamak Studio temporary mail workspace
+      - button "Ara veya komut çalıştır…" [ref=e14] [cursor=pointer]:
+        - generic [ref=e19]: ⌘K
+      - button "admin Admin Kullanıcı" [ref=e22] [cursor=pointer]:
+        - generic [ref=e24]:
+          - generic [ref=e25]: admin
+          - generic [ref=e26]: Admin Kullanıcı
+  - main [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - generic [ref=e34]:
+            - paragraph [ref=e35]: Geçici E-Posta Adresiniz
+            - paragraph [ref=e36]: Adresiniz anında aktif olur, mailler aşağıdaki gelen kutusuna düşer.
+          - generic [ref=e38]:
+            - textbox "username" [ref=e39]: 4th86tck
+            - generic [ref=e40]: "@"
+            - button "mmkgams.space" [ref=e42] [cursor=pointer]
+            - button "Kopyala" [ref=e46] [cursor=pointer]
+          - generic [ref=e50]:
+            - button "Kopyala" [ref=e51] [cursor=pointer]
+            - button "Yenile" [ref=e55] [cursor=pointer]
+            - button "Rastgele" [ref=e61] [cursor=pointer]
+        - generic [ref=e69]:
+          - button [expanded] [active] [ref=e70] [cursor=pointer]
+          - generic [ref=e112]:
+            - button "iris54@e.mmkgams.space 1 sa" [ref=e113] [cursor=pointer]:
+              - generic [ref=e117]:
+                - generic [ref=e118]: iris54@e.mmkgams.space
+                - generic [ref=e119]: 1 sa
+            - button "brazier5801@set.mmkgams.space 2 sa" [ref=e120] [cursor=pointer]:
+              - generic [ref=e124]:
+                - generic [ref=e125]: brazier5801@set.mmkgams.space
+                - generic [ref=e126]: 2 sa
+      - generic [ref=e77]:
+        - generic [ref=e80]:
+          - paragraph [ref=e85]: Önce bir adres oluşturun
+          - paragraph [ref=e86]: Gelen mailler burada görünecek.
+        - generic [ref=e89]:
+          - paragraph [ref=e94]: Bir e-posta seçin
+          - paragraph [ref=e95]: Lütfen soldaki listeden bir e-posta seçerek içeriğini görüntüleyin.
+  - contentinfo [ref=e96]:
+    - paragraph [ref=e97]: "MS Temp Mail · Dev: Emir Han Mamak · Mamak Studio"

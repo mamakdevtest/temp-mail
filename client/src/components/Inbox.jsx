@@ -71,6 +71,7 @@ export default function Inbox({ emails, selectedId, onSelect, onDelete, hasAddr,
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-medium text-txt-primary truncate">{m.sender}</p>
+                        {m.provider_tag && <span className="badge-blue text-[9px] px-1.5 py-0 truncate max-w-[80px]">{m.provider_tag}</span>}
                         {m.otp_code && <span className="badge-purple text-[9px] px-1.5 py-0">{t('inbox.otpBadge')}</span>}
                         {m.has_attachments === 1 && <Paperclip size={11} className="text-txt-muted shrink-0" />}
                       </div>

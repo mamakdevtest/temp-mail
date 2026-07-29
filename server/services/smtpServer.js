@@ -5,6 +5,20 @@ const { extractOtpFromEmail } = require('../utils/otpDetection');
 const { publishNewEmail } = require('./emailEvents');
 const { dispatchUserEvent } = require('./webhooks');
 
+// ponytail: strip common subdomain prefixes the user wants ignored
+// (login./support./reply./email./no-reply./noreply./mailer./notification./notify.)
+// so mail.google.com → google.com, noreply@github.com → github.com.
+// Returns '' if sender has no parseable domain.
+function extractProviderTag(sender) {
+  const m = String(sender || '').match(/@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  if (!m) return '';
+  let domain = m[1].toLowerCase();
+  const IGNORED = ['login', 'support', 'reply', 'email', 'no-reply', 'noreply', 'mailer', 'mail', 'notification', 'notify', 'notifications', 'noreply'];
+  const parts = domain.split('.');
+  while (parts.length > 2 && IGNORED.includes(parts[0])) parts.shift();
+  return parts.join('.');
+}
+
 /**
  * SMTP sunucusunu başlatır
  * Port 25'te gelen mailleri dinler ve veritabanına kaydeder
@@ -105,10 +119,11 @@ async function processIncomingMail(rawMail, session, io) {
 
     const receivedAt = new Date().toISOString();
     const otpCode = extractOtpFromEmail(subject, bodyText, bodyHtml) || '';
+    const providerTag = extractProviderTag(sender);
     const result = db.run(
-      `INSERT INTO emails (address_id, sender, subject, body_text, body_html, has_attachments, otp_code, received_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [address.id, sender, subject, bodyText, bodyHtml, hasAttachments, otpCode, receivedAt]
+      `INSERT INTO emails (address_id, sender, subject, body_text, body_html, has_attachments, otp_code, provider_tag, received_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [address.id, sender, subject, bodyText, bodyHtml, hasAttachments, otpCode, providerTag, receivedAt]
     );
 
     const emailId = result.lastInsertRowid;

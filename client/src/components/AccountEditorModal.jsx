@@ -18,11 +18,13 @@ import {
   Shield,
   ShieldCheck,
   Star,
+  Tag,
   Upload,
   User,
   X,
 } from 'lucide-react';
 import Modal from './Modal';
+import { apiFetch } from '../utils/apiFetch';
 import { useLocale, LANGS } from '../i18n';
 import { SidebarNavButton, SettingRow, SmallSelect, ToggleSwitch, StatTile, Avatar } from './ui';
 
@@ -43,6 +45,7 @@ function buildTabs(t) {
     { id: 'profil', label: t('accountModal.tabs.profile'), icon: User, subtitle: t('accountModal.tabsSubtitle.profile') },
     { id: 'guvenlik', label: t('accountModal.tabs.security'), icon: Shield, subtitle: t('accountModal.tabsSubtitle.security') },
     { id: 'tercihler', label: t('accountModal.tabs.preferences'), icon: Globe, subtitle: t('accountModal.tabsSubtitle.preferences') },
+    { id: 'adresler', label: t('accountModal.tabs.addresses') || 'Adresler', icon: Tag, subtitle: t('accountModal.tabsSubtitle.addresses') || 'Etiket ve favoriler' },
     { id: 'oturumlar', label: t('accountModal.tabs.sessions'), icon: History, subtitle: t('accountModal.tabsSubtitle.sessions') },
     { id: 'kullanim', label: t('accountModal.tabs.usage'), icon: Crown, subtitle: t('accountModal.tabsSubtitle.usage') },
   ];
@@ -85,6 +88,7 @@ export default function AccountEditorModal({
   saving,
   loadCenter,
   center,
+  authToken,
   revokeSession,
   formatAdminDate,
   prefDraft,
@@ -741,6 +745,82 @@ export default function AccountEditorModal({
     </div>
   );
 
+  const [tagDrafts, setTagDrafts] = useState({});
+  const [tagSaving, setTagSaving] = useState(null);
+
+  const updateAddressTags = async (addrId, tags) => {
+    setTagSaving(addrId);
+    try {
+      const r = await apiFetch('/api/auth/addresses/' + addrId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken || ''}` },
+        body: JSON.stringify({ tags }),
+      });
+      if (r.ok) { await loadCenter?.(); }
+    } catch (_) { /* */ }
+    setTagSaving(null);
+  };
+
+  const renderAddresses = () => {
+    const list = Array.isArray(center?.addresses) ? center.addresses : [];
+    return (
+      <section className="space-y-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-txt-muted">{t('accountModal.tabs.addresses') || 'Adresler'}</p>
+          <h4 className="mt-1 text-lg font-semibold text-txt-primary">{t('accountModal.addressListTitle') || 'Etiket ve Favoriler'}</h4>
+          <p className="mt-1 text-sm text-txt-secondary">{t('accountModal.addressListHint') || 'Adreslerine etiket ata, favorilere ekle.'}</p>
+        </div>
+        {list.length === 0 ? (
+          <div className="rounded-[var(--r-lg)] border border-dashed border-brand-border bg-brand-surface2/40 py-10 px-5 text-center">
+            <p className="text-sm text-txt-secondary">{t('accountModal.noAddresses') || 'Henüz adres yok.'}</p>
+          </div>
+        ) : list.map((addr) => {
+          const draft = tagDrafts[addr.id] ?? (addr.tags || []);
+          return (
+            <div key={addr.id} className="rounded-[var(--r-lg)] border border-brand-border bg-brand-surface2/60 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <code className="t-mono text-sm text-txt-primary break-all">{addr.address}</code>
+                  <p className="text-xs text-txt-muted mt-1">{addr.email_count || 0} mail{addr.has_password ? ' · şifreli' : ''}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => updateAddressTags(addr.id, draft)}
+                    disabled={tagSaving === addr.id}
+                    className="text-[11px] text-[rgb(var(--brand))] hover:underline disabled:opacity-50"
+                  >
+                    {tagSaving === addr.id ? '...' : t('app.save')}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                {draft.map((tag) => (
+                  <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-[rgb(var(--brand)/0.12)] px-2 py-0.5 text-[11px] text-[rgb(var(--brand))]">
+                    {tag}
+                    <button type="button" onClick={() => setTagDrafts((p) => ({ ...p, [addr.id]: draft.filter((x) => x !== tag) }))} className="hover:text-[rgb(var(--danger-fg))]" aria-label="remove tag">×</button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  placeholder="+ etiket"
+                  className="bg-transparent text-[11px] text-txt-primary outline-none placeholder:text-txt-muted w-20"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const v = e.target.value.trim();
+                      if (v && !draft.includes(v)) setTagDrafts((p) => ({ ...p, [addr.id]: [...draft, v] }));
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </section>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab.id) {
       case 'profil':
@@ -749,6 +829,8 @@ export default function AccountEditorModal({
         return renderSecurity();
       case 'tercihler':
         return renderPreferences();
+      case 'adresler':
+        return renderAddresses();
       case 'oturumlar':
         return renderSessions();
       case 'kullanim':

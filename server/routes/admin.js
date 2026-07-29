@@ -136,7 +136,8 @@ router.get('/domains', (req, res) => {
     const db = getDb();
     const domains = db.all(`
       SELECT d.*,
-        (SELECT COUNT(*) FROM addresses a WHERE a.domain_id = d.id) as address_count
+        (SELECT COUNT(*) FROM addresses a WHERE a.domain_id = d.id) as address_count,
+        (SELECT COUNT(*) FROM emails e JOIN addresses a2 ON e.address_id = a2.id WHERE a2.domain_id = d.id) as email_count
       FROM domains d
       ORDER BY d.created_at DESC
     `);
@@ -418,7 +419,7 @@ router.get('/stats', (req, res) => {
     const otpEmails = [];
     for (const mail of recentMailBodies) {
       const text = mail.body_text || stripHtml(mail.body_html || '');
-      const otp = extractOtp(text);
+      const otp = extractOtpFromEmail(mail.subject, text, mail.body_html || '');
       if (otp) {
         otpCount += 1;
         otpEmails.push({

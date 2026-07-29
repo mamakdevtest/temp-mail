@@ -1666,6 +1666,13 @@ export default function AdminPanel({ api, token, notificationSound = 'classic', 
                           </div>
                           <p className="text-lg font-semibold text-accent-green mt-3">{t('admin.ui.domains.addrUnit', { count: rootAddressCount })}</p>
                         </div>
+                        <div className="rounded-[26px] border border-brand-border/20 bg-brand-surface2/35 px-4 py-4">
+                          <div className="flex items-center gap-2 text-txt-secondary">
+                            <Mail size={15} className="text-accent-cyan" />
+                            <span className="text-sm">{t('admin.ui.domains.totalMails', { fallback: 'Toplam Mail' })}</span>
+                          </div>
+                          <p className="text-lg font-semibold text-accent-cyan mt-3">{domain.email_count || 0}</p>
+                        </div>
                       </div>
 
                       {expandedDomains[domain.id] ? (

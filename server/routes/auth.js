@@ -80,7 +80,7 @@ function getUserCenterPayload(db, userId) {
     ORDER BY d.domain ASC
   `, [userId]);
   const addresses = db.all(`
-    SELECT a.id, a.address, a.username, a.nickname, a.note, a.is_favorite, a.is_locked, a.locked_until, a.custom_retention_days,
+    SELECT a.id, a.address, a.username, a.nickname, a.note, a.is_favorite, a.is_locked, a.locked_until, a.custom_retention_days, a.tags,
            a.created_at, a.last_accessed, a.expires_at, a.is_persistent, a.password_hash IS NOT NULL as has_password,
            d.domain,
            (SELECT COUNT(*) FROM emails e WHERE e.address_id = a.id) as email_count,
@@ -94,6 +94,7 @@ function getUserCenterPayload(db, userId) {
     has_password: addr.has_password === 1,
     is_favorite: addr.is_favorite === 1,
     is_locked: addr.is_locked === 1,
+    tags: addr.tags ? String(addr.tags).split(',').map((s) => s.trim()).filter(Boolean) : [],
   }));
 
   return {
@@ -865,7 +866,7 @@ router.get('/addresses', authMiddleware, (req, res) => {
   try {
     const db = getDb();
     const addresses = db.all(`
-      SELECT a.id, a.address, a.username, a.nickname, a.note, a.is_favorite, a.is_locked, a.locked_until, a.custom_retention_days,
+      SELECT a.id, a.address, a.username, a.nickname, a.note, a.is_favorite, a.is_locked, a.locked_until, a.custom_retention_days, a.tags,
              a.created_at, a.last_accessed, a.expires_at, a.is_persistent, a.password_hash IS NOT NULL as has_password,
              d.domain,
              (SELECT COUNT(*) FROM emails e WHERE e.address_id = a.id) as email_count,
@@ -879,6 +880,7 @@ router.get('/addresses', authMiddleware, (req, res) => {
       has_password: addr.has_password === 1,
       is_favorite: addr.is_favorite === 1,
       is_locked: addr.is_locked === 1,
+      tags: addr.tags ? String(addr.tags).split(',').map((s) => s.trim()).filter(Boolean) : [],
     }));
     res.json({ addresses });
   } catch (err) {
@@ -914,13 +916,20 @@ router.put('/addresses/:id', authMiddleware, (req, res) => {
       updates.push('custom_retention_days = ?');
       params.push(Number.isFinite(days) ? Math.max(1, Math.min(365, days)) : null);
     }
+    if (typeof req.body.tags !== 'undefined') {
+      const tagStr = Array.isArray(req.body.tags)
+        ? req.body.tags.map((s) => String(s).trim()).filter(Boolean).join(',')
+        : String(req.body.tags || '').trim();
+      updates.push('tags = ?');
+      params.push(tagStr);
+    }
     if (updates.length === 0) {
       return res.status(400).json({ error: 'Güncellenecek alan yok' });
     }
     params.push(addr.id);
     db.run(`UPDATE addresses SET ${updates.join(', ')} WHERE id = ?`, params);
     const updated = db.get(`
-      SELECT a.id, a.address, a.username, a.nickname, a.note, a.is_favorite, a.is_locked, a.locked_until, a.custom_retention_days,
+      SELECT a.id, a.address, a.username, a.nickname, a.note, a.is_favorite, a.is_locked, a.locked_until, a.custom_retention_days, a.tags,
              a.created_at, a.last_accessed, a.expires_at, a.is_persistent, a.password_hash IS NOT NULL as has_password,
              d.domain
       FROM addresses a
@@ -932,6 +941,7 @@ router.put('/addresses/:id', authMiddleware, (req, res) => {
       has_password: updated.has_password === 1,
       is_favorite: updated.is_favorite === 1,
       is_locked: updated.is_locked === 1,
+      tags: updated.tags ? String(updated.tags).split(',').map((s) => s.trim()).filter(Boolean) : [],
     } });
   } catch (err) {
     console.error('Adres güncelleme hatası:', err);
